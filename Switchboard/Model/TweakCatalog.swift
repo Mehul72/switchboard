@@ -1,7 +1,7 @@
 import Foundation
 
 enum TweakCatalog {
-    static let all: [Tweak] = dock
+    static let all: [Tweak] = dock + finder
 
     static let dock: [Tweak] = [
         Tweak(id: "dock.autohide-delay",
@@ -51,5 +51,65 @@ enum TweakCatalog {
               onValue: .bool(false),
               offValue: .bool(true),
               restart: .dock)
+    ]
+
+    static let finder: [Tweak] = [
+        Tweak(id: "finder.AppleShowAllFiles",
+              title: "Show hidden files",
+              category: .finder,
+              domain: "com.apple.finder",
+              key: "AppleShowAllFiles",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .finder),
+        Tweak(id: "finder.AppleShowAllExtensions",
+              title: "Show all file extensions",
+              category: .finder,
+              domain: "NSGlobalDomain",
+              key: "AppleShowAllExtensions",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .finder),
+        Tweak(id: "finder.ShowPathbar",
+              title: "Show path bar",
+              category: .finder,
+              domain: "com.apple.finder",
+              key: "ShowPathbar",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .finder),
+        Tweak(id: "finder.ShowStatusBar",
+              title: "Show status bar",
+              category: .finder,
+              domain: "com.apple.finder",
+              key: "ShowStatusBar",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .finder),
+        Tweak(id: "finder._FXSortFoldersFirst",
+              title: "Folders first when sorting",
+              category: .finder,
+              domain: "com.apple.finder",
+              key: "_FXSortFoldersFirst",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .finder),
+        Tweak(id: "finder.FXDefaultSearchScope",
+              title: "Search current folder by default",
+              subtitle: "Instead of searching the whole Mac",
+              category: .finder,
+              domain: "com.apple.finder",
+              key: "FXDefaultSearchScope",
+              onValue: .string("SCcf"),
+              restart: .finder),
+        Tweak(id: "finder.DSDontWriteNetworkStores",
+              title: "No .DS_Store on network drives",
+              subtitle: "Takes effect on the next mount",
+              category: .finder,
+              domain: "com.apple.desktopservices",
+              key: "DSDontWriteNetworkStores",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .finder)
     ]
 }
