@@ -1,7 +1,7 @@
 import Foundation
 
 enum TweakCatalog {
-    static let all: [Tweak] = dock + finder + screenshots
+    static let all: [Tweak] = dock + finder + screenshots + speed + typing
 
     static let dock: [Tweak] = [
         Tweak(id: "dock.autohide-delay",
@@ -151,5 +151,83 @@ enum TweakCatalog {
               onValue: .bool(false),
               offValue: .bool(true),
               restart: .systemUIServer)
+    ]
+
+    static let speed: [Tweak] = [
+        Tweak(id: "speed.NSAutomaticWindowAnimationsEnabled",
+              title: "No window open/close animation",
+              category: .speed,
+              domain: "NSGlobalDomain",
+              key: "NSAutomaticWindowAnimationsEnabled",
+              onValue: .bool(false),
+              offValue: .bool(true)),
+        Tweak(id: "speed.expose-animation-duration",
+              title: "Faster Mission Control",
+              category: .speed,
+              domain: "com.apple.dock",
+              key: "expose-animation-duration",
+              onValue: .float(0.1),
+              restart: .dock),
+        Tweak(id: "speed.NSWindowResizeTime",
+              title: "Instant window resize",
+              subtitle: "Only affects apps that animate their own resizes",
+              category: .speed,
+              domain: "NSGlobalDomain",
+              key: "NSWindowResizeTime",
+              onValue: .float(0.001)),
+        Tweak(id: "speed.KeyRepeat",
+              title: "Fast key repeat",
+              subtitle: "Faster than System Settings allows",
+              category: .speed,
+              domain: "NSGlobalDomain",
+              key: "KeyRepeat",
+              onValue: .int(2)),
+        Tweak(id: "speed.InitialKeyRepeat",
+              title: "Short repeat delay",
+              category: .speed,
+              domain: "NSGlobalDomain",
+              key: "InitialKeyRepeat",
+              onValue: .int(15))
+    ]
+
+    // Nothing to restart -- AppKit reads these when a text view is created, so
+    // already-running apps keep the old behaviour until they relaunch.
+    static let typing: [Tweak] = [
+        Tweak(id: "typing.NSAutomaticSpellingCorrectionEnabled",
+              title: "Disable autocorrect",
+              category: .typing,
+              domain: "NSGlobalDomain",
+              key: "NSAutomaticSpellingCorrectionEnabled",
+              onValue: .bool(false),
+              offValue: .bool(true)),
+        Tweak(id: "typing.NSAutomaticQuoteSubstitutionEnabled",
+              title: "Disable smart quotes",
+              category: .typing,
+              domain: "NSGlobalDomain",
+              key: "NSAutomaticQuoteSubstitutionEnabled",
+              onValue: .bool(false),
+              offValue: .bool(true)),
+        Tweak(id: "typing.NSAutomaticDashSubstitutionEnabled",
+              title: "Disable smart dashes",
+              category: .typing,
+              domain: "NSGlobalDomain",
+              key: "NSAutomaticDashSubstitutionEnabled",
+              onValue: .bool(false),
+              offValue: .bool(true)),
+        Tweak(id: "typing.NSAutomaticCapitalizationEnabled",
+              title: "Disable auto-capitalise",
+              category: .typing,
+              domain: "NSGlobalDomain",
+              key: "NSAutomaticCapitalizationEnabled",
+              onValue: .bool(false),
+              offValue: .bool(true)),
+        Tweak(id: "typing.ApplePressAndHoldEnabled",
+              title: "Hold key to repeat",
+              subtitle: "Replaces the accent picker",
+              category: .typing,
+              domain: "NSGlobalDomain",
+              key: "ApplePressAndHoldEnabled",
+              onValue: .bool(false),
+              offValue: .bool(true))
     ]
 }
