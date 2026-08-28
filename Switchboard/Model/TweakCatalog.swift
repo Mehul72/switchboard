@@ -1,7 +1,7 @@
 import Foundation
 
 enum TweakCatalog {
-    static let all: [Tweak] = dock + finder
+    static let all: [Tweak] = dock + finder + screenshots
 
     static let dock: [Tweak] = [
         Tweak(id: "dock.autohide-delay",
@@ -111,5 +111,45 @@ enum TweakCatalog {
               onValue: .bool(true),
               offValue: .bool(false),
               restart: .finder)
+    ]
+
+    static let screenshots: [Tweak] = [
+        Tweak(id: "screencapture.location",
+              title: "Save location",
+              category: .screenshots,
+              domain: "com.apple.screencapture",
+              key: "location",
+              onValue: .string(NSHomeDirectory() + "/Desktop"),
+              restart: .systemUIServer,
+              control: .folder),
+        Tweak(id: "screencapture.type",
+              title: "File format",
+              category: .screenshots,
+              domain: "com.apple.screencapture",
+              key: "type",
+              onValue: .string("png"),
+              restart: .systemUIServer,
+              control: .choice([
+                  Choice(label: "png", value: .string("png")),
+                  Choice(label: "jpg", value: .string("jpg")),
+                  Choice(label: "heic", value: .string("heic"))
+              ])),
+        Tweak(id: "screencapture.disable-shadow",
+              title: "No drop shadow",
+              category: .screenshots,
+              domain: "com.apple.screencapture",
+              key: "disable-shadow",
+              onValue: .bool(true),
+              offValue: .bool(false),
+              restart: .systemUIServer),
+        Tweak(id: "screencapture.show-thumbnail",
+              title: "Skip floating thumbnail",
+              subtitle: "Screenshots save straight away",
+              category: .screenshots,
+              domain: "com.apple.screencapture",
+              key: "show-thumbnail",
+              onValue: .bool(false),
+              offValue: .bool(true),
+              restart: .systemUIServer)
     ]
 }
