@@ -69,10 +69,12 @@ final class TweakStore: ObservableObject {
         ledger.capture(domain: tweak.domain, key: tweak.key)
         PreferenceStore.write(value, domain: tweak.domain, key: tweak.key)
 
-        if let value {
-            values[tweak.id] = value.propertyListValue
+        // Managed preferences and failed writes can disagree with what was
+        // requested. The row should always show what macOS will actually use.
+        if let current = PreferenceStore.effectiveValue(domain: tweak.domain, key: tweak.key) {
+            values[tweak.id] = current
         } else {
-            values[tweak.id] = PreferenceStore.effectiveValue(domain: tweak.domain, key: tweak.key)
+            values.removeValue(forKey: tweak.id)
         }
 
         if let target = tweak.restart {
