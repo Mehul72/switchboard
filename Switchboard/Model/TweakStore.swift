@@ -44,7 +44,11 @@ final class TweakStore: ObservableObject {
     }
 
     func selectedChoice(_ tweak: Tweak, among choices: [Choice]) -> Choice? {
-        choices.first { $0.value.matches(values[tweak.id]) }
+        if let stored = values[tweak.id] {
+            return choices.first { $0.value.matches(stored) }
+        }
+        // Key was never written, so the system is sitting on its own default.
+        return choices.first { $0.value == tweak.onValue }
     }
 
     func stringValue(_ tweak: Tweak) -> String? {
