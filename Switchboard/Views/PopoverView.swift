@@ -16,7 +16,11 @@ struct PopoverView: View {
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @FocusState private var searchFocused: Bool
 
-    private let maxScrollHeight: CGFloat = 368
+    // Header, search, navigation and footer occupy 152pt. The Apply bar takes
+    // its space from the rows so the popover never grows beyond 520pt.
+    private var maxScrollHeight: CGFloat {
+        Theme.maxPopoverHeight - 152 - (store.pendingRestarts.isEmpty ? 0 : 36)
+    }
 
     var body: some View {
         VStack(spacing: 0) {

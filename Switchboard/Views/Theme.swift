@@ -19,7 +19,7 @@ enum Theme {
     static let trackOff = Color.primary.opacity(0.12)
 
     static let popoverWidth: CGFloat = 380
-    static let maxContentHeight: CGFloat = 520
+    static let maxPopoverHeight: CGFloat = 520
     static let edgeInset: CGFloat = 12
 }
 
