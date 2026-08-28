@@ -26,11 +26,7 @@ struct CategoryNav: View {
                         }
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                            selection = category
-                        }
-                    }
+                    .onTapGesture { selection = category }
             }
             Spacer(minLength: 0)
         }
@@ -48,6 +44,7 @@ struct CategoryNav: View {
             Theme.accent
                 .frame(width: frame.width, height: 2)
                 .offset(x: frame.minX)
+                .animation(.spring(response: 0.28, dampingFraction: 0.72), value: selection)
         }
     }
 }

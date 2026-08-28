@@ -135,6 +135,7 @@ struct PopoverView: View {
             .padding(.vertical, 4)
             .id(store.category)
             .transition(.opacity)
+            .animation(.easeInOut(duration: 0.15), value: store.category)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Category.allCases, id: \.self) { category in
@@ -152,6 +153,9 @@ struct PopoverView: View {
                 }
             }
             .padding(.bottom, 8)
+            .id(store.search)
+            .transition(.opacity)
+            .animation(.easeOut(duration: 0.1), value: store.search)
         }
     }
 }
