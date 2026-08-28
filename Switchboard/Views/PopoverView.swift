@@ -10,9 +10,11 @@ private struct ContentHeight: PreferenceKey {
 
 struct PopoverView: View {
     @ObservedObject var store: TweakStore
+    let dismiss: () -> Void
 
     @State private var contentHeight: CGFloat = 0
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
+    @FocusState private var searchFocused: Bool
 
     private let maxScrollHeight: CGFloat = 368
 
@@ -37,6 +39,8 @@ struct PopoverView: View {
         }
         .frame(width: Theme.popoverWidth)
         .background(VisualEffectBackground())
+        .onExitCommand(perform: dismiss)
+        .onAppear { searchFocused = true }
         .animation(.spring(response: 0.2, dampingFraction: 0.85), value: store.pendingRestarts)
     }
 
@@ -75,6 +79,7 @@ struct PopoverView: View {
                 .foregroundStyle(Theme.tertiary)
             TextField("Search", text: $store.search)
                 .textFieldStyle(.plain)
+                .focused($searchFocused)
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.primary)
         }
