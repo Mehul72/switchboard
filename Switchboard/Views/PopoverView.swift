@@ -25,18 +25,18 @@ struct PopoverView: View {
                 .opacity(store.search.isEmpty ? 1 : 0.35)
                 .disabled(!store.search.isEmpty)
             content
-            Hairline()
-            footer
-        }
-        .frame(width: Theme.popoverWidth)
-        .background(VisualEffectBackground())
-        .overlay(alignment: .bottom) {
+            // Sits above the footer rather than over it, so Quit stays reachable
+            // while a restart is pending.
             if !store.pendingRestarts.isEmpty {
                 ApplyBar(summary: SystemRestart.summary(for: store.pendingRestarts)) {
                     store.applyPendingRestarts()
                 }
             }
+            Hairline()
+            footer
         }
+        .frame(width: Theme.popoverWidth)
+        .background(VisualEffectBackground())
         .animation(.spring(response: 0.2, dampingFraction: 0.85), value: store.pendingRestarts)
     }
 
