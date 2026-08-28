@@ -26,11 +26,14 @@ final class StatusItemController {
         // the search field takes focus again.
         store.refresh()
         store.search = ""
-        popover.contentViewController = NSHostingController(
+        let controller = NSHostingController(
             rootView: PopoverView(store: store, dismiss: { [weak self] in
                 self?.popover.performClose(nil)
             })
         )
+        controller.view.layoutSubtreeIfNeeded()
+        popover.contentViewController = controller
+        popover.contentSize = controller.view.fittingSize
 
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         // The hosting window starts behind whatever was frontmost, which eats

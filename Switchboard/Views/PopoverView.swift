@@ -12,14 +12,26 @@ struct PopoverView: View {
     @ObservedObject var store: TweakStore
     let dismiss: () -> Void
 
-    @State private var contentHeight: CGFloat = 0
+    @State private var contentHeight: CGFloat
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @FocusState private var searchFocused: Bool
+
+    init(store: TweakStore, dismiss: @escaping () -> Void) {
+        self.store = store
+        self.dismiss = dismiss
+        _contentHeight = State(initialValue: Self.rowHeight(for: store.visible))
+    }
 
     // Header, search, navigation and footer occupy 152pt. The Apply bar takes
     // its space from the rows so the popover never grows beyond 520pt.
     private var maxScrollHeight: CGFloat {
         Theme.maxPopoverHeight - 152 - (store.pendingRestarts.isEmpty ? 0 : 36)
+    }
+
+    private static func rowHeight(for tweaks: [Tweak]) -> CGFloat {
+        tweaks.reduce(8) { height, tweak in
+            height + (tweak.subtitle == nil ? 34 : 46)
+        }
     }
 
     var body: some View {
