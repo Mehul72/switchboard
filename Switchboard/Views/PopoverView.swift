@@ -96,12 +96,14 @@ struct PopoverView: View {
                 .onTapGesture { store.restoreDefaults() }
                 .opacity(store.hasUndoRecord ? 1 : 0.4)
                 .disabled(!store.hasUndoRecord)
+                .pointingHand()
             Spacer()
             Text("Quit")
                 .font(.footerLabel)
                 .foregroundStyle(Theme.tertiary)
                 .contentShape(Rectangle())
                 .onTapGesture { NSApp.terminate(nil) }
+                .pointingHand()
         }
         .padding(.horizontal, Theme.edgeInset)
         .frame(height: 40)

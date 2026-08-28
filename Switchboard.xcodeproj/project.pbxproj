@@ -16,6 +16,7 @@
 		301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */; };
 		46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */; };
 		4D63E359B5595FFF4E6D6937 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
+		4FCDAEBE37D78248D67A2A6E /* PointingHand.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8218D4B4BA7A564BE046CAE /* PointingHand.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
 		76BD06EA54E7BB8932A8088A /* SwitchboardToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C528F1FBD4F1D8FE74E42C /* SwitchboardToggle.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
@@ -47,6 +48,7 @@
 		BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectBackground.swift; sourceTree = "<group>"; };
 		BF49656E31E00F535E0CB517 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
+		D8218D4B4BA7A564BE046CAE /* PointingHand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointingHand.swift; sourceTree = "<group>"; };
 		F5AEA8ABFB9E4FB7596DA695 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -128,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */,
+				D8218D4B4BA7A564BE046CAE /* PointingHand.swift */,
 				BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */,
 			);
 			path = Support;
@@ -208,6 +211,7 @@
 				28E4DDC1EE8BD894B772EDA7 /* CategoryNav.swift in Sources */,
 				CD5993B1D118DDAB76607221 /* LaunchAtLogin.swift in Sources */,
 				7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */,
+				4FCDAEBE37D78248D67A2A6E /* PointingHand.swift in Sources */,
 				6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */,
 				1793CCE3A2BB273424433034 /* PreferenceStore.swift in Sources */,
 				2ACE5320E3A5CF28D5A5A15E /* RestartCoordinator.swift in Sources */,

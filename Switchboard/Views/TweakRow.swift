@@ -73,6 +73,7 @@ private struct ChoicePicker: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { onSelect(choice.value) }
+                    .pointingHand()
             }
         }
     }
@@ -91,6 +92,7 @@ private struct FolderButton: View {
             .frame(maxWidth: 150, alignment: .trailing)
             .contentShape(Rectangle())
             .onTapGesture(perform: choose)
+            .pointingHand()
     }
 
     private var label: String {

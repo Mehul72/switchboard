@@ -22,5 +22,8 @@ struct SwitchboardToggle: View {
             .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isOn)
             .contentShape(Capsule())
             .onTapGesture { action(!isOn) }
+            .pointingHand()
+            .accessibilityAddTraits(.isButton)
+            .accessibilityValue(isOn ? "on" : "off")
     }
 }
