@@ -5,10 +5,14 @@ struct TweakRow: View {
     let tweak: Tweak
     @ObservedObject var store: TweakStore
 
-    @State private var hovering = false
-
     var body: some View {
         HStack(spacing: 10) {
+            Image(systemName: tweak.symbol)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(tweak.title)
                     .font(.rowTitle)
@@ -17,82 +21,102 @@ struct TweakRow: View {
                     Text(subtitle)
                         .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
+
             Spacer(minLength: 8)
             control
         }
-        .padding(.horizontal, Theme.edgeInset)
-        .frame(height: tweak.subtitle == nil ? 34 : 46)
-        .background {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Theme.hover)
-                .opacity(hovering ? 1 : 0)
-                .padding(.horizontal, 6)
-        }
-        .animation(.easeOut(duration: 0.12), value: hovering)
-        .onHover { hovering = $0 }
+        .padding(.horizontal, 12)
+        .padding(.vertical, tweak.subtitle == nil ? 9 : 8)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
     private var control: some View {
         switch tweak.control {
         case .toggle:
-            SwitchboardToggle(isOn: store.isOn(tweak)) { store.setOn(tweak, $0) }
+            Toggle("", isOn: Binding(
+                get: { store.isOn(tweak) },
+                set: { store.setOn(tweak, $0) }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .accessibilityLabel(tweak.title)
         case .choice(let choices):
-            ChoicePicker(choices: choices,
-                         selected: store.selectedChoice(tweak, among: choices)) {
-                store.select($0, for: tweak)
-            }
+            ChoicePicker(tweak: tweak, choices: choices, store: store)
         case .folder:
-            FolderButton(path: store.stringValue(tweak)) { url in
+            FolderButton(title: tweak.title, path: store.stringValue(tweak)) { url in
                 store.select(.string(url.path), for: tweak)
             }
+        case .button(let label):
+            Button(label) { store.perform(tweak) }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityLabel(tweak.title)
         }
     }
 }
 
 private struct ChoicePicker: View {
+    let tweak: Tweak
     let choices: [Choice]
-    let selected: Choice?
-    let onSelect: (PrefValue) -> Void
+    @ObservedObject var store: TweakStore
+
+    private var options: [Choice] {
+        if store.selectedChoice(tweak, among: choices) != nil {
+            return choices
+        }
+        if let current = store.stringValue(tweak), !current.isEmpty {
+            return [Choice(label: "Current (\(current.uppercased()))",
+                           value: .string(current))] + choices
+        }
+        return choices
+    }
+
+    private var selection: Binding<String> {
+        Binding(
+            get: { store.selectedChoice(tweak, among: options)?.label ?? options[0].label },
+            set: { label in
+                if let choice = options.first(where: { $0.label == label }) {
+                    store.select(choice.value, for: tweak)
+                }
+            }
+        )
+    }
 
     var body: some View {
-        HStack(spacing: 2) {
-            ForEach(choices, id: \.label) { choice in
-                let active = choice == selected
-                Text(choice.label)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Theme.primary)
-                    .opacity(active ? 1 : 0.35)
-                    .frame(width: 34, height: 20)
-                    .background {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Theme.trackOff)
-                            .opacity(active ? 1 : 0)
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture { onSelect(choice.value) }
-                    .pointingHand()
+        Picker(tweak.title, selection: selection) {
+            ForEach(options) { choice in
+                Text(choice.label).tag(choice.label)
             }
         }
+        .labelsHidden()
+        .pickerStyle(.menu)
+        .controlSize(.small)
+        .frame(maxWidth: 125)
     }
 }
 
 private struct FolderButton: View {
+    let title: String
     let path: String?
     let onPick: (URL) -> Void
 
     var body: some View {
-        Text(label)
-            .font(.system(size: 11))
-            .foregroundStyle(Theme.secondary)
-            .lineLimit(1)
-            .truncationMode(.head)
-            .frame(maxWidth: 150, alignment: .trailing)
-            .contentShape(Rectangle())
-            .onTapGesture(perform: choose)
-            .pointingHand()
+        Button(action: choose) {
+            HStack(spacing: 4) {
+                Text(label).lineLimit(1).truncationMode(.middle)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .semibold))
+            }
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .frame(maxWidth: 135)
+        .accessibilityLabel("\(title): \(label)")
     }
 
     private var label: String {
@@ -106,7 +130,9 @@ private struct FolderButton: View {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.prompt = "Choose"
-        NSApp.activate(ignoringOtherApps: true)
+        let startingPath = path.flatMap { $0.isEmpty ? nil : $0 }
+            ?? NSHomeDirectory() + "/Desktop"
+        panel.directoryURL = URL(fileURLWithPath: startingPath, isDirectory: true)
         if panel.runModal() == .OK, let url = panel.url {
             onPick(url)
         }

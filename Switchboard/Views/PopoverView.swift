@@ -1,184 +1,228 @@
 import AppKit
 import SwiftUI
 
-private struct ContentHeight: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
-    }
-}
-
 struct PopoverView: View {
     @ObservedObject var store: TweakStore
     let dismiss: () -> Void
+    let height: CGFloat
 
-    @State private var contentHeight: CGFloat
-    @State private var launchAtLogin = LaunchAtLogin.isEnabled
+    @State private var launchAtLoginState = LaunchAtLogin.state
     @FocusState private var searchFocused: Bool
-
-    init(store: TweakStore, dismiss: @escaping () -> Void) {
-        self.store = store
-        self.dismiss = dismiss
-        _contentHeight = State(initialValue: Self.rowHeight(for: store.visible))
-    }
-
-    // Header, search, navigation and footer occupy 152pt. The Apply bar takes
-    // its space from the rows so the popover never grows beyond 520pt.
-    private var maxScrollHeight: CGFloat {
-        Theme.maxPopoverHeight - 152 - (store.pendingRestarts.isEmpty ? 0 : 36)
-    }
-
-    private static func rowHeight(for tweaks: [Tweak]) -> CGFloat {
-        tweaks.reduce(8) { height, tweak in
-            height + (tweak.subtitle == nil ? 34 : 46)
-        }
-    }
 
     var body: some View {
         VStack(spacing: 0) {
             header
             searchField
-            Hairline()
-            CategoryNav(selection: $store.category)
-                .opacity(store.search.isEmpty ? 1 : 0.35)
-                .disabled(!store.search.isEmpty)
+            if store.search.isEmpty {
+                CategoryNav(selection: $store.category)
+            }
+            if let notice = store.notice {
+                NoticeView(notice: notice)
+                    .padding(.horizontal, Theme.edgeInset)
+                    .padding(.bottom, 10)
+            }
             content
-            // Sits above the footer rather than over it, so Quit stays reachable
-            // while a restart is pending.
             if !store.pendingRestarts.isEmpty {
-                ApplyBar(summary: SystemRestart.summary(for: store.pendingRestarts)) {
+                ApplyBar(targets: store.pendingRestarts) {
                     store.applyPendingRestarts()
                 }
             }
             Hairline()
             footer
         }
-        .frame(width: Theme.popoverWidth)
+        .frame(width: Theme.popoverWidth, height: height)
         .background(VisualEffectBackground())
-        .onExitCommand(perform: dismiss)
-        .onAppear { searchFocused = true }
-        .animation(.spring(response: 0.2, dampingFraction: 0.85), value: store.pendingRestarts)
+        .onExitCommand {
+            if store.search.isEmpty {
+                dismiss()
+            } else {
+                store.search = ""
+            }
+        }
+        .onAppear {
+            launchAtLoginState = LaunchAtLogin.state
+            searchFocused = true
+        }
     }
 
-    // MARK: - Chrome
-
     private var header: some View {
-        HStack {
-            Text("Switchboard")
-                .font(.popoverTitle)
-                .foregroundStyle(Theme.primary)
+        HStack(spacing: 10) {
+            Image(systemName: "switch.2")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 26, height: 26)
+                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Switchboard")
+                    .font(.popoverTitle)
+                    .foregroundStyle(Theme.primary)
+                Text("Useful fixes for everyday macOS friction")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(Theme.secondary)
+            }
             Spacer()
             settingsMenu
         }
         .padding(.horizontal, Theme.edgeInset)
-        .frame(height: 52)
+        .padding(.top, 8)
+        .frame(height: 54)
     }
 
     private var settingsMenu: some View {
         Menu {
-            Toggle("Launch at login", isOn: $launchAtLogin)
-                .onChange(of: launchAtLogin) { _, enabled in LaunchAtLogin.set(enabled) }
+            Button(launchAtLoginTitle) {
+                if launchAtLoginState == .requiresApproval {
+                    LaunchAtLogin.openSettings()
+                } else {
+                    updateLaunchAtLogin(launchAtLoginState != .enabled)
+                }
+            }
+            .disabled(launchAtLoginState == .unavailable)
+            Divider()
+            Button("Quit Switchboard") { NSApp.terminate(nil) }
+                .keyboardShortcut("q", modifiers: .command)
         } label: {
-            Image(systemName: "gearshape")
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.tertiary)
+            Image(systemName: "ellipsis.circle")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.secondary)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .frame(width: 20)
+        .fixedSize()
+        .accessibilityLabel("Switchboard settings")
     }
 
     private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.tertiary)
-            TextField("Search", text: $store.search)
-                .textFieldStyle(.plain)
-                .focused($searchFocused)
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.primary)
+        TextField("Search settings", text: $store.search)
+            .textFieldStyle(.roundedBorder)
+            .focused($searchFocused)
+            .font(.system(size: 12))
+            .padding(.horizontal, Theme.edgeInset)
+            .padding(.bottom, 10)
+    }
+
+    private var content: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 14) {
+                ForEach(store.visibleCategories, id: \.self) { category in
+                    settingGroup(category)
+                }
+                if store.visible.isEmpty {
+                    Text("No matching settings")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 48)
+                }
+            }
+            .padding(.horizontal, Theme.edgeInset)
+            .padding(.bottom, 14)
         }
-        .padding(.horizontal, Theme.edgeInset)
-        .padding(.bottom, 12)
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(maxHeight: .infinity)
+    }
+
+    private func settingGroup(_ category: Category) -> some View {
+        let tweaks = store.tweaks(in: category)
+        return VStack(alignment: .leading, spacing: 6) {
+            Label(category.label, systemImage: category.symbol)
+                .font(.sectionHeader)
+                .foregroundStyle(Theme.secondary)
+                .padding(.leading, 4)
+
+            VStack(spacing: 0) {
+                ForEach(Array(tweaks.enumerated()), id: \.element.id) { index, tweak in
+                    TweakRow(tweak: tweak, store: store)
+                    if index < tweaks.count - 1 {
+                        Divider().padding(.leading, 46)
+                    }
+                }
+            }
+            .background(Theme.groupBackground, in: RoundedRectangle(cornerRadius: 10))
+        }
     }
 
     private var footer: some View {
         HStack {
-            Text("Restore defaults")
+            Button("Restore Original Settings") { store.restoreDefaults() }
+                .buttonStyle(.plain)
                 .font(.footerLabel)
-                .foregroundStyle(Theme.tertiary)
-                .contentShape(Rectangle())
-                .onTapGesture { store.restoreDefaults() }
-                .opacity(store.hasUndoRecord ? 1 : 0.4)
-                .disabled(!store.hasUndoRecord)
-                .pointingHand()
+                .foregroundStyle(Theme.secondary)
+                .disabled(!store.canRestoreOriginalSettings)
             Spacer()
-            Text("Quit")
+            Text("macOS 14+")
                 .font(.footerLabel)
                 .foregroundStyle(Theme.tertiary)
-                .contentShape(Rectangle())
-                .onTapGesture { NSApp.terminate(nil) }
-                .pointingHand()
         }
         .padding(.horizontal, Theme.edgeInset)
         .frame(height: 40)
     }
 
-    // MARK: - Rows
-
-    @ViewBuilder
-    private var content: some View {
-        if store.visible.isEmpty {
-            Text("No matches")
-                .font(.rowTitle)
-                .foregroundStyle(Theme.tertiary)
-                .frame(height: 88)
-        } else {
-            ScrollView {
-                rows
-                    .background {
-                        GeometryReader { proxy in
-                            Color.clear.preference(key: ContentHeight.self, value: proxy.size.height)
-                        }
-                    }
+    private func updateLaunchAtLogin(_ enabled: Bool) {
+        switch LaunchAtLogin.set(enabled) {
+        case .success(let state):
+            launchAtLoginState = state
+            switch state {
+            case .enabled:
+                store.notice = StoreNotice(kind: .success,
+                                           message: "Switchboard will launch at login.")
+            case .disabled:
+                store.notice = StoreNotice(kind: .success,
+                                           message: "Launch at login disabled.")
+            case .requiresApproval:
+                store.notice = StoreNotice(kind: .information,
+                                           message: "Allow Switchboard in System Settings > General > Login Items.")
+            case .unavailable:
+                store.notice = StoreNotice(kind: .error,
+                                           message: "Launch at login is unavailable for this copy of Switchboard.")
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .frame(height: min(max(contentHeight, 1), maxScrollHeight))
-            .onPreferenceChange(ContentHeight.self) { contentHeight = $0 }
+        case .failure:
+            launchAtLoginState = LaunchAtLogin.state
+            store.notice = StoreNotice(kind: .error,
+                                       message: "macOS could not update Login Items. Try again after moving Switchboard to Applications.")
         }
     }
 
-    @ViewBuilder
-    private var rows: some View {
-        if store.search.isEmpty {
-            VStack(spacing: 0) {
-                ForEach(store.visible) { TweakRow(tweak: $0, store: store) }
-            }
-            .padding(.vertical, 4)
-            .id(store.category)
-            .transition(.opacity)
-            .animation(.easeInOut(duration: 0.15), value: store.category)
-        } else {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Category.allCases, id: \.self) { category in
-                    let matches = store.visible.filter { $0.category == category }
-                    if !matches.isEmpty {
-                        Text(category.label.uppercased())
-                            .font(.sectionHeader)
-                            .tracking(0.6)
-                            .foregroundStyle(Theme.tertiary)
-                            .padding(.horizontal, Theme.edgeInset)
-                            .padding(.top, 12)
-                            .padding(.bottom, 20)
-                        ForEach(matches) { TweakRow(tweak: $0, store: store) }
-                    }
-                }
-            }
-            .padding(.bottom, 8)
-            .id(store.search)
-            .transition(.opacity)
-            .animation(.easeOut(duration: 0.1), value: store.search)
+    private var launchAtLoginTitle: String {
+        switch launchAtLoginState {
+        case .enabled: return "Disable Launch at Login"
+        case .disabled: return "Launch at Login"
+        case .requiresApproval: return "Approve Launch at Login…"
+        case .unavailable: return "Launch at Login Unavailable"
         }
+    }
+}
+
+private struct NoticeView: View {
+    let notice: StoreNotice
+
+    private var symbol: String {
+        switch notice.kind {
+        case .success: return "checkmark.circle.fill"
+        case .information: return "info.circle.fill"
+        case .error: return "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var colour: Color {
+        switch notice.kind {
+        case .success: return .green
+        case .information: return .accentColor
+        case .error: return .red
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Image(systemName: symbol).foregroundStyle(colour)
+            Text(notice.message)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.secondary)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .frame(minHeight: 30)
+        .background(colour.opacity(0.09), in: RoundedRectangle(cornerRadius: 8))
     }
 }

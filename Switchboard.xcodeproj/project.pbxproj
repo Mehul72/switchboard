@@ -16,9 +16,8 @@
 		301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */; };
 		46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */; };
 		4D63E359B5595FFF4E6D6937 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
-		4FCDAEBE37D78248D67A2A6E /* PointingHand.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8218D4B4BA7A564BE046CAE /* PointingHand.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
-		76BD06EA54E7BB8932A8088A /* SwitchboardToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C528F1FBD4F1D8FE74E42C /* SwitchboardToggle.swift */; };
+		A10000000000000000000002 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
 		9D1C7530247EDF3FF722473D /* ApplyBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351B9788911C1DDE92BDB476 /* ApplyBar.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
@@ -41,14 +40,13 @@
 		8BACE0936C396083BBBE9867 /* Tweak.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tweak.swift; sourceTree = "<group>"; };
 		8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIcon.swift; sourceTree = "<group>"; };
 		91EA732BBFDE52F306868A9C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		B1C528F1FBD4F1D8FE74E42C /* SwitchboardToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchboardToggle.swift; sourceTree = "<group>"; };
+		A10000000000000000000001 /* UtilityServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityServices.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartCoordinator.swift; sourceTree = "<group>"; };
 		B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceStore.swift; sourceTree = "<group>"; };
 		BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectBackground.swift; sourceTree = "<group>"; };
 		BF49656E31E00F535E0CB517 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
-		D8218D4B4BA7A564BE046CAE /* PointingHand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointingHand.swift; sourceTree = "<group>"; };
 		F5AEA8ABFB9E4FB7596DA695 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -100,7 +98,6 @@
 				351B9788911C1DDE92BDB476 /* ApplyBar.swift */,
 				49EA744DB07D578E6A2066FC /* CategoryNav.swift */,
 				B24382D42E5D8342EB12F9C9 /* PopoverView.swift */,
-				B1C528F1FBD4F1D8FE74E42C /* SwitchboardToggle.swift */,
 				BF49656E31E00F535E0CB517 /* Theme.swift */,
 				456B0B01FA009470CEEE8A25 /* TweakRow.swift */,
 			);
@@ -122,6 +119,7 @@
 				B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */,
 				B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */,
 				88DAD93FDFB9505014881B70 /* UndoLedger.swift */,
+				A10000000000000000000001 /* UtilityServices.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -130,7 +128,6 @@
 			isa = PBXGroup;
 			children = (
 				8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */,
-				D8218D4B4BA7A564BE046CAE /* PointingHand.swift */,
 				BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */,
 			);
 			path = Support;
@@ -211,13 +208,12 @@
 				28E4DDC1EE8BD894B772EDA7 /* CategoryNav.swift in Sources */,
 				CD5993B1D118DDAB76607221 /* LaunchAtLogin.swift in Sources */,
 				7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */,
-				4FCDAEBE37D78248D67A2A6E /* PointingHand.swift in Sources */,
 				6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */,
 				1793CCE3A2BB273424433034 /* PreferenceStore.swift in Sources */,
 				2ACE5320E3A5CF28D5A5A15E /* RestartCoordinator.swift in Sources */,
 				A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */,
 				46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */,
-				76BD06EA54E7BB8932A8088A /* SwitchboardToggle.swift in Sources */,
+				A10000000000000000000002 /* UtilityServices.swift in Sources */,
 				E826485CA77D0E4BB839211A /* Theme.swift in Sources */,
 				15F083EC0B9DB0EE44D9585C /* Tweak.swift in Sources */,
 				CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */,

@@ -6,7 +6,7 @@ struct VisualEffectBackground: NSViewRepresentable {
         let view = NSVisualEffectView()
         view.material = .popover
         view.blendingMode = .behindWindow
-        view.state = .active
+        view.state = .followsWindowActiveState
         return view
     }
 

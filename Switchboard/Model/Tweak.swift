@@ -15,30 +15,32 @@ enum PrefValue: Equatable {
         }
     }
 
-    // Values come back from CFPreferences however they were written -- a float
-    // 0 read back as an integer 0 still means the tweak is on.
     func matches(_ stored: Any?) -> Bool {
         guard let stored else { return false }
         switch self {
-        case .bool(let value):
-            guard let number = stored as? NSNumber else { return false }
-            return number.boolValue == value
-        case .int(let value):
-            guard let number = stored as? NSNumber else { return false }
-            return number.intValue == value
+        case .bool(let value): return (stored as? NSNumber)?.boolValue == value
+        case .int(let value): return (stored as? NSNumber)?.intValue == value
         case .float(let value):
             guard let number = stored as? NSNumber else { return false }
             return abs(number.doubleValue - value) < 0.0001
-        case .string(let value):
-            return (stored as? String) == value
+        case .string(let value): return (stored as? String) == value
         }
     }
 }
 
 enum Category: String, CaseIterable {
-    case dock, finder, screenshots, speed, typing
+    case everyday, files, capture, dock
 
     var label: String { rawValue.capitalized }
+
+    var symbol: String {
+        switch self {
+        case .everyday: return "sparkles"
+        case .files: return "folder"
+        case .capture: return "camera.viewfinder"
+        case .dock: return "dock.rectangle"
+        }
+    }
 }
 
 enum RestartTarget: String, CaseIterable {
@@ -55,15 +57,31 @@ enum RestartTarget: String, CaseIterable {
     }
 }
 
-struct Choice: Equatable {
+struct Choice: Equatable, Identifiable {
     let label: String
     let value: PrefValue
+    var id: String { label }
 }
 
 enum Control {
     case toggle
     case choice([Choice])
     case folder
+    case button(String)
+}
+
+struct PreferenceSpec {
+    let domain: String
+    let key: String
+    let onValue: PrefValue
+    let offValue: PrefValue?
+    let restart: RestartTarget?
+}
+
+enum TweakBehavior {
+    case preference(PreferenceSpec)
+    case keepAwake
+    case plainTextClipboard
 }
 
 struct Tweak: Identifiable {
@@ -71,38 +89,64 @@ struct Tweak: Identifiable {
     let title: String
     let subtitle: String?
     let category: Category
-    let domain: String
-    let key: String
-    let onValue: PrefValue
-    let offValue: PrefValue?
-    let restart: RestartTarget?
+    let symbol: String
     let control: Control
+    let behavior: TweakBehavior
+    let successMessage: String?
 
     init(id: String,
          title: String,
          subtitle: String? = nil,
          category: Category,
+         symbol: String,
          domain: String,
          key: String,
          onValue: PrefValue,
          offValue: PrefValue? = nil,
          restart: RestartTarget? = nil,
-         control: Control = .toggle) {
+         control: Control = .toggle,
+         successMessage: String? = nil) {
         self.id = id
         self.title = title
         self.subtitle = subtitle
         self.category = category
-        self.domain = domain
-        self.key = key
-        self.onValue = onValue
-        self.offValue = offValue
-        self.restart = restart
+        self.symbol = symbol
         self.control = control
+        self.successMessage = successMessage
+        self.behavior = .preference(PreferenceSpec(domain: domain,
+                                                   key: key,
+                                                   onValue: onValue,
+                                                   offValue: offValue,
+                                                   restart: restart))
+    }
+
+    init(id: String,
+         title: String,
+         subtitle: String? = nil,
+         category: Category,
+         symbol: String,
+         control: Control,
+         behavior: TweakBehavior,
+         successMessage: String? = nil) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
+        self.category = category
+        self.symbol = symbol
+        self.control = control
+        self.behavior = behavior
+        self.successMessage = successMessage
+    }
+
+    var preference: PreferenceSpec? {
+        guard case .preference(let preference) = behavior else { return nil }
+        return preference
     }
 
     func matches(search: String) -> Bool {
         guard !search.isEmpty else { return true }
-        if title.localizedCaseInsensitiveContains(search) { return true }
-        return subtitle?.localizedCaseInsensitiveContains(search) ?? false
+        return title.localizedCaseInsensitiveContains(search)
+            || (subtitle?.localizedCaseInsensitiveContains(search) ?? false)
+            || category.label.localizedCaseInsensitiveContains(search)
     }
 }

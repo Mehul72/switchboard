@@ -27,25 +27,50 @@ final class UndoLedger {
         flush()
     }
 
-    func restoreAll() {
-        for record in records.values {
-            let domain = record["domain"] as! String
-            let key = record["key"] as! String
-            PreferenceStore.writeRaw(record["value"] as CFPropertyList?, domain: domain, key: key)
+    @discardableResult
+    func restoreAll() -> Bool {
+        var failed = false
+        for (id, record) in Array(records) {
+            guard let domain = record["domain"] as? String,
+                  let key = record["key"] as? String else {
+                records.removeValue(forKey: id)
+                continue
+            }
+            if PreferenceStore.writeRaw(record["value"] as CFPropertyList?, domain: domain, key: key) {
+                records.removeValue(forKey: id)
+            } else {
+                failed = true
+            }
         }
-        records.removeAll()
         flush()
+        return !failed
     }
 
     /// Every restart target touched by the keys we are about to put back.
     func affectedTargets(in catalog: [Tweak]) -> Set<RestartTarget> {
-        let touched = Set(records.keys)
-        let tweaks = catalog.filter { touched.contains(Self.identifier(domain: $0.domain, key: $0.key)) }
-        return Set(tweaks.compactMap(\.restart))
+        let catalogTargets: [String: RestartTarget] = Dictionary(uniqueKeysWithValues: catalog.compactMap { tweak in
+            guard let preference = tweak.preference,
+                  let target = preference.restart else { return nil }
+            return (Self.identifier(domain: preference.domain, key: preference.key), target)
+        })
+
+        return Set(records.compactMap { id, record in
+            if let target = catalogTargets[id] { return target }
+            switch record["domain"] as? String {
+            case "com.apple.dock": return .dock
+            case "com.apple.finder": return .finder
+            case "com.apple.screencapture": return .systemUIServer
+            default: return nil
+            }
+        })
     }
 
     private func flush() {
-        defaults.set(records, forKey: Self.storageKey)
+        if records.isEmpty {
+            defaults.removeObject(forKey: Self.storageKey)
+        } else {
+            defaults.set(records, forKey: Self.storageKey)
+        }
     }
 
     private static func identifier(domain: String, key: String) -> String {

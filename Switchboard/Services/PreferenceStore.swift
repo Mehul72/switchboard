@@ -7,14 +7,16 @@ private func appID(for domain: String) -> CFString {
 }
 
 enum PreferenceStore {
-    /// What the system would actually use: the domain's own value, falling back
-    /// to the global domain and any managed defaults.
     static func effectiveValue(domain: String, key: String) -> Any? {
-        CFPreferencesCopyAppValue(key as CFString, appID(for: domain))
+        if domain == "NSGlobalDomain" {
+            return CFPreferencesCopyValue(key as CFString,
+                                          kCFPreferencesAnyApplication,
+                                          kCFPreferencesCurrentUser,
+                                          kCFPreferencesAnyHost)
+        }
+        return CFPreferencesCopyAppValue(key as CFString, appID(for: domain))
     }
 
-    /// Only what is explicitly written into this domain. Used to record whether
-    /// a key was unset before we ever touched it.
     static func storedValue(domain: String, key: String) -> Any? {
         CFPreferencesCopyValue(key as CFString,
                                appID(for: domain),
@@ -22,23 +24,29 @@ enum PreferenceStore {
                                kCFPreferencesAnyHost)
     }
 
-    static func write(_ value: PrefValue?, domain: String, key: String) {
+    @discardableResult
+    static func write(_ value: PrefValue?, domain: String, key: String) -> Bool {
         let id = appID(for: domain)
         CFPreferencesSetValue(key as CFString,
                               value?.propertyListValue,
                               id,
                               kCFPreferencesCurrentUser,
                               kCFPreferencesAnyHost)
-        CFPreferencesAppSynchronize(id)
+        return CFPreferencesSynchronize(id,
+                                        kCFPreferencesCurrentUser,
+                                        kCFPreferencesAnyHost)
     }
 
-    static func writeRaw(_ value: CFPropertyList?, domain: String, key: String) {
+    @discardableResult
+    static func writeRaw(_ value: CFPropertyList?, domain: String, key: String) -> Bool {
         let id = appID(for: domain)
         CFPreferencesSetValue(key as CFString,
                               value,
                               id,
                               kCFPreferencesCurrentUser,
                               kCFPreferencesAnyHost)
-        CFPreferencesAppSynchronize(id)
+        return CFPreferencesSynchronize(id,
+                                        kCFPreferencesCurrentUser,
+                                        kCFPreferencesAnyHost)
     }
 }

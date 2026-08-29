@@ -5,14 +5,16 @@ final class StatusItemController {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
     private let store = TweakStore()
+    private var hostingController: NSHostingController<PopoverView>?
 
     init() {
         item.button?.image = MenuBarIcon.image
+        item.button?.toolTip = "Switchboard"
         item.button?.target = self
         item.button?.action = #selector(togglePopover)
 
         popover.behavior = .transient
-        popover.animates = false
+        popover.animates = true
     }
 
     @objc private func togglePopover() {
@@ -22,22 +24,31 @@ final class StatusItemController {
             return
         }
 
-        // Rebuilt on every open so the rows start from freshly read values and
-        // the search field takes focus again.
         store.refresh()
         store.search = ""
+        store.notice = nil
+
+        let screen = button.window?.screen ?? NSScreen.main
+        let availableHeight = max(320, (screen?.visibleFrame.height ?? Theme.popoverHeight) - 16)
+        let height = min(Theme.popoverHeight, availableHeight)
+        let size = NSSize(width: Theme.popoverWidth, height: height)
         let controller = NSHostingController(
-            rootView: PopoverView(store: store, dismiss: { [weak self] in
-                self?.popover.performClose(nil)
-            })
+            rootView: PopoverView(store: store,
+                                  dismiss: { [weak self] in self?.popover.performClose(nil) },
+                                  height: height)
         )
-        controller.view.layoutSubtreeIfNeeded()
+
+        // Dynamic SwiftUI resizing after presentation can move a status-item
+        // popover behind the menu bar, so AppKit owns one stable outer size.
+        controller.sizingOptions = []
+        controller.preferredContentSize = size
+        controller.view.frame.size = size
+        hostingController = controller
         popover.contentViewController = controller
-        popover.contentSize = controller.view.fittingSize
+        popover.contentSize = size
 
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        // The hosting window starts behind whatever was frontmost, which eats
-        // the first click on a toggle.
+        NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
     }
 }
