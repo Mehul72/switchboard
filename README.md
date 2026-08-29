@@ -1,59 +1,59 @@
 # Switchboard
 
-A macOS menu bar app that exposes hidden system preferences as toggles, so I
-don't have to remember `defaults write` incantations. It writes the same
-preference keys the Terminal one-liners do, then restarts Dock, Finder or
-SystemUIServer as needed.
+Switchboard is a macOS 14+ menu bar utility for small, recurring Mac annoyances.
+It uses native SwiftUI/AppKit controls, reads the current macOS preference before
+showing a value, verifies every write, and explains when a service restart is
+needed.
 
-Requires macOS 14 or later.
+## What it fixes
 
-## Building
+- Everyday: keep the Mac awake, stop apps reopening old windows, choose scroll
+  bar behaviour, and strip rich formatting from the clipboard.
+- Files: reveal hidden files and extensions, show Finder paths, keep folders on
+  top, search the current folder, hide desktop clutter, and stop `.DS_Store`
+  files on network drives.
+- Capture: choose the screenshot folder and format, skip the floating thumbnail,
+  and remove window shadows.
+- Dock: remove its reveal delay, hide recent apps, and minimise windows into
+  their application icons.
 
-Open `Switchboard.xcodeproj` and run. No dependencies, no entitlements — the app
-is deliberately unsandboxed, because writing to other apps' preference domains
-is the whole point. The build is unsigned, so the first launch needs a
-right-click and Open.
+## Build and run
 
-## How it works
+1. Open `Switchboard.xcodeproj` in Xcode.
+2. Select the **Switchboard** scheme and **My Mac** destination.
+3. Press **Command-R**.
+4. Click the blue Switchboard icon in the menu bar.
 
-Every setting is one `Tweak` value in `TweakCatalog`. The views iterate the
-catalog and pick a control based on `control`, so adding a setting is adding a
-struct, not writing UI:
+The app has no package dependencies. It is deliberately not App Sandbox enabled,
+because it must update macOS preference domains outside its own container.
 
-    Tweak(id: "dock.no-bouncing",
-          title: "No launch bounce",
-          category: .dock,
-          domain: "com.apple.dock",
-          key: "no-bouncing",
-          onValue: .bool(true),
-          offValue: .bool(false),
-          restart: .dock)
+## Using it
 
-Leave `offValue` off and switching the toggle back deletes the key instead,
-which hands the setting back to whatever macOS defaults to.
+Changes that macOS can read immediately show a confirmation. Finder, Dock, and
+screenshot changes show a restart bar; use its button once after making all the
+changes you want. Global app settings may require reopening affected apps, and
+the network-drive setting applies on the next mount.
 
-Toggle state is read from CFPreferences every time the popover opens — nothing
-is cached, so changing something in System Settings keeps the app honest.
+Before Switchboard first changes a key, `UndoLedger` records its exact previous
+value—including an unset key. **Restore Original Settings…** replays that ledger.
 
-Before the first write to any key, the previous value is copied into
-Switchboard's own preferences, including the fact that a key was unset.
-"Restore defaults" replays that record and clears it.
+Launch at Login is in the ellipsis menu. macOS may require approval in **System
+Settings > General > Login Items**.
 
-Flipping toggles marks Dock/Finder/SystemUIServer as needing a restart and shows
-an Apply bar — one `killall` per process on Apply, not one per toggle.
+## Adding a preference
 
-## Known issues
+Add one `Tweak` to `TweakCatalog`; the interface chooses its control from the
+model:
 
-Instant window resize only affects apps that animate their own window resizes.
-Plenty ignore `NSWindowResizeTime` entirely.
+```swift
+Tweak(id: "dock.hide-recents",
+      title: "Hide recent apps",
+      category: .dock,
+      symbol: "clock.arrow.circlepath",
+      domain: "com.apple.dock", key: "show-recents",
+      onValue: .bool(false), offValue: .bool(true), restart: .dock)
+```
 
-The typing settings are read when a text view is created, so apps that are
-already running keep the old behaviour until you relaunch them.
-
-Disabling `.DS_Store` on network volumes takes effect the next time you mount
-one, not immediately.
-
-Launch at login silently fails to register when the app runs out of DerivedData.
-
-TODO: no way to export or import a set of tweaks yet, which is the thing I
-actually want when setting up a new machine.
+Omit `offValue` when disabling the setting should delete the preference and hand
+behaviour back to macOS. Keep-Awake and clipboard cleanup are local actions in
+`UtilityServices` rather than preference writes.
