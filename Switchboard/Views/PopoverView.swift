@@ -68,7 +68,7 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "wrench.adjustable")
+            Image(systemName: "point.3.connected.trianglepath.dotted")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 26, height: 26)

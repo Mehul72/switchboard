@@ -17,8 +17,8 @@ Requires macOS 14.2 or later, on Apple silicon or Intel.
 2. Open the downloaded `.dmg`.
 3. Drag **Switchboard** onto the **Applications** shortcut in the window.
 4. Open your Applications folder and double click Switchboard.
-5. A wrench icon appears at the right of the menu bar. Click it to open the
-   panel.
+5. The Switchboard icon appears at the right of the menu bar. Click it to open
+   the panel.
 
 There is no installer and no background helper. To uninstall, quit Switchboard
 from the panel's menu and drag it from Applications to the Trash.

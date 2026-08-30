@@ -2,10 +2,11 @@ import AppKit
 
 enum MenuBarIcon {
     static let image: NSImage = {
-        // Anything switch-shaped reads as Control Center, which already sits a
-        // few icons away in the same menu bar. A wrench shares no silhouette
-        // with it and matches what the app is for.
-        let symbol = NSImage(systemSymbolName: "wrench.adjustable",
+        // Control Center already occupies the switch-and-slider look a few
+        // icons away, so anything in that family reads as a duplicate. Routing
+        // points are the older meaning of a switchboard and share no silhouette
+        // with it.
+        let symbol = NSImage(systemSymbolName: "point.3.connected.trianglepath.dotted",
                              accessibilityDescription: "Switchboard")!
         let configured = symbol.withSymbolConfiguration(
             NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
