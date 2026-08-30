@@ -28,7 +28,7 @@ enum TweakCatalog {
         // category: .everyday, symbol: "character.book.closed",
         // control: .toggle, behavior: .translateCaptures),
         Tweak(id: "everyday.quit-on-close", title: "Red button quits the app",
-              subtitle: "Also quits when the last window closes",
+              subtitle: "When it closes the app's last window",
               category: .everyday, symbol: "xmark.app",
               control: .toggle, behavior: .quitOnClose),
         Tweak(id: "everyday.scrollbars", title: "Show scroll bars",

@@ -2,9 +2,9 @@ import AppKit
 import ApplicationServices
 import CoreGraphics
 
-/// Turns the red traffic-light button into a normal quit request. Chrome needs
-/// one extra path because closing its final tab destroys the window without
-/// pressing the traffic-light button.
+/// Turns the red traffic-light button into a normal quit request when it closes
+/// an app's last window. Chrome needs one extra path because closing its final
+/// tab destroys the window without pressing the traffic-light button.
 final class QuitOnCloseController {
     private struct CloseCandidate {
         let pid: pid_t
@@ -33,6 +33,16 @@ final class QuitOnCloseController {
     /// An app that just launched has not "closed its last window" yet.
     private static let launchGrace: TimeInterval = 8
 
+    /// The red button stands in for Quit only on an app's *last* window.
+    /// Closing one of several is an ordinary window close, so after the click
+    /// we watch the window actually go away and quit only if the app is left
+    /// with nothing open. About a second of grace covers the close animation.
+    private static let closeConfirmationAttempts = 8
+    private static let closeConfirmationDelay: TimeInterval = 0.1
+    private static let closeConfirmationInterval: TimeInterval = 0.15
+    /// Two agreeing samples, so a single blank answer during a Space or
+    /// full-screen transition cannot quit an app that still has windows.
+    private static let emptySamplesBeforeQuit = 2
     private static let defaultsKey = "QuitOnCloseEnabled"
     private static let excludedBundleIDs: Set<String> = [
         "com.Mehul72.switchboard",
@@ -47,8 +57,8 @@ final class QuitOnCloseController {
     ]
 
     private let defaults: UserDefaults
-    private let chromePollQueue = DispatchQueue(label: "com.Mehul72.switchboard.chrome-windows",
-                                                qos: .utility)
+    private let windowProbeQueue = DispatchQueue(label: "com.Mehul72.switchboard.window-probe",
+                                                 qos: .utility)
     private var mouseMonitor: Any?
     private var chromeTimer: Timer?
     private var closeCandidate: CloseCandidate?
@@ -149,11 +159,60 @@ final class QuitOnCloseController {
             closeCandidate = nil
             guard event.timestamp - candidate.timestamp < 3,
                   candidate.frame.contains(point) else { return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
-                self?.requestNormalQuit(pid: candidate.pid)
+            let generation = monitoringGeneration
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.closeConfirmationDelay) { [weak self] in
+                self?.confirmLastWindowClosed(pid: candidate.pid,
+                                              attempt: 0,
+                                              emptySamples: 0,
+                                              generation: generation)
             }
         default:
             break
+        }
+    }
+
+    /// Waits for the clicked window to disappear, then quits the app only if
+    /// nothing is left behind. An app with other windows still open, one whose
+    /// close was cancelled by a save sheet, and one that never answered are all
+    /// left alone: the window close on its own is what the user asked for.
+    private func confirmLastWindowClosed(pid: pid_t,
+                                         attempt: Int,
+                                         emptySamples: Int,
+                                         generation: Int) {
+        guard isActive,
+              monitoringGeneration == generation,
+              attempt < Self.closeConfirmationAttempts else { return }
+
+        windowProbeQueue.async { [weak self] in
+            guard let self else { return }
+            let evidence = self.windowEvidence(pid: pid)
+            DispatchQueue.main.async { [weak self] in
+                guard let self,
+                      self.monitoringGeneration == generation,
+                      self.isActive else { return }
+
+                var empty = emptySamples
+                switch evidence {
+                case .hasWindows:
+                    // Either a sibling window, or the closing one on its way
+                    // out. Either way this is not a last-window close yet.
+                    empty = 0
+                case .unknown:
+                    empty = 0
+                case .none:
+                    empty += 1
+                }
+                if empty >= Self.emptySamplesBeforeQuit {
+                    self.requestNormalQuit(pid: pid)
+                    return
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + Self.closeConfirmationInterval) {
+                    self.confirmLastWindowClosed(pid: pid,
+                                                 attempt: attempt + 1,
+                                                 emptySamples: empty,
+                                                 generation: generation)
+                }
+            }
         }
     }
 
@@ -214,7 +273,7 @@ final class QuitOnCloseController {
         let generation = monitoringGeneration
         chromePollInFlight = true
 
-        chromePollQueue.async { [weak self] in
+        windowProbeQueue.async { [weak self] in
             guard let self else { return }
             var counts: [pid_t: WindowEvidence] = [:]
             for pid in runningPIDs {
@@ -273,10 +332,9 @@ final class QuitOnCloseController {
         }
     }
 
-    /// Accessibility alone is not trustworthy enough to quit on: Chrome empties
-    /// its AX window list during full-screen transitions, Space moves and
-    /// renderer stalls. CoreGraphics' window list is independent of whether the
-    /// app is answering Accessibility, so both have to agree before we act.
+    /// Accessibility can briefly empty its window list during Space moves,
+    /// full-screen transitions and renderer stalls. CoreGraphics sees every
+    /// Space independently, so both sources must agree before we act.
     private func windowEvidence(pid: pid_t) -> WindowEvidence {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 0.25)
@@ -288,9 +346,9 @@ final class QuitOnCloseController {
         return Self.hasCoreGraphicsWindows(pid: pid) ? .hasWindows : .none
     }
 
-    /// Counts real windows only: layer 0 excludes menus, tooltips and panels,
-    /// and `optionAll` keeps minimised windows in view. Window titles need
-    /// Screen Recording, but owner, layer and size do not.
+    /// Count every ordinary window, including minimized and other-Space
+    /// windows. False positives merely leave an app running; a false negative
+    /// could quit it while the user still has work open.
     private static func hasCoreGraphicsWindows(pid: pid_t) -> Bool {
         guard let windows = CGWindowListCopyWindowInfo(
             [.optionAll, .excludeDesktopElements], kCGNullWindowID

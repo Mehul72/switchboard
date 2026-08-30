@@ -278,7 +278,7 @@ final class TweakStore: ObservableObject {
         customStates[tweak.id] = quitOnClose.isActive
         notice = StoreNotice(kind: applied ? .success : .error,
                              message: applied
-                                ? "The red button now quits an app instead of leaving it running."
+                                ? "The red button now quits an app when it closes the last window."
                                 : "macOS could not start the close-button monitor.")
     }
 
