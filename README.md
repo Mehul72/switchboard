@@ -1,26 +1,14 @@
 # Switchboard
 
-Switchboard is a macOS 14.2+ menu bar utility for small, recurring Mac annoyances.
-It uses native SwiftUI/AppKit controls, reads the current macOS preference before
-showing a value, verifies every write, and explains when a service restart is
-needed.
+Switchboard is a free menu bar app for macOS that fixes small, recurring
+annoyances in the system. It puts twenty two settings in one panel, most of
+which macOS either buries or does not expose at all, and it can read text off
+your screen, set the volume of one app without touching the rest, and remember
+what you copied.
 
-## What it fixes
+It lives in the menu bar, has no Dock icon, and sends nothing anywhere.
 
-- Everyday: keep the Mac awake for a chosen time, copy text from any screen
-  region, quit apps from their red close button, give a mouse traditional
-  scrolling without changing the trackpad, choose scroll-bar behaviour, and
-  strip rich formatting from the clipboard.
-- Files: reveal hidden files and extensions, show Finder paths, keep folders on
-  top, search the current folder, hide desktop clutter, and stop `.DS_Store`
-  files on network drives.
-- Capture: save screenshots to a folder or the clipboard, choose PNG, JPEG, or
-  HEIC encoding, skip the floating thumbnail, and remove window shadows.
-- Dock: remove its reveal delay, hide recent apps, and minimise windows into
-  their application icons.
-- Audio: change the volume of individual apps that currently own an audio
-  stream, without changing the Mac's main output volume.
-- Clipboard: the last 20 things you copied, text or image, ready to put back.
+Requires macOS 14.2 or later, on Apple silicon or Intel.
 
 ## Install
 
@@ -28,95 +16,131 @@ needed.
    [latest release](https://github.com/Mehul72/switchboard/releases/latest).
 2. Open the downloaded `.dmg`.
 3. Drag **Switchboard** onto the **Applications** shortcut in the window.
-4. Open Applications and double click Switchboard. A wrench icon appears in the
-   menu bar. Click it to open the panel.
+4. Open your Applications folder and double click Switchboard.
+5. A wrench icon appears at the right of the menu bar. Click it to open the
+   panel.
 
-Switchboard has no installer, no helper tool and no login item unless you ask
-for one. To uninstall, quit it from the menu and drag it to the Trash.
+There is no installer and no background helper. To uninstall, quit Switchboard
+from the panel's menu and drag it from Applications to the Trash.
 
-### Run it from Applications, not Downloads
-
-Do not double click the app while it is still inside the disk image or in your
-Downloads folder. macOS copies an app opened from there into a temporary read
-only location, and every permission you grant follows that throwaway copy, so
-features appear to be granted and still do nothing. Drag it to Applications
-first.
-
-### The first launch
+**Do not run it from Downloads or from inside the disk image.** macOS copies an
+app launched from either place into a temporary read only location, and any
+permission you grant follows that throwaway copy. Features then look enabled and
+do nothing. Drag it to Applications first.
 
 Switchboard is signed with an Apple Developer ID and notarised by Apple, so it
-opens normally with no security warning. If macOS ever does object, the app was
-most likely damaged in download; fetch it again rather than working around the
-warning.
+opens without a security warning.
 
-There is no Dock icon by design. Switchboard lives in the menu bar.
+## Everything it does
+
+The panel has six tabs. Search at the top to find any setting by name.
+
+### Everyday
+
+| Setting | What it does |
+| --- | --- |
+| **Keep Mac awake** | Stops the display sleeping and the Mac idling, for 30 minutes, 1 hour, 2 hours, or until you switch it off. Useful for long downloads, builds and presentations. It tells you when the time is up, and always releases if you quit the app. |
+| **Copy text from the screen** | Click **Select Area** and drag over anything at all: a screenshot, a video frame, an error dialog, a scanned PDF. The text is recognised and put on your clipboard, and also lands in the Clipboard tab so you can read it. Works on text you could never normally select. |
+| **Red button quits the app** | Makes the red traffic light button behave like Command-Q rather than only closing the window, so apps stop piling up in the Dock. Apps also quit when their last window closes, which covers browsers closing their final tab. It sends a normal quit request, so anything unsaved still prompts you. |
+| **Show scroll bars** | Automatic, always visible, or only while scrolling. |
+| **Traditional mouse scrolling** | Reverses the scroll direction for a mouse wheel while leaving the trackpad natural. macOS has one shared setting for both, so this is the fix if you switch between a mouse and a trackpad and keep flipping it. |
+| **Strip clipboard formatting** | Replaces whatever you copied with its plain text, dropping fonts, colours and links, so it pastes cleanly. |
+
+### Files
+
+Every setting here takes effect once Finder relaunches. Switchboard shows a bar
+with a single button for that, and keeps the panel open while it happens.
+
+| Setting | What it does |
+| --- | --- |
+| **Show hidden files** | Reveals dotfiles and other hidden items in Finder. |
+| **Show all file extensions** | Shows `.png`, `.txt` and the rest on every file, including the ones macOS hides. |
+| **Show full path in Finder title** | Puts the full folder path in the window title instead of just the folder name. |
+| **Keep folders on top** | Groups folders above loose files when a window is sorted by name. |
+| **Search the current folder** | Command-F searches the folder you are looking at rather than the whole Mac. |
+| **Skip extension warnings** | Stops Finder asking for confirmation every time you rename a file extension. |
+| **Hide desktop icons** | Clears the desktop to bare wallpaper. Nothing is deleted; the files stay in your Desktop folder. |
+| **No .DS_Store on network drives** | Stops macOS scattering `.DS_Store` files across shared drives. Applies the next time a drive is mounted. |
+
+### Capture
+
+These apply to your very next screenshot. No restart, no logout.
+
+| Setting | What it does |
+| --- | --- |
+| **Save screenshots to** | Choose the folder new screenshots are written to, instead of the Desktop. |
+| **Copy screenshots to clipboard** | Sends captures straight to the clipboard with no file written, ready to paste. |
+| **Screenshot format** | PNG, JPEG or HEIC. JPEG and HEIC produce far smaller files. macOS ignores this for clipboard captures and always makes a PNG, so Switchboard converts those itself, keeping the Retina scale so pasted images are not doubled in size. |
+| **Skip the floating thumbnail** | Removes the preview that hovers in the corner, writing the file immediately. |
+| **Remove window shadows** | Drops the large shadow and its transparent margin from window captures, the ones taken with Command-Shift-4 then Space. |
+
+Use the keyboard shortcuts to test these. The `screencapture` terminal command
+ignores these preferences entirely and always writes a PNG.
+
+### Dock
+
+These take effect once the Dock relaunches, again with one button in the panel.
+
+| Setting | What it does |
+| --- | --- |
+| **Reveal hidden Dock instantly** | Removes the delay before an auto hidden Dock slides back. Only does anything if you have the Dock set to hide. |
+| **Hide recent apps** | Removes the recently used apps macOS appends to the Dock. |
+| **Minimise into app icons** | Minimised windows collapse into their app's icon rather than piling up as separate Dock tiles. |
+
+### Audio
+
+A live list of every app currently able to play sound, each with its own volume
+slider. Turn one app down without touching anything else, or your main volume.
+Apps that are actually playing sort to the top, and helper processes are grouped
+under the app you recognise.
+
+macOS has no per application volume control and exposes no setting for one, so
+Switchboard captures that app's audio and replays it at your chosen level. Set a
+slider back to 100% and the app is handed straight back to the system. If
+Switchboard quits, macOS restores normal audio on its own.
+
+### Clipboard
+
+The last 20 things you copied, text or image, newest first. Hover an entry to
+copy it back or remove it; click to select and read the text; long entries
+expand. Text you captured from the screen appears here too, labelled, which is
+where you go to read it.
+
+**It is never written to disk.** The history lives in memory and is gone the
+moment Switchboard quits. Anything a password manager marks as private is
+skipped entirely, so copied passwords are never recorded.
 
 ## Permissions
 
-Most of Switchboard needs no permission at all. Three features do, and macOS
-asks the first time each one is used.
+Most of Switchboard needs nothing. Three features do, and macOS asks the first
+time you use each one.
 
-| Feature | Permission | Where to grant it |
-| --- | --- | --- |
-| Traditional mouse scrolling, Red button quits the app | Accessibility | System Settings > Privacy & Security > Accessibility |
-| Copy text from the screen | Screen Recording | System Settings > Privacy & Security > Screen Recording |
-| Per app volume | Audio Recording | Prompted on the first slider change |
+| Feature | Permission |
+| --- | --- |
+| Traditional mouse scrolling, Red button quits the app | Accessibility |
+| Copy text from the screen | Screen Recording |
+| Per app volume | Audio Recording |
 
-Switching a toggle on before its permission exists opens the relevant prompt and
-leaves the toggle off. Grant the permission, then switch it on again.
+Grant them in **System Settings > Privacy & Security**. Switching a feature on
+before its permission exists opens the prompt and leaves the switch off; grant
+the permission, then switch it on again.
 
-Switchboard is signed with a stable Developer ID, so a permission granted once
-survives future updates.
+Because Switchboard is signed with a stable Developer ID, a permission granted
+once keeps working across updates.
+
+## Undoing everything
+
+Switchboard records what every setting looked like before it first changed it,
+including settings that were never set at all. **Restore Original Settings** at
+the bottom of the panel puts them all back and releases anything still running.
 
 ## What it never does
 
-- No clipboard history is written to disk. It lives in memory and is forgotten
-  when Switchboard quits, and anything a password manager marks as private is
-  skipped entirely.
-- Nothing is sent anywhere. There is no network code in the app.
-- Every preference it changes is recorded first, and **Restore Original
-  Settings** puts them all back.
-
-## Using it
-
-Changes that macOS can read immediately show a confirmation. Finder and Dock
-changes show a restart bar; use its button once after making all the changes you
-want. Switchboard keeps its panel open during that restart. Global app settings
-may require reopening affected apps, and the network-drive setting applies on
-the next mount.
-
-**Keep Mac awake** offers 30-minute, one-hour, two-hour, and open-ended choices.
-The assertion ends when its timer finishes, when you turn it off, when you
-restore settings, or when Switchboard quits.
-
-**Copy text from the screen** asks for Screen Recording access the first time.
-After approving Switchboard in **System Settings > Privacy & Security**, choose
-**Select Area**, drag over the text, and paste the recognised result anywhere.
-
-**Quit apps from the red close button** and mouse-only scroll inversion require
-Accessibility access because they observe system-wide input. Turn the feature
-on, approve Switchboard in **System Settings > Privacy & Security >
-Accessibility**, then turn it on once more. These features work while
-Switchboard is running.
-
-For clipboard screenshots, turn on **Copy screenshots to clipboard** and choose
-JPEG or HEIC. Switchboard re-encodes new single-image clipboard captures while
-it runs; macOS may ask for Clipboard access. The pasteboard carries the selected
-encoding, although an app receiving the paste can still normalise it to PNG.
-
-The **Audio** tab lists apps once they create an audio stream. Moving a slider
-below 100% asks for System Audio Recording access the first time. Switchboard
-then taps only that app's stream for the current output device and plays it back
-at the chosen level. Returning the slider to 100% releases the app to the normal
-system mixer. These controls work only while Switchboard is running and reset
-to 100% if the app, its audio helpers, or the output device cannot be safely
-reconnected.
-
-Before Switchboard first changes a key, `UndoLedger` records its exact previous
-value—including an unset key. **Restore Original Settings…** replays that ledger.
-
-Launch at Login is in the ellipsis menu. macOS may require approval in **System
-Settings > General > Login Items**.
+- No data leaves your Mac. There is no networking code in the app.
+- No clipboard history is written to disk.
+- No background helper, and no login item unless you turn one on.
+- It changes documented macOS preferences, the same ones the `defaults` command
+  reads and writes.
 
 ## Building from source
 
