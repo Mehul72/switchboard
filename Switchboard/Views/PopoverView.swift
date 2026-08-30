@@ -93,13 +93,14 @@ struct PopoverView: View {
     private var settingsMenu: some View {
         Menu {
             Button(launchAtLoginTitle) {
-                if launchAtLoginState == .requiresApproval {
+                if launchAtLoginState == .unavailable {
+                    recoverLaunchAtLogin()
+                } else if launchAtLoginState == .requiresApproval {
                     LaunchAtLogin.openSettings()
                 } else {
                     updateLaunchAtLogin(launchAtLoginState != .enabled)
                 }
             }
-            .disabled(launchAtLoginState == .unavailable)
             Divider()
             Button("Quit Switchboard") { NSApp.terminate(nil) }
                 .keyboardShortcut("q", modifiers: .command)
@@ -305,12 +306,31 @@ struct PopoverView: View {
         }
     }
 
+    private func recoverLaunchAtLogin() {
+        LaunchAtLogin.recoverFromUnavailableCopy { result in
+            switch result {
+            case .relaunched:
+                break
+            case .needsInstallation:
+                store.notice = StoreNotice(
+                    kind: .information,
+                    message: "Move Switchboard to Applications, then open that copy to enable launch at login."
+                )
+            case .failed:
+                store.notice = StoreNotice(
+                    kind: .error,
+                    message: "The installed copy could not be opened. Open Switchboard from Applications and try again."
+                )
+            }
+        }
+    }
+
     private var launchAtLoginTitle: String {
         switch launchAtLoginState {
         case .enabled: return "Disable Launch at Login"
         case .disabled: return "Launch at Login"
         case .requiresApproval: return "Approve Launch at Login…"
-        case .unavailable: return "Launch at Login Unavailable"
+        case .unavailable: return LaunchAtLogin.recoveryTitle
         }
     }
 }

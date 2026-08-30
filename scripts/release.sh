@@ -21,6 +21,7 @@ SCHEME="Switchboard"
 TEAM_ID="MACDPWQG37"
 KEYCHAIN_PROFILE="switchboard-notary"
 BUILD_DIR="build"
+DERIVED_DATA="$BUILD_DIR/DerivedData"
 APP_NAME="Switchboard"
 
 cd "$(dirname "$0")/.."
@@ -55,14 +56,16 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
 # --- archive and export ----------------------------------------------------
-# Products left behind by a Debug identity make codesign fail with an
-# "invalid or unsupported format for signature" on a stray .cstemp file.
+# Keep release products away from Xcode's shared Derived Data. Cleaning the
+# shared target can delete a running Debug app's bundle and leave its process
+# unable to register itself as a login item.
 step "Cleaning previous Release products"
-xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release clean >/dev/null 2>&1 || true
+xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+  -derivedDataPath "$DERIVED_DATA" clean >/dev/null 2>&1 || true
 
 step "Archiving"
 xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
-  -archivePath "$BUILD_DIR/$APP_NAME.xcarchive" archive \
+  -derivedDataPath "$DERIVED_DATA" -archivePath "$BUILD_DIR/$APP_NAME.xcarchive" archive \
   | grep -E "error:|warning: .*\.swift|BUILD" || true
 [ -d "$BUILD_DIR/$APP_NAME.xcarchive" ] || fail "Archive not produced."
 
