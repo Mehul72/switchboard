@@ -46,6 +46,26 @@ final class UndoLedger {
         return !failed
     }
 
+    /// Restores one retired tweak without disturbing the rest of the user's
+    /// undo history. Used when a catalog item is replaced with new behaviour.
+    @discardableResult
+    func restore(domain: String, key: String) -> Bool {
+        let id = Self.identifier(domain: domain, key: key)
+        guard let record = records[id] else { return true }
+        guard let recordedDomain = record["domain"] as? String,
+              let recordedKey = record["key"] as? String else {
+            records.removeValue(forKey: id)
+            flush()
+            return true
+        }
+        guard PreferenceStore.writeRaw(record["value"] as CFPropertyList?,
+                                       domain: recordedDomain,
+                                       key: recordedKey) else { return false }
+        records.removeValue(forKey: id)
+        flush()
+        return true
+    }
+
     /// Every restart target touched by the keys we are about to put back.
     func affectedTargets(in catalog: [Tweak]) -> Set<RestartTarget> {
         let catalogTargets: [String: RestartTarget] = Dictionary(uniqueKeysWithValues: catalog.compactMap { tweak in
@@ -59,7 +79,6 @@ final class UndoLedger {
             switch record["domain"] as? String {
             case "com.apple.dock": return .dock
             case "com.apple.finder": return .finder
-            case "com.apple.screencapture": return .systemUIServer
             default: return nil
             }
         })

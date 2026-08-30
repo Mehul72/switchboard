@@ -29,7 +29,7 @@ enum PrefValue: Equatable {
 }
 
 enum Category: String, CaseIterable {
-    case everyday, files, capture, dock
+    case everyday, files, capture, dock, audio, clipboard
 
     var label: String { rawValue.capitalized }
 
@@ -39,6 +39,8 @@ enum Category: String, CaseIterable {
         case .files: return "folder"
         case .capture: return "camera.viewfinder"
         case .dock: return "dock.rectangle"
+        case .audio: return "speaker.wave.2"
+        case .clipboard: return "doc.on.clipboard"
         }
     }
 }
@@ -55,6 +57,11 @@ enum RestartTarget: String, CaseIterable {
         case .systemUIServer: return "menu bar"
         }
     }
+}
+
+struct PendingTranslation: Equatable {
+    let text: String
+    let source: Locale.Language
 }
 
 struct Choice: Equatable, Identifiable {
@@ -82,6 +89,10 @@ enum TweakBehavior {
     case preference(PreferenceSpec)
     case keepAwake
     case plainTextClipboard
+    case mouseScrollDirection
+    case quitOnClose
+    case regionOCR
+    case translateCaptures
 }
 
 struct Tweak: Identifiable {

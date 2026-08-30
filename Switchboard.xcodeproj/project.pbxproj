@@ -18,6 +18,15 @@
 		4D63E359B5595FFF4E6D6937 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
 		A10000000000000000000002 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
+		A10000000000000000000012 /* ClipboardHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* ClipboardHistory.swift */; };
+		A10000000000000000000010 /* TranslationBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000F /* TranslationBridge.swift */; };
+		A10000000000000000000014 /* ClipboardHistoryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* ClipboardHistoryList.swift */; };
+		A1000000000000000000000E /* AppVolumeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000D /* AppVolumeList.swift */; };
+		A1000000000000000000000C /* AppAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* AppAudio.swift */; };
+		A1000000000000000000000A /* TextCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* TextCapture.swift */; };
+		A10000000000000000000004 /* ScrollDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* ScrollDirection.swift */; };
+		A10000000000000000000006 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
+		A10000000000000000000008 /* QuitOnClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* QuitOnClose.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
 		9D1C7530247EDF3FF722473D /* ApplyBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351B9788911C1DDE92BDB476 /* ApplyBar.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
@@ -41,6 +50,15 @@
 		8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIcon.swift; sourceTree = "<group>"; };
 		91EA732BBFDE52F306868A9C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A10000000000000000000001 /* UtilityServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityServices.swift; sourceTree = "<group>"; };
+		A10000000000000000000011 /* ClipboardHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistory.swift; sourceTree = "<group>"; };
+		A1000000000000000000000F /* TranslationBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationBridge.swift; sourceTree = "<group>"; };
+		A10000000000000000000013 /* ClipboardHistoryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryList.swift; sourceTree = "<group>"; };
+		A1000000000000000000000D /* AppVolumeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVolumeList.swift; sourceTree = "<group>"; };
+		A1000000000000000000000B /* AppAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAudio.swift; sourceTree = "<group>"; };
+		A10000000000000000000009 /* TextCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextCapture.swift; sourceTree = "<group>"; };
+		A10000000000000000000003 /* ScrollDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDirection.swift; sourceTree = "<group>"; };
+		A10000000000000000000005 /* ClipboardImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardImageConverter.swift; sourceTree = "<group>"; };
+		A10000000000000000000007 /* QuitOnClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitOnClose.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartCoordinator.swift; sourceTree = "<group>"; };
 		B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceStore.swift; sourceTree = "<group>"; };
@@ -96,6 +114,9 @@
 			isa = PBXGroup;
 			children = (
 				351B9788911C1DDE92BDB476 /* ApplyBar.swift */,
+				A1000000000000000000000D /* AppVolumeList.swift */,
+				A10000000000000000000013 /* ClipboardHistoryList.swift */,
+				A1000000000000000000000F /* TranslationBridge.swift */,
 				49EA744DB07D578E6A2066FC /* CategoryNav.swift */,
 				B24382D42E5D8342EB12F9C9 /* PopoverView.swift */,
 				BF49656E31E00F535E0CB517 /* Theme.swift */,
@@ -120,6 +141,12 @@
 				B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */,
 				88DAD93FDFB9505014881B70 /* UndoLedger.swift */,
 				A10000000000000000000001 /* UtilityServices.swift */,
+				A10000000000000000000011 /* ClipboardHistory.swift */,
+				A1000000000000000000000B /* AppAudio.swift */,
+				A10000000000000000000009 /* TextCapture.swift */,
+				A10000000000000000000003 /* ScrollDirection.swift */,
+				A10000000000000000000005 /* ClipboardImageConverter.swift */,
+				A10000000000000000000007 /* QuitOnClose.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -214,6 +241,15 @@
 				A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */,
 				46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */,
 				A10000000000000000000002 /* UtilityServices.swift in Sources */,
+				A10000000000000000000012 /* ClipboardHistory.swift in Sources */,
+				A10000000000000000000010 /* TranslationBridge.swift in Sources */,
+				A1000000000000000000000E /* AppVolumeList.swift in Sources */,
+				A10000000000000000000014 /* ClipboardHistoryList.swift in Sources */,
+				A1000000000000000000000C /* AppAudio.swift in Sources */,
+				A1000000000000000000000A /* TextCapture.swift in Sources */,
+				A10000000000000000000004 /* ScrollDirection.swift in Sources */,
+				A10000000000000000000006 /* ClipboardImageConverter.swift in Sources */,
+				A10000000000000000000008 /* QuitOnClose.swift in Sources */,
 				E826485CA77D0E4BB839211A /* Theme.swift in Sources */,
 				15F083EC0B9DB0EE44D9585C /* Tweak.swift in Sources */,
 				CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */,
@@ -277,13 +313,13 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = NO;
+				DEVELOPMENT_TEAM = MACDPWQG37;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -294,7 +330,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -356,12 +392,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -379,7 +415,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;

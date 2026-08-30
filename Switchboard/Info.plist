@@ -22,6 +22,8 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>Switchboard captures an app's audio so it can play it at the volume you choose.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 </dict>

@@ -6,30 +6,36 @@ struct TweakRow: View {
     @ObservedObject var store: TweakStore
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: tweak.symbol)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 24)
-                .accessibilityHidden(true)
+        HStack(alignment: .center, spacing: Theme.rowSpacing) {
+            RowIcon(symbol: tweak.symbol)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
+                // The title is the whole point of the row, so it wraps rather
+                // than truncating -- a clipped setting name is unreadable.
                 Text(tweak.title)
                     .font(.rowTitle)
                     .foregroundStyle(Theme.primary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let subtitle = tweak.subtitle {
                     Text(subtitle)
                         .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
+                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: 8)
+            // A fixed column keeps every control on the same edge and stops a
+            // wide picker from squeezing the label next to it.
             control
+                .frame(maxWidth: Theme.controlColumn, alignment: .trailing)
+                .layoutPriority(1)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, tweak.subtitle == nil ? 9 : 8)
+        .padding(.horizontal, Theme.rowInset)
+        .padding(.vertical, 8)
+        .frame(minHeight: 40)
         .contentShape(Rectangle())
     }
 
@@ -43,7 +49,7 @@ struct TweakRow: View {
             ))
             .labelsHidden()
             .toggleStyle(.switch)
-            .controlSize(.mini)
+            .controlSize(.small)
             .accessibilityLabel(tweak.title)
         case .choice(let choices):
             ChoicePicker(tweak: tweak, choices: choices, store: store)
@@ -55,6 +61,7 @@ struct TweakRow: View {
             Button(label) { store.perform(tweak) }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .disabled(!store.canPerform(tweak))
                 .accessibilityLabel(tweak.title)
         }
     }
