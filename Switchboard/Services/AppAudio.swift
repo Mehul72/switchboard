@@ -2,6 +2,11 @@ import AppKit
 import CoreAudio
 import Darwin
 
+/// macOS tracks which application a helper process is doing work on behalf of.
+/// Apple exports the lookup without shipping a public header for it.
+@_silgen_name("responsibility_get_pid_responsible_for_pid")
+private func responsiblePID(for pid: pid_t) -> pid_t
+
 /// One app that currently owns one or more Core Audio process objects.
 struct AudioApp: Identifiable, Equatable {
     let bundleID: String
@@ -197,10 +202,23 @@ final class AppAudioEngine {
     }
 
     /// Maps a helper process back to the regular app a person recognises.
+    ///
+    /// Chrome names its helpers after the browser, so trimming the bundle ID
+    /// reaches the parent. Safari plays through WebKit framework processes
+    /// instead, and `com.apple.WebKit.GPU` never trims down to
+    /// `com.apple.Safari`, so ask macOS which app the helper answers to before
+    /// falling back to the name.
     private static func owningApplication(pid: pid_t, bundleID: String) -> NSRunningApplication? {
         if let direct = NSRunningApplication(processIdentifier: pid),
            direct.activationPolicy == .regular {
             return direct
+        }
+
+        let responsible = responsiblePID(for: pid)
+        if responsible > 0, responsible != pid,
+           let owner = NSRunningApplication(processIdentifier: responsible),
+           owner.activationPolicy == .regular {
+            return owner
         }
 
         var candidate = bundleID

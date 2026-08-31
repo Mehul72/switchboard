@@ -75,19 +75,34 @@ final class ScrollInverter {
         }
         guard type == .scrollWheel else { return Unmanaged.passUnretained(event) }
 
-        // A trackpad (and Magic Mouse gesture) sends continuous deltas; a wheel
-        // sends discrete ticks. Only the wheel gets flipped.
-        guard event.getIntegerValueField(.scrollWheelEventIsContinuous) == 0 else {
+        // A trackpad (and a Magic Mouse gesture) sends continuous deltas that
+        // carry a scroll or momentum phase; a wheel sends discrete ticks with
+        // neither. Only the wheel gets flipped.
+        guard event.getIntegerValueField(.scrollWheelEventIsContinuous) == 0,
+              event.getIntegerValueField(.scrollWheelEventScrollPhase) == 0,
+              event.getIntegerValueField(.scrollWheelEventMomentumPhase) == 0 else {
             return Unmanaged.passUnretained(event)
         }
 
-        for (unit, fixed) in [(CGEventField.scrollWheelEventDeltaAxis1, CGEventField.scrollWheelEventFixedPtDeltaAxis1),
-                              (.scrollWheelEventDeltaAxis2, .scrollWheelEventFixedPtDeltaAxis2)] {
-            event.setIntegerValueField(unit, value: -event.getIntegerValueField(unit))
-            event.setDoubleValueField(fixed, value: -event.getDoubleValueField(fixed))
-        }
-        for point in [CGEventField.scrollWheelEventPointDeltaAxis1, .scrollWheelEventPointDeltaAxis2] {
-            event.setIntegerValueField(point, value: -event.getIntegerValueField(point))
+        // Writing the line delta makes Core Graphics recompute the fixed-point
+        // and point deltas from it, so all three have to be read before the
+        // first write. Negating them from live values afterwards flips the
+        // already-flipped fields back, which leaves the point delta -- the one
+        // AppKit reads for `scrollingDeltaY` -- pointing the original way.
+        // Writing the line delta first, then restoring the device's own
+        // fixed-point and point deltas negated, also keeps their full
+        // resolution instead of the coarser values derived from whole lines.
+        let axes: [(unit: CGEventField, fixed: CGEventField, point: CGEventField)] = [
+            (.scrollWheelEventDeltaAxis1, .scrollWheelEventFixedPtDeltaAxis1, .scrollWheelEventPointDeltaAxis1),
+            (.scrollWheelEventDeltaAxis2, .scrollWheelEventFixedPtDeltaAxis2, .scrollWheelEventPointDeltaAxis2)
+        ]
+        for axis in axes {
+            let unit = event.getIntegerValueField(axis.unit)
+            let fixed = event.getDoubleValueField(axis.fixed)
+            let point = event.getIntegerValueField(axis.point)
+            event.setIntegerValueField(axis.unit, value: -unit)
+            event.setDoubleValueField(axis.fixed, value: -fixed)
+            event.setIntegerValueField(axis.point, value: -point)
         }
         return Unmanaged.passUnretained(event)
     }
