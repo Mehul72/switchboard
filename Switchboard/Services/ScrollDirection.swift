@@ -8,10 +8,28 @@ import CoreGraphics
 /// trackpad never sends -- natural scrolling on the trackpad, traditional
 /// scrolling on the mouse, at the same time.
 final class ScrollInverter {
+    /// The event-tap callback is a C function pointer with no context, so the
+    /// port it has to re-arm lives here. The run loop source is stored beside
+    /// it rather than on the instance, so a stop always tears down exactly
+    /// what the matching start put in place.
     private static var tap: CFMachPort?
-    private var runLoopSource: CFRunLoopSource?
+    private static var runLoopSource: CFRunLoopSource?
+
+    /// macOS can disable a tap without sending the `tapDisabled` event that
+    /// would re-arm it, which leaves the feature dead with the toggle still
+    /// showing on. Nothing else notices, so this is the only signal.
+    private static let healthCheckInterval: TimeInterval = 5
+    private static let defaultsKey = "MouseScrollInvertedEnabled"
+
+    private let defaults: UserDefaults
+    private var healthTimer: Timer?
 
     var isActive: Bool { Self.tap != nil }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        resumeIfPermitted()
+    }
 
     /// The event tap is a system-wide input hook, so macOS gates it behind
     /// Accessibility. Granting is a one-time trip to System Settings.
@@ -29,8 +47,23 @@ final class ScrollInverter {
 
     @discardableResult
     func setActive(_ active: Bool) -> Bool {
+        defer { defaults.set(isActive, forKey: Self.defaultsKey) }
         if active == isActive { return true }
         return active ? start() : stop()
+    }
+
+    /// Accessibility is granted in System Settings long after launch, and
+    /// revoking it kills the tap. Either way the stored preference is what the
+    /// user asked for, so it survives and the tap follows the permission.
+    @discardableResult
+    func resumeIfPermitted() -> Bool {
+        switch AccessibilityResumeStep.next(preferenceOn: defaults.bool(forKey: Self.defaultsKey),
+                                            permitted: Self.hasPermission,
+                                            running: isActive) {
+        case .start: return start()
+        case .stop: _ = stop(); return false
+        case .leaveAlone: return isActive
+        }
     }
 
     private func start() -> Bool {
@@ -51,26 +84,59 @@ final class ScrollInverter {
         CGEvent.tapEnable(tap: tap, enable: true)
 
         Self.tap = tap
-        runLoopSource = source
+        Self.runLoopSource = source
+        startHealthChecks()
         return true
     }
 
     @discardableResult
     private func stop() -> Bool {
-        if let tap = Self.tap { CGEvent.tapEnable(tap: tap, enable: false) }
-        if let source = runLoopSource {
+        healthTimer?.invalidate()
+        healthTimer = nil
+        if let tap = Self.tap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+            // Dropping the last reference is not enough; without this the
+            // mach port stays live for the rest of the session.
+            CFMachPortInvalidate(tap)
+        }
+        if let source = Self.runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
         }
-        runLoopSource = nil
+        Self.runLoopSource = nil
         Self.tap = nil
         return true
+    }
+
+    private func startHealthChecks() {
+        healthTimer?.invalidate()
+        let timer = Timer(timeInterval: Self.healthCheckInterval, repeats: true) { [weak self] _ in
+            self?.reArmIfDisabled()
+        }
+        timer.tolerance = 1
+        RunLoop.main.add(timer, forMode: .common)
+        healthTimer = timer
+    }
+
+    private func reArmIfDisabled() {
+        guard let tap = Self.tap else { return }
+        // A revoked Accessibility grant cannot be re-armed, so drop the tap
+        // instead of retrying it forever. The preference stays put and the
+        // next grant brings the feature back.
+        guard Self.hasPermission else {
+            _ = stop()
+            return
+        }
+        guard !CGEvent.tapIsEnabled(tap: tap) else { return }
+        CGEvent.tapEnable(tap: tap, enable: true)
     }
 
     private static func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
         // macOS silently disables a tap that runs long or trips a security
         // check; without re-arming it the feature dies with no symptom.
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
+            if let tap, !CGEvent.tapIsEnabled(tap: tap) {
+                CGEvent.tapEnable(tap: tap, enable: true)
+            }
             return Unmanaged.passUnretained(event)
         }
         guard type == .scrollWheel else { return Unmanaged.passUnretained(event) }

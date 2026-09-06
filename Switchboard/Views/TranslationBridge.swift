@@ -49,6 +49,9 @@ struct TranslationBridge: ViewModifier {
             }
     }
 
+    /// Explicitly main-actor rather than relying on ViewModifier inference,
+    /// so the isolation the store's reporting needs is stated, not deduced.
+    @MainActor
     private func translate(with session: TranslationSession) async {
         guard let pending = store.pendingTranslation else { return }
         do {
@@ -56,13 +59,13 @@ struct TranslationBridge: ViewModifier {
             // the system's own progress rather than failing silently.
             try await session.prepareTranslation()
             let response = try await session.translate(pending.text)
-            await store.finishTranslation(response.targetText, from: pending.source, failure: nil)
+            store.finishTranslation(response.targetText, from: pending.source, failure: nil)
         } catch is CancellationError {
             // A newer capture superseded this one; its own task reports back.
             return
         } catch {
-            await store.finishTranslation(nil, from: pending.source,
-                                          failure: error.localizedDescription)
+            store.finishTranslation(nil, from: pending.source,
+                                    failure: error.localizedDescription)
         }
     }
 }

@@ -135,6 +135,31 @@ final class AppAudioEngine {
         let uid: String
     }
 
+    /// Counts render callbacks. A tapped app is muted at the source, so a
+    /// renderer that stops running leaves it silent with no other symptom;
+    /// this is the only signal that the callback is still alive.
+    private final class RenderTicks {
+        private let count: UnsafeMutablePointer<Int32>
+
+        init() {
+            count = .allocate(capacity: 1)
+            count.initialize(to: 0)
+        }
+
+        func advance() {
+            _ = OSAtomicIncrement32Barrier(count)
+        }
+
+        func load() -> Int32 {
+            OSAtomicAdd32Barrier(0, count)
+        }
+
+        deinit {
+            count.deinitialize(count: 1)
+            count.deallocate()
+        }
+    }
+
     private struct Controlled {
         let processObjectIDs: [AudioObjectID]
         let route: OutputRoute
@@ -142,12 +167,28 @@ final class AppAudioEngine {
         let tapID: AudioObjectID
         let aggregate: Aggregate
         let ioProcID: AudioDeviceIOProcID
+        let renderTicks: RenderTicks
+        /// Watchdog state, compared against `renderTicks` once per maintenance
+        /// poll to notice a renderer that has stopped calling back.
+        var ticksAtLastPoll: Int32 = 0
+        var stalledPolls = 0
     }
 
     private struct PendingTeardown {
         let aggregate: Aggregate
         let tapID: AudioObjectID
+        var polls = 0
     }
+
+    /// Two maintenance polls, so a single missed sample cannot drop a control
+    /// that is working.
+    private static let stalledPollsBeforeRelease = 2
+
+    private static let teardownPollInterval: TimeInterval = 0.1
+    /// Ten seconds of retries. Core Audio finishes an aggregate teardown in a
+    /// few polls; a pair of objects it will never reclaim must not leave a
+    /// timer running at 10Hz for the rest of the session.
+    private static let teardownPollLimit = 100
 
     private var controlled: [String: Controlled] = [:]
     /// Main-thread state used by the UI. The real-time callback never reads it.
@@ -245,7 +286,8 @@ final class AppAudioEngine {
 
         guard clamped < 1 else {
             release(app.bundleID)
-            requestedGains[app.bundleID] = 1
+            // Absent means normal volume, so there is nothing left to remember.
+            requestedGains.removeValue(forKey: app.bundleID)
             return .success(())
         }
 
@@ -261,53 +303,93 @@ final class AppAudioEngine {
             controlled[app.bundleID] = try install(app, gain: clamped, route: route)
             return .success(())
         } catch let error as AppAudioError {
-            requestedGains[app.bundleID] = 1
+            requestedGains.removeValue(forKey: app.bundleID)
             return .failure(error)
         } catch {
-            requestedGains[app.bundleID] = 1
+            requestedGains.removeValue(forKey: app.bundleID)
             return .failure(.setupFailed)
         }
     }
 
     /// Rebuilds controls when an app's helpers or the default output device
-    /// change. This is also what releases taps after an app quits while the
-    /// Switchboard panel is closed.
+    /// change, re-applies a chosen volume to an app that stopped and resumed
+    /// playing, and releases taps after an app quits while the Switchboard
+    /// panel is closed.
     func reconcile(with apps: [AudioApp]) -> [String] {
-        guard !controlled.isEmpty else { return [] }
+        let attenuated = requestedGains.filter { $0.value < 1 }
+        guard !controlled.isEmpty || !attenuated.isEmpty else { return [] }
+
         let current = Dictionary(uniqueKeysWithValues: apps.map { ($0.bundleID, $0) })
         let route = try? Self.defaultOutputRoute()
         var failures: [String] = []
 
-        for bundleID in Array(controlled.keys) {
+        for bundleID in Set(controlled.keys).union(attenuated.keys) {
             guard let app = current[bundleID] else {
+                // An app leaves the Core Audio process list whenever it stops
+                // playing, so a missing entry is not a reason to forget the
+                // volume its owner chose. Only a quit app gets that.
                 release(bundleID)
-                requestedGains.removeValue(forKey: bundleID)
-                continue
-            }
-            guard let existing = controlled[bundleID] else { continue }
-            guard existing.processObjectIDs != app.processObjectIDs || existing.route != route else {
+                if !Self.isRunning(bundleID) { requestedGains.removeValue(forKey: bundleID) }
                 continue
             }
 
+            if let existing = controlled[bundleID] {
+                guard existing.processObjectIDs != app.processObjectIDs
+                        || existing.route != route else {
+                    if let failure = releaseIfRendererStalled(bundleID, playing: app.isPlaying) {
+                        failures.append("\(app.name): \(failure)")
+                    }
+                    continue
+                }
+                release(bundleID)
+            }
+
             let gain = requestedGains[bundleID] ?? 1
-            release(bundleID)
             guard gain < 1 else { continue }
             guard let route else {
-                requestedGains[bundleID] = 1
+                requestedGains.removeValue(forKey: bundleID)
                 failures.append("\(app.name): \(AppAudioError.noOutputDevice.localizedDescription)")
                 continue
             }
             do {
                 controlled[bundleID] = try install(app, gain: gain, route: route)
             } catch let error as AppAudioError {
-                requestedGains[bundleID] = 1
+                requestedGains.removeValue(forKey: bundleID)
                 failures.append("\(app.name): \(error.localizedDescription)")
             } catch {
-                requestedGains[bundleID] = 1
+                requestedGains.removeValue(forKey: bundleID)
                 failures.append("\(app.name): \(AppAudioError.setupFailed.localizedDescription)")
             }
         }
         return failures
+    }
+
+    /// A started device calls its IOProc continuously, so no callbacks at all
+    /// while the app is producing output means the renderer is gone and the
+    /// tap is muting the app into silence. Hand it back to the system mixer.
+    private func releaseIfRendererStalled(_ bundleID: String, playing: Bool) -> String? {
+        guard let control = controlled[bundleID] else { return nil }
+
+        let ticks = control.renderTicks.load()
+        guard playing, ticks == control.ticksAtLastPoll else {
+            controlled[bundleID]?.ticksAtLastPoll = ticks
+            controlled[bundleID]?.stalledPolls = 0
+            return nil
+        }
+
+        let stalled = control.stalledPolls + 1
+        guard stalled >= Self.stalledPollsBeforeRelease else {
+            controlled[bundleID]?.stalledPolls = stalled
+            return nil
+        }
+        release(bundleID)
+        requestedGains.removeValue(forKey: bundleID)
+        return "per-app volume stopped responding, so it is back at normal volume."
+    }
+
+    private static func isRunning(_ bundleID: String) -> Bool {
+        NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            .contains { !$0.isTerminated }
     }
 
     func releaseAll() {
@@ -317,7 +399,11 @@ final class AppAudioEngine {
         requestedGains.removeAll()
     }
 
-    var isControllingAnything: Bool { !controlled.isEmpty }
+    /// True while anything still needs maintaining: a live tap, or a volume
+    /// chosen for an app that has gone quiet and will need it again.
+    var isControllingAnything: Bool {
+        !controlled.isEmpty || requestedGains.contains { $0.value < 1 }
+    }
 
     // MARK: - Tap and aggregate device
 
@@ -367,12 +453,14 @@ final class AppAudioEngine {
         }
 
         let gainState = AtomicGain(gain)
+        let renderTicks = RenderTicks()
         var ioProcID: AudioDeviceIOProcID?
         let createStatus = AudioDeviceCreateIOProcIDWithBlock(
             &ioProcID,
             aggregate.id,
             nil
         ) { _, input, _, output, _ in
+            renderTicks.advance()
             Self.render(input: input, output: output, gain: gainState.load())
         }
         guard createStatus == noErr, let ioProcID else {
@@ -393,7 +481,8 @@ final class AppAudioEngine {
             gain: gainState,
             tapID: tapID,
             aggregate: aggregate,
-            ioProcID: ioProcID
+            ioProcID: ioProcID,
+            renderTicks: renderTicks
         )
     }
 
@@ -416,7 +505,7 @@ final class AppAudioEngine {
         pendingTeardowns.append(PendingTeardown(aggregate: aggregate, tapID: tapID))
         guard teardownTimer == nil else { return }
 
-        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: Self.teardownPollInterval, repeats: true) { [weak self] _ in
             self?.pollTeardowns()
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -424,14 +513,25 @@ final class AppAudioEngine {
     }
 
     private func pollTeardowns() {
-        pendingTeardowns = pendingTeardowns.filter { pending in
+        pendingTeardowns = pendingTeardowns.compactMap { pending in
+            var pending = pending
+            pending.polls += 1
+            // Giving up leaks one tap and one aggregate for the rest of the
+            // session, which is the lesser cost: the app has already been
+            // handed back to the normal mixer, so nothing is left muted.
+            guard pending.polls < Self.teardownPollLimit else {
+                _ = AudioHardwareDestroyProcessTap(pending.tapID)
+                return nil
+            }
+
             if Self.string(pending.aggregate.id, kAudioDevicePropertyDeviceUID) == pending.aggregate.uid {
                 _ = AudioHardwareDestroyAggregateDevice(pending.aggregate.id)
-                return true
+                return pending
             }
 
             let status = AudioHardwareDestroyProcessTap(pending.tapID)
-            return status != noErr && Self.objectExists(pending.tapID)
+            let stillThere = status != noErr && Self.objectExists(pending.tapID)
+            return stillThere ? pending : nil
         }
 
         if pendingTeardowns.isEmpty {
@@ -594,7 +694,11 @@ final class AppAudioEngine {
         guard AudioObjectGetPropertyData(object, &address, 0, nil, &size, &values) == noErr else {
             return []
         }
-        return values
+        // The fetch reports how many bytes it actually filled, which is fewer
+        // than the size query above when the list shrinks between the two
+        // calls. The untouched tail is still kAudioObjectUnknown, and passing
+        // that on reads as a stream or process that does not exist.
+        return Array(values.prefix(Int(size) / MemoryLayout<AudioObjectID>.size))
     }
 
     private static func audioFormat(
@@ -676,8 +780,31 @@ final class AppAudioEngine {
         return AudioObjectGetPropertyData(object, &address, 0, nil, &size, &value) == noErr
     }
 
+    /// Teardown normally waits for Core Audio to finish destroying the
+    /// aggregate asynchronously. At deinit there is no later poll, and the
+    /// timer callback cannot reference an object that is already going away,
+    /// so stop every renderer and destroy both objects directly.
+    private func releaseEverythingSynchronously() {
+        for bundleID in Array(controlled.keys) {
+            guard let control = controlled.removeValue(forKey: bundleID) else { continue }
+            control.gain.store(1)
+            _ = AudioDeviceStop(control.aggregate.id, control.ioProcID)
+            _ = AudioDeviceDestroyIOProcID(control.aggregate.id, control.ioProcID)
+            pendingTeardowns.append(PendingTeardown(aggregate: control.aggregate,
+                                                    tapID: control.tapID))
+        }
+        requestedGains.removeAll()
+
+        for pending in pendingTeardowns {
+            _ = AudioHardwareDestroyAggregateDevice(pending.aggregate.id)
+            _ = AudioHardwareDestroyProcessTap(pending.tapID)
+        }
+        pendingTeardowns.removeAll()
+    }
+
     deinit {
         teardownTimer?.invalidate()
-        releaseAll()
+        teardownTimer = nil
+        releaseEverythingSynchronously()
     }
 }

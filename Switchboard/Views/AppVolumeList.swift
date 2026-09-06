@@ -6,9 +6,6 @@ import SwiftUI
 struct AppVolumeList: View {
     @ObservedObject var store: TweakStore
 
-    // Apps start and stop playing while the panel is open.
-    private let refresh = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
-
     var body: some View {
         VStack(spacing: 0) {
             if store.audioApps.isEmpty {
@@ -27,8 +24,10 @@ struct AppVolumeList: View {
             }
         }
         .background(Theme.groupBackground, in: RoundedRectangle(cornerRadius: 10))
-        .onAppear { store.refreshAudioApps() }
-        .onReceive(refresh) { _ in store.refreshAudioApps() }
+        // Apps start and stop playing while the panel is open, and the store
+        // owns the one timer that notices, so it has to know we are on screen.
+        .onAppear { store.setAudioListVisible(true) }
+        .onDisappear { store.setAudioListVisible(false) }
     }
 }
 

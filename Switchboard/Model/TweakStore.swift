@@ -44,6 +44,7 @@ final class TweakStore: ObservableObject {
     /// even if the preference was switched on earlier.
     static let translationEnabled = false
     private var audioMaintenanceTimer: Timer?
+    private var isShowingAudioList = false
     private var accessibilityObserver: NSObjectProtocol?
 
     init() {
@@ -97,7 +98,11 @@ final class TweakStore: ObservableObject {
             }
         }
         values = latest
+        // Both input hooks are gated on Accessibility, which is granted and
+        // revoked outside the app, so every refresh reconciles the running
+        // state with the permission rather than assuming it has not moved.
         quitOnClose.revalidatePermission()
+        scroll.resumeIfPermitted()
         customStates["everyday.keep-awake"] = awake.isActive
         customStates["everyday.mouse-scroll"] = scroll.isActive
         customStates["everyday.quit-on-close"] = quitOnClose.isActive
@@ -128,9 +133,13 @@ final class TweakStore: ObservableObject {
         let latest = AppAudioEngine.runningApps()
         if latest != audioApps { audioApps = latest }
         let failures = appAudio.reconcile(with: latest)
-        audioVolumes = Dictionary(uniqueKeysWithValues: latest.map {
+        // The maintenance timer now outlives an attenuated app going quiet, so
+        // an unconditional assignment would publish a change every two seconds
+        // for the rest of the session.
+        let volumes = Dictionary(uniqueKeysWithValues: latest.map {
             ($0.bundleID, appAudio.gain(for: $0.bundleID))
         })
+        if volumes != audioVolumes { audioVolumes = volumes }
         updateAudioMaintenanceTimer()
         if let failure = failures.first {
             notice = StoreNotice(kind: .error, message: failure)
@@ -152,8 +161,20 @@ final class TweakStore: ObservableObject {
         }
     }
 
+    /// The audio list shows whatever can currently make noise, so it needs
+    /// polling while it is on screen even when nothing is being controlled.
+    func setAudioListVisible(_ visible: Bool) {
+        guard visible != isShowingAudioList else { return }
+        isShowingAudioList = visible
+        if visible {
+            refreshAudioApps()
+        } else {
+            updateAudioMaintenanceTimer()
+        }
+    }
+
     private func updateAudioMaintenanceTimer() {
-        guard appAudio.isControllingAnything else {
+        guard appAudio.isControllingAnything || isShowingAudioList else {
             audioMaintenanceTimer?.invalidate()
             audioMaintenanceTimer = nil
             return
@@ -427,7 +448,7 @@ final class TweakStore: ObservableObject {
                     self.notice = StoreNotice(kind: .error, message: "The text could not be put on the clipboard.")
                     return
                 }
-                let lines = text.split(separator: "\n").count
+                let lines = text.lineCount
                 self.notice = StoreNotice(kind: .success,
                                           message: "Copied \(lines) line\(lines == 1 ? "" : "s") of text.")
                 self.history.record(text, note: "Captured from the screen")

@@ -1,0 +1,18 @@
+{
+  // scripts/release.sh stages the disk image with an `Applications` symlink
+  // pointing at /Applications. Anything that walks the workspace follows it
+  // into Xcode.app and the whole macOS SDK, which exhausts the extension
+  // host's 4GB V8 heap and takes every extension down with it.
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/DerivedData/**": true
+  },
+  "search.exclude": {
+    "**/build/**": true,
+    "**/DerivedData/**": true
+  },
+  "python.analysis.exclude": [
+    "**/build/**",
+    "**/DerivedData/**"
+  ]
+}

@@ -113,5 +113,9 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         lastDismissedNoticeID = store.notice?.id
+        // SwiftUI's onDisappear is not guaranteed once the hosting view goes
+        // away with the popover, and a missed one would leave the audio list
+        // polling against a closed panel.
+        store.setAudioListVisible(false)
     }
 }

@@ -85,7 +85,7 @@ private struct ChoicePicker: View {
 
     private var selection: Binding<String> {
         Binding(
-            get: { store.selectedChoice(tweak, among: options)?.label ?? options[0].label },
+            get: { store.selectedChoice(tweak, among: options)?.label ?? options.first?.label ?? "" },
             set: { label in
                 if let choice = options.first(where: { $0.label == label }) {
                     store.select(choice.value, for: tweak)

@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A20000000000000000000012 /* QuitOnClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* QuitOnClose.swift */; };
+		A20000000000000000000014 /* CloseWatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* CloseWatchTests.swift */; };
+		A2000000000000000000000D /* ClipboardHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* ClipboardHistoryTests.swift */; };
+		A2000000000000000000000E /* LineCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* LineCountTests.swift */; };
+		A2000000000000000000000F /* PrefValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* PrefValueTests.swift */; };
+		A20000000000000000000010 /* ClipboardHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* ClipboardHistory.swift */; };
+		A20000000000000000000011 /* Tweak.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BACE0936C396083BBBE9867 /* Tweak.swift */; };
 		063B50456E3C47AD1182E762 /* UndoLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DAD93FDFB9505014881B70 /* UndoLedger.swift */; };
 		15F083EC0B9DB0EE44D9585C /* Tweak.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BACE0936C396083BBBE9867 /* Tweak.swift */; };
 		1793CCE3A2BB273424433034 /* PreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */; };
@@ -37,6 +44,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A20000000000000000000013 /* CloseWatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloseWatchTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* ClipboardHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* LineCountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineCountTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* PrefValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefValueTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* SwitchboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwitchboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchboardApp.swift; sourceTree = "<group>"; };
 		30E077C2A969EEAFE301C60E /* TweakCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakCatalog.swift; sourceTree = "<group>"; };
 		351B9788911C1DDE92BDB476 /* ApplyBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplyBar.swift; sourceTree = "<group>"; };
@@ -69,6 +81,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		A20000000000000000000001 /* SwitchboardTests */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000A /* ClipboardHistoryTests.swift */,
+				A2000000000000000000000B /* LineCountTests.swift */,
+				A2000000000000000000000C /* PrefValueTests.swift */,
+				A20000000000000000000013 /* CloseWatchTests.swift */,
+			);
+			path = SwitchboardTests;
+			sourceTree = "<group>";
+		};
 		0F26356606361585FADD38EF /* Switchboard */ = {
 			isa = PBXGroup;
 			children = (
@@ -106,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				4004C53F482006BE156FAA88 /* Switchboard.app */,
+				A20000000000000000000002 /* SwitchboardTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -129,6 +153,7 @@
 			isa = PBXGroup;
 			children = (
 				0F26356606361585FADD38EF /* Switchboard */,
+				A20000000000000000000001 /* SwitchboardTests */,
 				A2132641A5E56E0EF102F01C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -163,6 +188,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A20000000000000000000003 /* SwitchboardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A20000000000000000000005 /* Build configuration list for PBXNativeTarget "SwitchboardTests" */;
+			buildPhases = (
+				A20000000000000000000004 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A20000000000000000000008 /* PBXTargetDependency */,
+			);
+			name = SwitchboardTests;
+			packageProductDependencies = (
+			);
+			productName = SwitchboardTests;
+			productReference = A20000000000000000000002 /* SwitchboardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		83C9C7CC6B2EA5A2C39F8A7F /* Switchboard */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D3541CC1783A12BFD777048D /* Build configuration list for PBXNativeTarget "Switchboard" */;
@@ -182,6 +225,24 @@
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXTargetDependency section */
+		A20000000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 83C9C7CC6B2EA5A2C39F8A7F /* Switchboard */;
+			targetProxy = A20000000000000000000009 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		A20000000000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6F95C8DF56C4BC71F76DD868 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 83C9C7CC6B2EA5A2C39F8A7F;
+			remoteInfo = Switchboard;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXProject section */
 		6F95C8DF56C4BC71F76DD868 /* Project object */ = {
@@ -211,6 +272,7 @@
 			projectRoot = "";
 			targets = (
 				83C9C7CC6B2EA5A2C39F8A7F /* Switchboard */,
+				A20000000000000000000003 /* SwitchboardTests */,
 			);
 		};
 /* End PBXProject section */
@@ -227,6 +289,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A20000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A2000000000000000000000D /* ClipboardHistoryTests.swift in Sources */,
+				A2000000000000000000000E /* LineCountTests.swift in Sources */,
+				A2000000000000000000000F /* PrefValueTests.swift in Sources */,
+				A20000000000000000000010 /* ClipboardHistory.swift in Sources */,
+				A20000000000000000000011 /* Tweak.swift in Sources */,
+				A20000000000000000000012 /* QuitOnClose.swift in Sources */,
+				A20000000000000000000014 /* CloseWatchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F4FDF08320DCB55D20886994 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -263,6 +339,33 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		A20000000000000000000006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A20000000000000000000007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		3BC1F0366BE9BBFD061899EE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -431,6 +534,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A20000000000000000000005 /* Build configuration list for PBXNativeTarget "SwitchboardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A20000000000000000000006 /* Debug */,
+				A20000000000000000000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2193B2539C608969FBCED6B6 /* Build configuration list for PBXProject "Switchboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

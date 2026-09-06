@@ -44,6 +44,12 @@ private struct ClipRow: View {
     @State private var hovering = false
     @State private var expanded = false
 
+    /// A long single-line clip is expandable too, and "Show all 1 lines" is
+    /// not a sentence.
+    private var expandLabel: String {
+        clip.lineCount > 1 ? "Show all \(clip.lineCount) lines" : "Show more"
+    }
+
     private var timestamp: String {
         let elapsed = Date().timeIntervalSince(clip.date)
         // RelativeDateTimeFormatter renders anything recent as "in 0 secs".
@@ -116,7 +122,7 @@ private struct ClipRow: View {
             }
 
             if !clip.isImage, clip.lineCount > 2 || clip.preview.count > 90 {
-                Button(expanded ? "Show less" : "Show all \(clip.lineCount) lines") {
+                Button(expanded ? "Show less" : expandLabel) {
                     expanded.toggle()
                 }
                 .buttonStyle(.borderless)
