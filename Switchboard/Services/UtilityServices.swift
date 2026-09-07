@@ -83,10 +83,19 @@ final class AwakeController {
 }
 
 enum ClipboardCleaner {
-    static func makePlainText() -> Bool {
-        let pasteboard = NSPasteboard.general
+    static func makePlainText(pasteboard: NSPasteboard = .general) -> Bool {
+        let changeCount = pasteboard.changeCount
         guard let text = pasteboard.string(forType: .string), !text.isEmpty else { return false }
+        let types = Set(pasteboard.pasteboardItems?.flatMap(\.types) ?? [])
+            .union(pasteboard.types ?? [])
+        let replacement = NSPasteboardItem()
+        guard replacement.setString(text, forType: .string) else { return false }
+        // Formatting cleanup must not turn a private copy into recordable text.
+        for marker in types.intersection(ClipboardHistory.excludedTypes) {
+            guard replacement.setData(Data(), forType: marker) else { return false }
+        }
+        guard pasteboard.changeCount == changeCount else { return false }
         pasteboard.clearContents()
-        return pasteboard.setString(text, forType: .string)
+        return pasteboard.writeObjects([replacement])
     }
 }

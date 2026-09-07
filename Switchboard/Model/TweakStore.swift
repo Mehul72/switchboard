@@ -148,6 +148,15 @@ final class TweakStore: ObservableObject {
 
     func volume(for app: AudioApp) -> Float { audioVolumes[app.bundleID] ?? 1 }
 
+    var hasAdjustedAudio: Bool { appAudio.isControllingAnything }
+
+    func resetAudioVolumes() {
+        appAudio.releaseAll()
+        audioVolumes = [:]
+        updateAudioMaintenanceTimer()
+        notice = StoreNotice(kind: .success, message: "All app volumes are back at 100%.")
+    }
+
     func setVolume(_ volume: Float, for app: AudioApp) {
         switch appAudio.setGain(volume, for: app) {
         case .success:

@@ -139,6 +139,14 @@ system mixer. These controls work only while Switchboard is running and reset
 to 100% if the app, its audio helpers, or the output device cannot be safely
 reconnected.
 
+macOS shows a purple system-audio privacy indicator while these audio taps are
+active. **Reset All Volumes** releases all controls and returns apps to 100%.
+Switchboard cannot set the system indicator's disappearance timeout. Stopping a
+tap also stops applying its reduced volume.
+
+For step-by-step checks of every exposed feature, see [Manual tests](MANUAL_TESTS.md).
+The [feature audit](AUDIT.md) separates automated results from live checks still needed.
+
 Before Switchboard first changes a key, `UndoLedger` records its exact previous
 value—including an unset key. **Restore Original Settings…** replays that ledger.
 

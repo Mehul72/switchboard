@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A30000000000000000000002 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
+		A30000000000000000000001 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		A20000000000000000000012 /* QuitOnClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* QuitOnClose.swift */; };
 		A20000000000000000000014 /* CloseWatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* CloseWatchTests.swift */; };
 		A2000000000000000000000D /* ClipboardHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* ClipboardHistoryTests.swift */; };
@@ -34,6 +36,8 @@
 		A10000000000000000000004 /* ScrollDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* ScrollDirection.swift */; };
 		A10000000000000000000006 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
 		A10000000000000000000008 /* QuitOnClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* QuitOnClose.swift */; };
+		A10000000000000000000021 /* WindowServerSpaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000020 /* WindowServerSpaces.swift */; };
+		A10000000000000000000022 /* WindowServerSpaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000020 /* WindowServerSpaces.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
 		9D1C7530247EDF3FF722473D /* ApplyBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351B9788911C1DDE92BDB476 /* ApplyBar.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
@@ -71,6 +75,7 @@
 		A10000000000000000000003 /* ScrollDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDirection.swift; sourceTree = "<group>"; };
 		A10000000000000000000005 /* ClipboardImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardImageConverter.swift; sourceTree = "<group>"; };
 		A10000000000000000000007 /* QuitOnClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitOnClose.swift; sourceTree = "<group>"; };
+		A10000000000000000000020 /* WindowServerSpaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowServerSpaces.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartCoordinator.swift; sourceTree = "<group>"; };
 		B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceStore.swift; sourceTree = "<group>"; };
@@ -172,6 +177,7 @@
 				A10000000000000000000003 /* ScrollDirection.swift */,
 				A10000000000000000000005 /* ClipboardImageConverter.swift */,
 				A10000000000000000000007 /* QuitOnClose.swift */,
+				A10000000000000000000020 /* WindowServerSpaces.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -294,11 +300,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				A2000000000000000000000D /* ClipboardHistoryTests.swift in Sources */,
+				A30000000000000000000001 /* UtilityServices.swift in Sources */,
+				A30000000000000000000002 /* ClipboardImageConverter.swift in Sources */,
 				A2000000000000000000000E /* LineCountTests.swift in Sources */,
 				A2000000000000000000000F /* PrefValueTests.swift in Sources */,
 				A20000000000000000000010 /* ClipboardHistory.swift in Sources */,
 				A20000000000000000000011 /* Tweak.swift in Sources */,
 				A20000000000000000000012 /* QuitOnClose.swift in Sources */,
+				A10000000000000000000022 /* WindowServerSpaces.swift in Sources */,
 				A20000000000000000000014 /* CloseWatchTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -326,6 +335,7 @@
 				A10000000000000000000004 /* ScrollDirection.swift in Sources */,
 				A10000000000000000000006 /* ClipboardImageConverter.swift in Sources */,
 				A10000000000000000000008 /* QuitOnClose.swift in Sources */,
+				A10000000000000000000021 /* WindowServerSpaces.swift in Sources */,
 				E826485CA77D0E4BB839211A /* Theme.swift in Sources */,
 				15F083EC0B9DB0EE44D9585C /* Tweak.swift in Sources */,
 				CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */,

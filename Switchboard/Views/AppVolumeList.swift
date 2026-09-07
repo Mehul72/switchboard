@@ -8,6 +8,18 @@ struct AppVolumeList: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("macOS shows a purple audio privacy dot while app volume is reduced. Reset all volumes to stop audio access.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Reset All Volumes") { store.resetAudioVolumes() }
+                    .controlSize(.small)
+                    .disabled(!store.hasAdjustedAudio)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            Divider()
             if store.audioApps.isEmpty {
                 Text("No apps currently have an audio stream.")
                     .font(.system(size: 12))

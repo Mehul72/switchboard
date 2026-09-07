@@ -52,8 +52,27 @@ final class QuitOnCloseController {
     private enum WindowEvidence {
         case hasWindows
         case none
-        /// Accessibility did not answer in time. Never a reason to quit.
+        /// Nobody could answer. Never a reason to quit.
         case unknown
+    }
+
+    /// What the window server can see of one app's windows. The window server
+    /// is the authority here because Accessibility goes blind on any window
+    /// parked on a Space that is not showing, which is what made a single red
+    /// button quit two browsers at once.
+    enum ServerWindows: Equatable {
+        /// A window on a Space that is showing. Straight after a close click
+        /// this can still be the window being closed, so on its own it is not
+        /// proof that a second window exists.
+        case onVisibleSpace
+        /// A window parked on a Space that is not showing. The user cannot
+        /// have just clicked its close button, so it is always a real window
+        /// other than the one that was closed.
+        case parkedOnHiddenSpace
+        case none
+        /// The window list or the Space queries were unavailable, so an app
+        /// with windows and an app without look identical. Never a quit.
+        case unavailable
     }
 
     /// What the red-button click turned out to mean, judged against the window
@@ -66,7 +85,7 @@ final class QuitOnCloseController {
         case otherWindowsRemain
         /// It went away and the app has nothing left.
         case appHasNoWindows
-        /// Accessibility did not answer. Never a reason to quit.
+        /// Nobody could say. Never a reason to quit.
         case unknown
     }
 
@@ -113,9 +132,11 @@ final class QuitOnCloseController {
     /// empties for over a second during a full-screen transition and quitting
     /// then would cost every open tab.
     static let emptySamplesBeforeQuit = 6
-    /// A window the user can currently see counts at any size a person could
-    /// click, which is what catches mini-players and small utility windows.
-    private static let smallestOnscreenWindowPoints: Double = 24
+    /// Below this an entry in the window list is one of the strips and probes
+    /// every app parks there rather than a window. Measured on this machine,
+    /// the junk sits at 2560x30, 1512x33 and 64x64, and a 24pt floor let the
+    /// on-screen 41pt browser toolbars through as if they were windows.
+    private static let smallestRealWindowPoints: Double = 80
     /// The Accessibility hit test runs for every click anywhere on the system,
     /// so an app that is not answering must not be able to stall the probe.
     private static let hitTestTimeoutSeconds: Float = 0.15
@@ -136,6 +157,7 @@ final class QuitOnCloseController {
     ]
 
     private let defaults: UserDefaults
+    private let permissionCheck: () -> Bool
     private let windowProbeQueue = DispatchQueue(label: "com.Mehul72.switchboard.window-probe",
                                                  qos: .utility)
     private var mouseMonitor: Any?
@@ -151,8 +173,10 @@ final class QuitOnCloseController {
     private var probeAwaitingAnswer: Int?
     private var releaseAwaitingProbe: ClickRelease?
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard,
+         permissionCheck: @escaping () -> Bool = { QuitOnCloseController.hasPermission }) {
         self.defaults = defaults
+        self.permissionCheck = permissionCheck
         resumeIfPermitted()
     }
 
@@ -189,7 +213,7 @@ final class QuitOnCloseController {
     @discardableResult
     func resumeIfPermitted() -> Bool {
         switch AccessibilityResumeStep.next(preferenceOn: defaults.bool(forKey: Self.defaultsKey),
-                                            permitted: Self.hasPermission,
+                                            permitted: permissionCheck(),
                                             running: isActive) {
         case .start: return start()
         case .stop: stop(); return false
@@ -202,7 +226,7 @@ final class QuitOnCloseController {
     }
 
     private func start() -> Bool {
-        guard Self.hasPermission else { return false }
+        guard permissionCheck() else { return false }
 
         mouseMonitor = NSEvent.addGlobalMonitorForEvents(
             matching: [.leftMouseDown, .leftMouseUp]
@@ -364,24 +388,30 @@ final class QuitOnCloseController {
     }
 
     /// What the two window sources add up to, kept pure because reading them
-    /// wrong is how the feature quietly stopped quitting anything.
+    /// wrong is how this feature quit two browsers from one click.
     ///
-    /// Only Accessibility may settle the question against quitting. It is the
-    /// authority on what an app still owns: it lists windows across every
-    /// Space and keeps listing one after it is minimized.
+    /// Accessibility can only ever add windows, never rule them out. It lists
+    /// a window after it is minimized, but it omits every window parked on a
+    /// Space that is not showing, and it drops a closing window from the list
+    /// before the animation has finished drawing. So an empty Accessibility
+    /// list means nothing on its own, and the window server decides.
     ///
-    /// Pixels are a much weaker signal and only say "not yet". Accessibility
-    /// drops a window from its list before the close animation has finished
-    /// drawing, so for the first fraction of a second after a click the app
-    /// looks like it has no windows while its old one is still on screen.
-    /// Reading that as another window made the very first sample terminal, so
-    /// every watch ended in `otherWindowsRemain` and no app was ever quit.
+    /// The window server tells apart the two things that look identical to
+    /// Accessibility. A window parked on a hidden Space cannot be the one the
+    /// user just clicked, because the click landed on a Space that is showing,
+    /// so it settles the question against quitting. A window on a showing
+    /// Space may still be the close animation, so it only means "not yet".
     static func closeOutcome(clickedWindowStillListed: Bool,
                              hasOtherAccessibilityWindows: Bool,
-                             anythingVisible: Bool) -> CloseOutcome {
+                             serverWindows: ServerWindows) -> CloseOutcome {
         if clickedWindowStillListed { return .stillClosing }
         if hasOtherAccessibilityWindows { return .otherWindowsRemain }
-        return anythingVisible ? .stillClosing : .appHasNoWindows
+        switch serverWindows {
+        case .parkedOnHiddenSpace: return .otherWindowsRemain
+        case .onVisibleSpace: return .stillClosing
+        case .unavailable: return .unknown
+        case .none: return .appHasNoWindows
+        }
     }
 
     /// Judges the click against the window it was made on, so an unrelated
@@ -397,7 +427,7 @@ final class QuitOnCloseController {
         return closeOutcome(
             clickedWindowStillListed: stillListed,
             hasOtherAccessibilityWindows: !windows.isEmpty && !stillListed,
-            anythingVisible: windows.isEmpty && hasVisibleWindow(pid: pid)
+            serverWindows: serverWindows(pid: pid)
         )
     }
 
@@ -442,9 +472,9 @@ final class QuitOnCloseController {
         return nil
     }
 
-    private func pollChromeWindows() {
-        guard Self.hasPermission else {
-            _ = setActive(false)
+    func pollChromeWindows() {
+        guard permissionCheck() else {
+            stop()
             return
         }
         guard !chromePollInFlight else { return }
@@ -513,52 +543,91 @@ final class QuitOnCloseController {
         }
     }
 
-    /// Accessibility can briefly empty its window list during Space moves,
-    /// full-screen transitions and renderer stalls. CoreGraphics sees every
-    /// Space independently, so both sources must agree before we act.
+    /// Accessibility empties its window list during Space moves, full-screen
+    /// transitions and renderer stalls, and permanently for windows parked on
+    /// a Space that is not showing. It can therefore only ever add windows
+    /// here; the window server is what rules them out.
     private static func windowEvidence(pid: pid_t) -> WindowEvidence {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, Self.windowListTimeoutSeconds)
-        guard let windows = elements(of: application,
-                                     attribute: kAXWindowsAttribute as CFString) else {
+        let listed = elements(of: application, attribute: kAXWindowsAttribute as CFString)
+        if let listed, !listed.isEmpty { return .hasWindows }
+
+        switch serverWindows(pid: pid) {
+        case .onVisibleSpace, .parkedOnHiddenSpace:
+            return .hasWindows
+        case .unavailable:
             return .unknown
+        case .none:
+            // An app with no windows answers with an empty list. Accessibility
+            // failing to answer at all is missing information, not an answer.
+            return listed == nil ? .unknown : .none
         }
-        if !windows.isEmpty { return .hasWindows }
-        return Self.hasVisibleWindow(pid: pid) ? .hasWindows : .none
     }
 
-    /// Whether the app has a window the user can actually see right now.
+    /// What the window server still knows of this app's windows.
     ///
-    /// Accessibility, not this, is the authority on whether an app still has
-    /// windows: it lists them across every Space and keeps listing a window
-    /// after it is minimized. This is only the safety net for the moment
-    /// Accessibility goes briefly blank during a Space or full-screen change,
-    /// so it asks the narrower question and lets the window server decide what
-    /// counts as visible.
+    /// Asking only for on-screen windows, which is what this used to do, hides
+    /// every window on a Space that is not showing. Accessibility hides those
+    /// same windows, so the two sources went blind together and the rule that
+    /// both must agree before quitting protected nothing: two full-screen
+    /// Chrome windows and a full-screen Safari window all read as "this app
+    /// has nothing open" from the desktop Space, and one red button quit both
+    /// browsers.
     ///
-    /// It deliberately ignores offscreen windows. Every app parks layer-0
-    /// windows that outlive the ones it shows, and nothing in the window list
-    /// tells them apart from a real window on another Space: with no document
-    /// open at all, TextEdit still reports a 500x500 helper and the full
-    /// 673x439 ghost of a window closed minutes earlier, both far past any
-    /// plausible size cutoff. Counting those made this return true forever,
-    /// which ended every watch at `otherWindowsRemain` and left the feature
-    /// unable to quit anything.
-    private static func hasVisibleWindow(pid: pid_t) -> Bool {
-        guard let windows = CGWindowListCopyWindowInfo(
-            [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID
+    /// Listing every window instead brings in the strips, panels and probes
+    /// apps park in the window list forever, which is why the previous fix
+    /// narrowed to on-screen in the first place. Space membership is what
+    /// tells them apart: a real window belongs to at least one Space, and
+    /// those leftovers belong to none.
+    private static func serverWindows(pid: pid_t) -> ServerWindows {
+        guard let listed = CGWindowListCopyWindowInfo(
+            [.optionAll, .excludeDesktopElements], kCGNullWindowID
         ) as? [[String: Any]] else {
-            return true // no answer is not evidence of absence
+            return .unavailable
         }
-        return windows.contains { info in
-            guard let owner = info[kCGWindowOwnerPID as String] as? pid_t, owner == pid,
-                  let layer = info[kCGWindowLayer as String] as? Int, layer == 0,
-                  let bounds = info[kCGWindowBounds as String] as? [String: Any],
-                  let width = bounds["Width"] as? Double,
-                  let height = bounds["Height"] as? Double else { return false }
-            return width > Self.smallestOnscreenWindowPoints
-                && height > Self.smallestOnscreenWindowPoints
+
+        var showingSpaces: Set<UInt64>?
+        var sawWindowOnVisibleSpace = false
+
+        for window in listed {
+            guard (window[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value == pid,
+                  (window[kCGWindowLayer as String] as? NSNumber)?.intValue == 0,
+                  (window[kCGWindowAlpha as String] as? NSNumber)?.doubleValue ?? 1 > 0,
+                  let bounds = window[kCGWindowBounds as String] as? [String: Any],
+                  let width = (bounds["Width"] as? NSNumber)?.doubleValue,
+                  let height = (bounds["Height"] as? NSNumber)?.doubleValue,
+                  width >= Self.smallestRealWindowPoints,
+                  height >= Self.smallestRealWindowPoints else { continue }
+
+            if (window[kCGWindowIsOnscreen as String] as? NSNumber)?.boolValue == true {
+                sawWindowOnVisibleSpace = true
+                continue
+            }
+            guard let number = (window[kCGWindowNumber as String] as? NSNumber)?.uint32Value else {
+                continue
+            }
+
+            // Resolved once, and only when there is an off-screen window worth
+            // judging, so the ordinary case never pays for the round trip.
+            let showing: Set<UInt64>
+            if let showingSpaces {
+                showing = showingSpaces
+            } else {
+                guard WindowServerSpaces.canAnswer else { return .unavailable }
+                let resolved = WindowServerSpaces.visibleSpaces()
+                guard !resolved.isEmpty else { return .unavailable }
+                showingSpaces = resolved
+                showing = resolved
+            }
+
+            if WindowServerSpaces.isParkedOnHiddenSpace(
+                windowSpaces: WindowServerSpaces.spaces(of: CGWindowID(number)),
+                visibleSpaces: showing) {
+                return .parkedOnHiddenSpace
+            }
         }
+        return sawWindowOnVisibleSpace ? .onVisibleSpace : .none
     }
 
     private func requestNormalQuit(pid: pid_t) {

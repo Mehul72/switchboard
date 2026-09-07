@@ -125,37 +125,78 @@ final class CloseWatchTests: XCTestCase {
     }
 }
 
-/// Reading the two window sources. Accessibility is the authority; pixels on
-/// screen only ever mean "not settled yet".
+/// Reading the two window sources. Accessibility can only add windows; the
+/// window server is what rules them out.
 final class CloseOutcomeTests: XCTestCase {
-    private func outcome(clicked: Bool, others: Bool, visible: Bool) -> QuitOnCloseController.CloseOutcome {
+    private typealias Server = QuitOnCloseController.ServerWindows
+
+    private func outcome(clicked: Bool,
+                         others: Bool,
+                         server: Server) -> QuitOnCloseController.CloseOutcome {
         QuitOnCloseController.closeOutcome(clickedWindowStillListed: clicked,
                                           hasOtherAccessibilityWindows: others,
-                                          anythingVisible: visible)
+                                          serverWindows: server)
     }
+
+    // MARK: - The reported bug
+
+    /// One red button quit Safari and Chrome together. Both had a window on a
+    /// Space that was not showing, which Accessibility does not list at all,
+    /// and the on-screen-only pixel check could not see either. The window
+    /// server can, and a window parked on a hidden Space cannot be the one
+    /// just clicked: the click landed on the Space that was showing.
+    func testAWindowParkedOnAnotherSpaceIsAnotherWindow() {
+        XCTAssertEqual(outcome(clicked: false, others: false, server: .parkedOnHiddenSpace),
+                       .otherWindowsRemain,
+                       "a full-screen window on another Space still belongs to the user")
+    }
+
+    /// The same app seen the way it used to be seen: Accessibility blank and
+    /// nothing on the Space showing. That combination must no longer be enough.
+    func testAnEmptyAccessibilityListAloneCannotQuit() {
+        XCTAssertNotEqual(outcome(clicked: false, others: false, server: .parkedOnHiddenSpace),
+                          .appHasNoWindows)
+    }
+
+    // MARK: - Never quit on missing information
+
+    /// A macOS that drops the private Space symbols leaves an app with windows
+    /// and an app without looking identical. The feature stops working rather
+    /// than guesses.
+    func testNoSpaceAnswerIsNeverAQuit() {
+        XCTAssertEqual(outcome(clicked: false, others: false, server: .unavailable), .unknown)
+        XCTAssertEqual(
+            QuitOnCloseController.nextCloseWatchStep(
+                after: outcome(clicked: false, others: false, server: .unavailable),
+                emptySamples: QuitOnCloseController.emptySamplesBeforeQuit - 1),
+            .keepWatching(emptySamples: 0),
+            "an unanswerable sample must also clear the tally behind it")
+    }
+
+    // MARK: - The feature still working
 
     /// The bug that made the feature quit nothing at all: Accessibility drops
     /// the window before its close animation finishes, so the first sample saw
     /// an empty window list with pixels still on screen. Calling that
     /// "otherWindowsRemain" was terminal and ended every watch immediately.
     func testAClosingAnimationIsNotAnotherWindow() {
-        XCTAssertEqual(outcome(clicked: false, others: false, visible: true), .stillClosing,
+        XCTAssertEqual(outcome(clicked: false, others: false, server: .onVisibleSpace),
+                       .stillClosing,
                        "pixels mid-animation mean wait, not stop")
     }
 
     func testTheClickedWindowStillListedKeepsWaiting() {
-        XCTAssertEqual(outcome(clicked: true, others: false, visible: true), .stillClosing)
-        XCTAssertEqual(outcome(clicked: true, others: true, visible: true), .stillClosing)
+        XCTAssertEqual(outcome(clicked: true, others: false, server: .onVisibleSpace), .stillClosing)
+        XCTAssertEqual(outcome(clicked: true, others: true, server: .parkedOnHiddenSpace), .stillClosing)
     }
 
-    /// Only Accessibility can settle the question against quitting.
     func testARealOtherWindowStopsTheWatch() {
-        XCTAssertEqual(outcome(clicked: false, others: true, visible: true), .otherWindowsRemain)
-        XCTAssertEqual(outcome(clicked: false, others: true, visible: false), .otherWindowsRemain)
+        XCTAssertEqual(outcome(clicked: false, others: true, server: .onVisibleSpace), .otherWindowsRemain)
+        XCTAssertEqual(outcome(clicked: false, others: true, server: .none), .otherWindowsRemain)
     }
 
-    func testNothingListedAndNothingVisibleIsAnEmptyApp() {
-        XCTAssertEqual(outcome(clicked: false, others: false, visible: false), .appHasNoWindows)
+    func testNothingListedAndNothingLeftOnTheServerIsAnEmptyApp() {
+        XCTAssertEqual(outcome(clicked: false, others: false, server: .none), .appHasNoWindows)
     }
 
     /// End to end through both stages: the animation settles, then six
@@ -163,9 +204,9 @@ final class CloseOutcomeTests: XCTestCase {
     func testAnimationThenQuiet() {
         var empty = 0
         var quit = false
-        let samples = [outcome(clicked: true, others: false, visible: true),
-                       outcome(clicked: false, others: false, visible: true)]
-            + Array(repeating: outcome(clicked: false, others: false, visible: false),
+        let samples = [outcome(clicked: true, others: false, server: .onVisibleSpace),
+                       outcome(clicked: false, others: false, server: .onVisibleSpace)]
+            + Array(repeating: outcome(clicked: false, others: false, server: .none),
                     count: QuitOnCloseController.emptySamplesBeforeQuit)
         for sample in samples {
             switch QuitOnCloseController.nextCloseWatchStep(after: sample, emptySamples: empty) {
@@ -175,6 +216,59 @@ final class CloseOutcomeTests: XCTestCase {
             }
         }
         XCTAssertTrue(quit)
+    }
+
+    /// End to end for the browser that was lost: closing the desktop window of
+    /// an app whose other window is full screen on its own Space.
+    func testClosingOneWindowWhileAnotherIsFullScreenElsewhereNeverQuits() {
+        var empty = 0
+        let samples = [outcome(clicked: true, others: false, server: .onVisibleSpace),
+                       outcome(clicked: false, others: false, server: .onVisibleSpace),
+                       outcome(clicked: false, others: false, server: .parkedOnHiddenSpace)]
+        for sample in samples {
+            switch QuitOnCloseController.nextCloseWatchStep(after: sample, emptySamples: empty) {
+            case .keepWatching(let next): empty = next
+            case .quit: return XCTFail("the full-screen window on the next Space is still open")
+            case .stop: return
+            }
+        }
+        XCTFail("the watch should have settled once the parked window was seen")
+    }
+}
+
+/// Telling a real window parked on another Space apart from the leftover
+/// surfaces every app keeps in the window list forever. Measured on a live
+/// system: a parked Xcode window reported Space [1] while its stale 800x800
+/// panel and the 500x500 helper every app carries reported no Space at all.
+final class WindowServerSpaceTests: XCTestCase {
+    private let showing: Set<UInt64> = [98, 684, 691]
+
+    func testAWindowOnlyOnHiddenSpacesIsParked() {
+        XCTAssertTrue(WindowServerSpaces.isParkedOnHiddenSpace(windowSpaces: [1],
+                                                               visibleSpaces: showing))
+    }
+
+    func testAWindowOnAShowingSpaceIsNotParked() {
+        XCTAssertFalse(WindowServerSpaces.isParkedOnHiddenSpace(windowSpaces: [684],
+                                                                visibleSpaces: showing))
+    }
+
+    /// A window can be assigned to several Spaces at once. One of them showing
+    /// is enough for it not to be parked.
+    func testOneShowingSpaceIsEnough() {
+        XCTAssertFalse(WindowServerSpaces.isParkedOnHiddenSpace(windowSpaces: [1, 691],
+                                                                visibleSpaces: showing))
+    }
+
+    /// The leftover signature, and the reason listing every window is safe.
+    func testASurfaceOnNoSpaceIsNotAWindow() {
+        XCTAssertFalse(WindowServerSpaces.isParkedOnHiddenSpace(windowSpaces: [],
+                                                                visibleSpaces: showing))
+    }
+
+    func testNoShowingSpacesIsNotEvidenceOfParking() {
+        XCTAssertFalse(WindowServerSpaces.isParkedOnHiddenSpace(windowSpaces: [1],
+                                                                visibleSpaces: []))
     }
 }
 
@@ -212,5 +306,22 @@ final class AccessibilityResumeTests: XCTestCase {
 
     func testAlreadyRunningAndWantedIsNotRestarted() {
         XCTAssertEqual(step(preference: true, permitted: true, running: true), .leaveAlone)
+    }
+}
+
+final class QuitOnClosePermissionTests: XCTestCase {
+    func testPermissionRevocationPreservesPreferenceUntilExplicitlyDisabled() {
+        let suite = "switchboard-permission-tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(true, forKey: "QuitOnCloseEnabled")
+        let controller = QuitOnCloseController(defaults: defaults, permissionCheck: { false })
+
+        controller.pollChromeWindows()
+        XCTAssertFalse(controller.isActive)
+        XCTAssertTrue(defaults.bool(forKey: "QuitOnCloseEnabled"))
+
+        controller.setActive(false)
+        XCTAssertFalse(defaults.bool(forKey: "QuitOnCloseEnabled"))
     }
 }

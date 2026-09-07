@@ -75,20 +75,18 @@ private struct ClipRow: View {
                     .font(.system(size: 9.5))
                     .foregroundStyle(Theme.tertiary)
                 Spacer(minLength: 0)
-                if hovering {
-                    Button("Copy") { store.copyBack(clip) }
-                        .buttonStyle(.borderless)
+                Button("Copy") { store.copyBack(clip) }
+                    .buttonStyle(.borderless)
+                    .font(.system(size: 10.5))
+                Button {
+                    store.removeClip(clip)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 10.5))
-                    Button {
-                        store.removeClip(clip)
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 10.5))
-                            .foregroundStyle(Theme.tertiary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Remove clip")
+                        .foregroundStyle(Theme.tertiary)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Remove clip")
             }
 
             if clip.isImage {
@@ -134,6 +132,6 @@ private struct ClipRow: View {
         .background(hovering ? Color.primary.opacity(0.05) : .clear)
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 }

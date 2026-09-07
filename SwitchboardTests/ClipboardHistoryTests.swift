@@ -136,6 +136,55 @@ final class ClipboardHistoryTests: XCTestCase {
         XCTAssertTrue(history.entries.isEmpty)
     }
 
+    func testClearDiscardsACopyNotYetPolled() {
+        copy("old")
+        history.capture()
+        copy("pending")
+        history.clear()
+        history.capture()
+        XCTAssertTrue(history.entries.isEmpty)
+        XCTAssertEqual(pasteboard.string(forType: .string), "pending")
+
+        copy("new")
+        history.capture()
+        XCTAssertEqual(history.entries.map(\.text), ["new"])
+    }
+
+    func testClearDiscardsPendingCopyWhenHistoryIsAlreadyEmpty() {
+        copy("pending")
+        history.clear()
+        history.capture()
+        XCTAssertTrue(history.entries.isEmpty)
+    }
+
+    func testPlainTextCleanupKeepsConcealedTextOutOfHistory() {
+        let item = NSPasteboardItem()
+        item.setString("synthetic private text", forType: .string)
+        let marker = NSPasteboardItem()
+        marker.setString("1", forType: Self.concealed)
+        pasteboard.clearContents()
+        pasteboard.writeObjects([item, marker])
+
+        XCTAssertTrue(ClipboardCleaner.makePlainText(pasteboard: pasteboard))
+        history.capture()
+        XCTAssertTrue(history.entries.isEmpty)
+        XCTAssertTrue(pasteboard.types?.contains(Self.concealed) == true)
+        XCTAssertEqual(pasteboard.string(forType: .string), "synthetic private text")
+    }
+
+    func testPlainTextCleanupRemovesRichFormatting() {
+        let item = NSPasteboardItem()
+        item.setString("ordinary", forType: .string)
+        item.setString("<b>ordinary</b>", forType: .html)
+        pasteboard.clearContents()
+        pasteboard.writeObjects([item])
+
+        XCTAssertTrue(ClipboardCleaner.makePlainText(pasteboard: pasteboard))
+        XCTAssertFalse(pasteboard.types?.contains(.html) == true)
+        history.capture()
+        XCTAssertEqual(history.entries.map(\.text), ["ordinary"])
+    }
+
     func testRemovingOneClipLeavesTheRest() {
         copy("keep")
         history.capture()
@@ -236,6 +285,44 @@ final class ClipboardImageCaptureTests: XCTestCase {
         XCTAssertEqual(history.entries.count, 1, "a HEIC screenshot has to reach the history")
         XCTAssertEqual(history.entries.first?.pixelSize, CGSize(width: 40, height: 20))
         XCTAssertEqual(history.entries.first?.imageData?.prefix(4), Data([0x89, 0x50, 0x4E, 0x47]))
+    }
+
+    func testScreenshotConversionProducesJPEGAndHEIC() throws {
+        for format in [ClipboardImageFormat.jpeg, .heic] {
+            let converter = ClipboardImageConverter(pasteboard: pasteboard)
+            converter.configure(enabled: true, format: format.rawValue)
+            let converted = expectation(description: format.label)
+            converter.onConversion = { result in
+                if case .failure(let error) = result { XCTFail(error.localizedDescription) }
+                converted.fulfill()
+            }
+            put(encoded(Self.swatch(width: 40, height: 20), as: .png), as: .png)
+            converter.processNewClipboardContents()
+            wait(for: [converted], timeout: 5)
+            converter.stop()
+
+            let type = NSPasteboard.PasteboardType(format.contentType.identifier)
+            let data = try XCTUnwrap(pasteboard.data(forType: type))
+            let source = try XCTUnwrap(CGImageSourceCreateWithData(data as CFData, nil))
+            XCTAssertEqual(CGImageSourceGetType(source) as String?, format.contentType.identifier)
+            history.capture()
+            XCTAssertEqual(history.entries.first?.pixelSize, CGSize(width: 40, height: 20))
+        }
+    }
+
+    func testScreenshotConversionDoesNotOverwriteANewerCopy() {
+        let converter = ClipboardImageConverter(pasteboard: pasteboard)
+        converter.configure(enabled: true, format: "jpg")
+        defer { converter.stop() }
+        let converted = expectation(description: "stale conversion must not publish")
+        converted.isInverted = true
+        converter.onConversion = { _ in converted.fulfill() }
+        put(encoded(Self.swatch(width: 40, height: 20), as: .png), as: .png)
+        converter.processNewClipboardContents()
+        pasteboard.clearContents()
+        pasteboard.setString("newer copy", forType: .string)
+        wait(for: [converted], timeout: 0.3)
+        XCTAssertEqual(pasteboard.string(forType: .string), "newer copy")
     }
 
     func testStyledTextWithAnImagePreviewIsRecordedAsText() {
