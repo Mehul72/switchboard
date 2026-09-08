@@ -1,43 +1,48 @@
 import AppKit
 import SwiftUI
 
-/// The audio tab is a live list of whatever can currently make noise, so unlike
-/// every other tab it is not backed by the static catalog.
+/// Apps come from live audio streams rather than the static settings catalog.
 struct AppVolumeList: View {
     @ObservedObject var store: TweakStore
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Apps").font(.rowTitle)
-                Text("macOS shows a purple audio privacy dot while an app's volume is reduced or its output is changed. Reset to stop all audio access.")
-                    .font(.system(size: 11))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Apps").font(.sectionHeader)
+                Spacer()
+                Text("\(store.audioApps.count) \(store.audioApps.count == 1 ? "app" : "apps")")
+                    .font(.rowSubtitle)
                     .foregroundStyle(Theme.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button("Reset App Volumes and Outputs") { store.resetAudioVolumes() }
-                    .controlSize(.small)
-                    .disabled(!store.hasAdjustedAudio)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            Divider()
-            if store.audioApps.isEmpty {
-                Text("No apps currently have an audio stream.")
-                    .font(.system(size: 12))
+            .padding(.horizontal, 4)
+
+            VStack(spacing: 0) {
+                if store.audioApps.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "speaker.wave.2")
+                            .font(.emptyStateGlyph)
+                            .accessibilityHidden(true)
+                        Text("No audio apps yet").font(.rowTitle)
+                        Text("Apps appear here when they open an audio stream.")
+                            .font(.rowSubtitle)
+                            .multilineTextAlignment(.center)
+                    }
                     .foregroundStyle(Theme.secondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 28)
-            } else {
-                ForEach(Array(store.audioApps.enumerated()), id: \.element.id) { index, app in
-                    AppVolumeRow(app: app, store: store)
-                    if index < store.audioApps.count - 1 {
-                        Divider().padding(.leading, 46)
+                    .padding(28)
+                } else {
+                    ForEach(Array(store.audioApps.enumerated()), id: \.element.id) { index, app in
+                        AppVolumeRow(app: app, store: store)
+                        if index < store.audioApps.count - 1 {
+                            Hairline().padding(.horizontal, Theme.rowInset)
+                        }
                     }
                 }
             }
-            Divider()
+            .groupSurface()
+
             DisclosureGroup {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 14) {
                     Text("Device volume affects every app playing through that output.")
                         .font(.rowSubtitle).foregroundStyle(Theme.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -51,13 +56,30 @@ struct AppVolumeList: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } label: {
-                Text("Output devices").font(.rowTitle)
+                HStack(spacing: 10) {
+                    RowIcon(symbol: "speaker.wave.2")
+                    Text("Output devices").font(.rowTitle)
+                    Spacer(minLength: 4)
+                    Text("\(store.audioOutputDevices.count) connected")
+                        .font(.rowSubtitle).foregroundStyle(Theme.secondary)
+                }
             }
             .disclosureGroupStyle(OutputDevicesDisclosureStyle())
+            .groupSurface()
+
+            VStack(alignment: .leading, spacing: 8) {
+                Button("Reset App Volumes and Outputs") { store.resetAudioVolumes() }
+                    .buttonStyle(.borderless)
+                    .font(.rowSubtitle)
+                    .disabled(!store.hasAdjustedAudio)
+                Text("macOS shows a purple audio privacy dot while an app's volume is reduced or its output is changed. Reset to stop all audio access.")
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 4)
         }
-        .background(Theme.groupBackground, in: RoundedRectangle(cornerRadius: 10))
-        // Apps start and stop playing while the panel is open, and the store
-        // owns the one timer that notices, so it has to know we are on screen.
+        // The store's one timer must stop polling when the audio list leaves the screen.
         .onAppear { store.setAudioListVisible(true) }
         .onDisappear { store.setAudioListVisible(false) }
     }
@@ -69,24 +91,26 @@ private struct OutputDevicesDisclosureStyle: DisclosureGroupStyle {
             Button {
                 configuration.isExpanded.toggle()
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: 10) {
+                    configuration.label
                     Image(systemName: configuration.isExpanded ? "chevron.down" : "chevron.right")
                         .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.secondary)
                         .frame(width: 12)
                         .accessibilityHidden(true)
-                    configuration.label
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
+                .padding(Theme.rowInset)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .rowHoverHighlight()
             .accessibilityValue(configuration.isExpanded ? "Expanded" : "Collapsed")
 
             if configuration.isExpanded {
                 configuration.content
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
+                    .padding(.horizontal, Theme.rowInset)
+                    .padding(.bottom, Theme.rowInset)
             }
         }
     }
@@ -97,16 +121,16 @@ private struct OutputDeviceVolumeRow: View {
     @ObservedObject var store: TweakStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(device.name).font(.rowSubtitle).lineLimit(1)
+                Text(device.name).font(.rowTitle).lineLimit(1).help(device.name)
                 if device.uid == store.systemDefaultOutputUID {
-                    Text("System Default").font(.system(size: 10)).foregroundStyle(Theme.secondary)
+                    Text("System Default").font(.rowSubtitle).foregroundStyle(Theme.secondary)
                 }
             }
             switch store.outputDeviceVolumes[device.uid] ?? .unavailable("Waiting for the device volume.") {
             case .available(let value, let writable):
-                HStack {
+                HStack(spacing: 12) {
                     Slider(value: Binding(
                         get: { Double(value) },
                         set: { store.setOutputVolume(Float($0), for: device) }
@@ -115,9 +139,9 @@ private struct OutputDeviceVolumeRow: View {
                     .disabled(!writable)
                     .accessibilityLabel("\(device.name) output volume")
                     Text("\(Int((value * 100).rounded()))%")
-                        .font(.system(size: 10.5)).monospacedDigit()
+                        .font(.rowSubtitle).monospacedDigit()
                         .foregroundStyle(Theme.secondary)
-                        .frame(width: 34, alignment: .trailing)
+                        .frame(width: 40, alignment: .trailing)
                 }
                 if !writable { status("Use this device's own volume controls.") }
             case .unsupported:
@@ -130,17 +154,13 @@ private struct OutputDeviceVolumeRow: View {
     }
 
     private func status(_ text: String) -> some View {
-        Text(text).font(.system(size: 10.5)).foregroundStyle(Theme.secondary)
+        Text(text).font(.rowSubtitle).foregroundStyle(Theme.secondary)
     }
 }
 
 private struct AppVolumeRow: View {
     let app: AudioApp
     @ObservedObject var store: TweakStore
-
-    /// The icon's width plus its spacing, so the output menu lines up under the
-    /// app's name rather than under its icon.
-    private static let nameColumnInset: CGFloat = 32
 
     private var volume: Binding<Double> {
         Binding(
@@ -150,69 +170,61 @@ private struct AppVolumeRow: View {
     }
 
     var body: some View {
-        VStack(spacing: 5) {
-            HStack(spacing: 10) {
-                Group {
-                    if let icon = app.icon {
-                        Image(nsImage: icon)
-                            .resizable()
-                            .interpolation(.high)
-                            .aspectRatio(contentMode: .fit)
-                    } else {
-                        Image(systemName: "app.dashed").font(.system(size: 15))
-                    }
+        HStack(alignment: .top, spacing: 12) {
+            Group {
+                if let icon = app.icon {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Image(systemName: "app.dashed").font(.system(size: 24))
                 }
-                .frame(width: 22, height: 22)
-                .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(app.name)
-                        .font(.rowTitle)
-                        .foregroundStyle(Theme.primary)
-                        .lineLimit(1)
-                    Text(app.isPlaying ? "Playing" : "Idle")
-                        .font(.system(size: 10))
-                        .foregroundStyle(app.isPlaying ? Color.accentColor : Theme.tertiary)
-                }
-                .frame(width: 108, alignment: .leading)
-
-                Slider(value: volume, in: 0...1)
-                    .controlSize(.small)
-                    .accessibilityLabel("\(app.name) volume")
-
-                Text("\(Int((volume.wrappedValue * 100).rounded()))%")
-                    .font(.system(size: 10.5))
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.secondary)
-                    .frame(width: 34, alignment: .trailing)
             }
+            .frame(width: 32, height: 32)
+            .accessibilityHidden(true)
 
-            HStack(spacing: 0) {
-                Spacer().frame(width: Self.nameColumnInset)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(app.name)
+                            .font(.rowTitle)
+                            .foregroundStyle(Theme.primary)
+                            .lineLimit(1)
+                            .help(app.name)
+                        Text(app.isPlaying ? "Playing" : "Idle")
+                            .font(.rowSubtitle)
+                            .foregroundStyle(Theme.secondary)
+                    }
+                    .frame(width: 104, alignment: .leading)
+
+                    Slider(value: volume, in: 0...1)
+                        .controlSize(.small)
+                        .frame(minWidth: 80)
+                        .accessibilityLabel("\(app.name) volume")
+
+                    Text("\(Int((volume.wrappedValue * 100).rounded()))%")
+                        .font(.system(size: 12, weight: .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.primary)
+                        .frame(width: 40, alignment: .trailing)
+                }
                 OutputDeviceMenu(app: app, store: store)
-                Spacer()
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
+        .padding(Theme.rowInset)
         .contentShape(Rectangle())
+        .rowHoverHighlight()
     }
 }
 
-/// Sends one app to an output device of its own. Following the system default
-/// is the first entry rather than an absence, because "no choice" and "the
-/// device that happens to be default" behave differently when that default
-/// changes.
+/// A missing saved output stays visible so fallback does not look like a lost preference.
 private struct OutputDeviceMenu: View {
     let app: AudioApp
     @ObservedObject var store: TweakStore
 
-    private var selection: (uid: String?, isMissing: Bool) {
-        store.outputSelection(for: app)
-    }
+    private var selection: (uid: String?, isMissing: Bool) { store.outputSelection(for: app) }
 
-    /// A chosen device that has been unplugged says so. The app is already back
-    /// on the default, and showing the default's name would hide that.
     private var title: String {
         guard let uid = selection.uid else { return "System Default" }
         if selection.isMissing { return "Chosen device unavailable" }
@@ -229,19 +241,22 @@ private struct OutputDeviceMenu: View {
                 }
             }
         } label: {
-            HStack(spacing: 3) {
-                Image(systemName: selection.isMissing
-                      ? "exclamationmark.triangle.fill"
-                      : "hifispeaker")
-                    .font(.system(size: 9))
-                Text(title)
-                    .font(.system(size: 10.5))
-                    .lineLimit(1)
+            HStack(spacing: 5) {
+                if selection.isMissing {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .accessibilityHidden(true)
+                }
+                Text(title).lineLimit(1)
             }
-            .foregroundStyle(selection.isMissing ? Color.orange : Theme.secondary)
         }
-        .menuStyle(.borderlessButton)
-        .fixedSize()
+        .menuStyle(.button)
+        .controlSize(.small)
+        .font(.rowSubtitle)
+        .foregroundStyle(selection.isMissing ? Color.orange : Theme.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: 250, alignment: .leading)
         .accessibilityLabel("\(app.name) output device")
+        .accessibilityValue(title)
+        .help(title)
     }
 }

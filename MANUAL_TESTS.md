@@ -6,7 +6,7 @@ in [AUDIT.md](AUDIT.md).
 
 ## Before starting
 
-1. Quit any other copy of Switchboard using its ellipsis menu.
+1. Quit any other copy of Switchboard using its settings menu.
 2. Open `Switchboard.xcodeproj`, select **Switchboard > My Mac**, and press
    **Command-R**. For login-item and permission-persistence tests, use a signed
    build installed in Applications. The unsigned command-line test build is not
@@ -20,14 +20,30 @@ in [AUDIT.md](AUDIT.md).
 ## Panel, navigation, and search
 
 1. Click the linked-points menu-bar icon. Expected: the panel opens fully onscreen.
-2. Visit Everyday, Files, Capture, Dock, Audio, and Clipboard. Expected: each tab
-   displays its own controls and scrolls to its last row.
+2. Visit Tweaks, Audio, Clipboard, and System. Inside Tweaks visit Everyday,
+   Files, Capture, and Dock. Expected: all four main tabs fit without horizontal
+   scrolling, and each category displays its controls and scrolls to its last row.
+   Select Files, switch to Audio, then return to Tweaks. Expected: Files remains
+   selected. Close and reopen the panel while on Audio and repeat the return.
 3. Search for `hidden`, `volume`, and `clipboard` separately. Expected: matching
    settings or the relevant special list appear.
 4. Search for `no-such-setting-928`. Expected: **No matching settings**.
 5. Press Escape once with a search present. Expected: search clears. Press again.
    Expected: panel closes. Reopen it and click outside. Expected: it closes.
 6. Repeat on a smaller display if available. Expected: bottom controls remain reachable.
+   With a notice and pending restart visible, scroll through the controls. On
+   short panels, secondary categories and notices scroll with the content.
+7. Repeat in light and dark appearances. Check readable descriptions, output
+   device names, native controls, and clipboard previews. Try a long app/device
+   name and empty Audio and Clipboard lists.
+8. With Keyboard navigation enabled, Tab through search, the settings gear,
+   navigation, and controls. Use left/right arrows within each navigation row and
+   Space to activate a focused button. Expected: visible focus and the selected
+   category stay in sync; Escape still clears search before closing the panel.
+9. Check VoiceOver labels for search, selected tabs, app volume, output devices,
+   copy/remove clip actions, and the settings gear. Enable Reduce transparency,
+   Increase contrast, and Reduce motion in Accessibility > Display and verify
+   opaque backgrounds, clear borders, and no navigation animation respectively.
 
 ## Everyday
 
@@ -290,13 +306,13 @@ default and the built-in speakers are the second device.
 ## Restore and launch at login
 
 1. Change a Finder preference and a Dock preference; enable Keep Awake and adjust
-   audio. Click **Restore Original Settings**.
+   audio. Open the settings gear and choose **Restore Original Settings**.
 2. Expected: stored preferences return to their first recorded values, runtime
    controls stop, and audio returns to 100%. Click the restart bar and check
    Finder/Dock behavior. Press Restore again if enabled; it must be safe to repeat.
 3. Remember that Restore replays the first recorded settings, which can predate
    this test session. It does not clear clipboard history or disable Launch at Login.
-4. From the ellipsis menu choose **Launch at Login**. Approve it in **System
+4. From the settings gear menu choose **Launch at Login**. Approve it in **System
    Settings > General > Login Items & Extensions** if requested.
 5. Log out and in. Expected: exactly one installed Switchboard copy launches.
 6. Choose **Disable Launch at Login**, log out and in again. Expected: it does not

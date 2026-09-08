@@ -9,15 +9,17 @@ struct ApplyBar: View {
             Image(systemName: "arrow.clockwise.circle.fill")
                 .foregroundStyle(Color.accentColor)
             Text(SystemRestart.requirement(for: targets))
-                .font(.system(size: 11))
+                .font(.rowSubtitle)
                 .foregroundStyle(Theme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
             Button(SystemRestart.summary(for: targets), action: action)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
         }
         .padding(.horizontal, Theme.edgeInset)
-        .frame(height: 44)
+        .padding(.vertical, 12)
+        .frame(minHeight: 48)
         .background(.bar)
         .overlay(alignment: .top) { Hairline() }
     }

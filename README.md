@@ -112,6 +112,15 @@ Mac cannot reach Apple to check the notarisation.
 
 ## Using it
 
+The panel follows your Mac's light or dark appearance. Its four main tabs are
+**Tweaks**, **Audio**, **Clipboard**, and **System**. Inside Tweaks, choose
+**Everyday**, **Files**, **Capture**, or **Dock**. Switchboard remembers that
+category when you return from another tab. Search looks across all categories.
+
+The settings gear contains **Launch at Login**, **Restore Original Settings**,
+and **Quit Switchboard**. On shorter screens the content scrolls so the controls
+and restart bar remain reachable.
+
 Changes that macOS can read immediately show a confirmation. Finder and Dock
 changes show a restart bar; use its button once after making all the changes you
 want. Switchboard keeps its panel open during that restart. Global app settings
@@ -169,9 +178,10 @@ For step-by-step checks of every exposed feature, see [Manual tests](MANUAL_TEST
 The [feature audit](AUDIT.md) separates automated results from live checks still needed.
 
 Before Switchboard first changes a key, `UndoLedger` records its exact previous
-value—including an unset key. **Restore Original Settings…** replays that ledger.
+value—including an unset key. **Restore Original Settings** in the settings gear
+menu replays that ledger.
 
-Launch at Login is in the ellipsis menu. macOS may require approval in **System
+Launch at Login is in the settings gear menu. macOS may require approval in **System
 Settings > General > Login Items**.
 
 ## Adding a preference

@@ -9,13 +9,17 @@ struct ClipboardHistoryList: View {
     var body: some View {
         VStack(spacing: 0) {
             if store.clips.isEmpty {
-                VStack(spacing: 5) {
+                VStack(spacing: 10) {
+                    Image(systemName: "doc.on.clipboard")
+                        .font(.emptyStateGlyph)
+                        .foregroundStyle(Theme.secondary)
+                        .accessibilityHidden(true)
                     Text("Nothing copied yet")
-                        .font(.system(size: 12.5))
+                        .font(.rowTitle)
                         .foregroundStyle(Theme.secondary)
                     Text("Anything you copy while Switchboard runs shows up here")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Theme.tertiary)
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
@@ -30,18 +34,13 @@ struct ClipboardHistoryList: View {
                 }
             }
         }
-        .background(Theme.groupBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                .strokeBorder(Theme.groupBorder, lineWidth: 1)
-        )
+        .groupSurface()
     }
 }
 
 private struct ClipRow: View {
     let clip: ClipEntry
     @ObservedObject var store: TweakStore
-    @State private var hovering = false
     @State private var expanded = false
 
     /// A long single-line clip is expandable too, and "Show all 1 lines" is
@@ -60,42 +59,14 @@ private struct ClipRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                if let note = clip.note {
-                    Text(note)
-                        .font(.system(size: 9.5, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.accentColor.opacity(0.14),
-                                    in: RoundedRectangle(cornerRadius: 4))
-                }
-                Text(timestamp)
-                    .font(.system(size: 9.5))
-                    .foregroundStyle(Theme.tertiary)
-                Spacer(minLength: 0)
-                Button("Copy") { store.copyBack(clip) }
-                    .buttonStyle(.borderless)
-                    .font(.system(size: 10.5))
-                Button {
-                    store.removeClip(clip)
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 10.5))
-                        .foregroundStyle(Theme.tertiary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Remove clip")
-            }
-
+        VStack(alignment: .leading, spacing: 10) {
             if clip.isImage {
                 HStack(spacing: 8) {
                     if let data = clip.imageData, let image = NSImage(data: data) {
                         Image(nsImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: 150, maxHeight: 76)
+                            .frame(maxWidth: 180, maxHeight: 96)
                             .clipShape(RoundedRectangle(cornerRadius: 5))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 5)
@@ -103,7 +74,7 @@ private struct ClipRow: View {
                             )
                     }
                     Text(clip.sizeLabel)
-                        .font(.system(size: 11))
+                        .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
                     Spacer(minLength: 0)
                 }
@@ -111,7 +82,7 @@ private struct ClipRow: View {
                 // Selectable so a translation can be read and picked apart here,
                 // rather than pasted somewhere else just to see it.
                 Text(expanded ? clip.text : clip.preview)
-                    .font(.system(size: 12))
+                    .font(.bodyText)
                     .foregroundStyle(Theme.primary)
                     .lineLimit(expanded ? nil : 2)
                     .textSelection(.enabled)
@@ -124,14 +95,43 @@ private struct ClipRow: View {
                     expanded.toggle()
                 }
                 .buttonStyle(.borderless)
-                .font(.system(size: 10.5))
+                .font(.rowSubtitle)
+            }
+            HStack(spacing: 6) {
+                if let note = clip.note {
+                    Text(note)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.14),
+                                    in: RoundedRectangle(cornerRadius: 4))
+                }
+                Text(timestamp)
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.secondary)
+                Spacer(minLength: 0)
+                Button { store.copyBack(clip) } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                .buttonStyle(.borderless)
+                .font(.rowSubtitle)
+                Button {
+                    store.removeClip(clip)
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.secondary)
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Remove clip")
             }
         }
         .padding(.horizontal, Theme.rowInset)
-        .padding(.vertical, 9)
-        .background(hovering ? Color.primary.opacity(0.05) : .clear)
+        .padding(.vertical, 12)
         .contentShape(Rectangle())
-        .onHover { hovering = $0 }
+        .rowHoverHighlight()
         .accessibilityElement(children: .contain)
     }
 }

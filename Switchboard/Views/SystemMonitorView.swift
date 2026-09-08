@@ -9,9 +9,9 @@ struct SystemMonitorView: View {
     private var reading: SystemReading { monitor.reading }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("SYSTEM").font(.sectionHeader).foregroundStyle(Theme.secondary)
+                Text("System").font(.sectionHeader).foregroundStyle(Theme.secondary)
                 Spacer()
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     Group {
@@ -27,17 +27,17 @@ struct SystemMonitorView: View {
                             Text("Live")
                         }
                     }
-                    .font(.system(size: 10.5))
+                    .font(.rowSubtitle)
                     .foregroundStyle(Theme.secondary)
                 }
             }
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                metric("CPU", value: percent(reading.cpu), detail: "All cores", color: .blue, key: \.cpu)
-                metric("GPU", value: percent(reading.gpu), detail: "Busiest GPU", color: .purple, key: \.gpu)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                metric("CPU", value: percent(reading.cpu), detail: "All cores", color: .accentColor, key: \.cpu)
+                metric("GPU", value: percent(reading.gpu), detail: "Busiest GPU", color: .accentColor, key: \.gpu)
                 metric("Memory", value: bytes(reading.memoryUsed),
-                       detail: "of \(bytes(reading.memoryTotal))", color: .orange, key: \.memoryUsed,
+                       detail: "of \(bytes(reading.memoryTotal))", color: .accentColor, key: \.memoryUsed,
                        maximum: reading.memoryTotal)
-                metric("Swap", value: bytes(reading.swapUsed), detail: "Used on disk", color: .pink,
+                metric("Swap", value: bytes(reading.swapUsed), detail: "Used on disk", color: .accentColor,
                        key: \.swapUsed, maximum: max(1, monitor.history.compactMap(\.swapUsed).max() ?? 1))
             }
             panel {
@@ -49,7 +49,7 @@ struct SystemMonitorView: View {
                     Label(rate(reading.network?.sent), systemImage: "arrow.up.circle")
                         .accessibilityLabel("Upload " + rate(reading.network?.sent))
                 }
-                .font(.system(size: 12, design: .monospaced))
+                .font(.system(size: 11, design: .monospaced))
                 Text("Wi-Fi and Ethernet combined").font(.rowSubtitle).foregroundStyle(Theme.secondary)
             }
             panel {
@@ -84,7 +84,7 @@ struct SystemMonitorView: View {
                     .font(.rowSubtitle).foregroundStyle(.orange)
             }
             Text("Graphs show up to two minutes while this panel is open. GPU and battery sensors may be unavailable on some Macs.")
-                .font(.system(size: 10.5)).foregroundStyle(Theme.secondary)
+                .font(.rowSubtitle).foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Button("Open Activity Monitor", action: openActivityMonitor)
                 .buttonStyle(.borderless)
@@ -99,16 +99,20 @@ struct SystemMonitorView: View {
     private func metric(_ title: String, value: String, detail: String, color: Color,
                         key: KeyPath<SystemReading, Double?>, maximum: Double = 100) -> some View {
         panel {
-            Text(title).font(.rowTitle).foregroundStyle(Theme.secondary)
-            Text(value).font(.system(size: 21, weight: .medium, design: .rounded)).monospacedDigit()
-            Text(detail).font(.system(size: 10.5)).foregroundStyle(Theme.secondary)
+            Text(title).font(.sectionHeader).foregroundStyle(Theme.secondary)
+            Text(value)
+                .font(.system(size: 22, weight: .medium))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+            Text(detail).font(.rowSubtitle).foregroundStyle(Theme.secondary)
             Chart {
                 ForEach(Array(monitor.history.enumerated()), id: \.offset) { index, sample in
                     if let value = sample[keyPath: key] {
                         LineMark(x: .value("Time", sample.date), y: .value(title, value),
                                  series: .value("Segment", segment(at: index, key: key)))
                             .foregroundStyle(color)
-                            .lineStyle(StrokeStyle(lineWidth: 1.5))
+                            .lineStyle(StrokeStyle(lineWidth: 2))
                     }
                 }
             }
@@ -116,7 +120,7 @@ struct SystemMonitorView: View {
             .chartXScale(domain: reading.date.addingTimeInterval(-120)...reading.date)
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
-            .frame(height: 30)
+            .frame(height: 36)
             .accessibilityLabel("\(title) history, current value \(value)")
         }
     }
@@ -126,12 +130,11 @@ struct SystemMonitorView: View {
     }
 
     private func panel<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 6, content: content)
+        VStack(alignment: .leading, spacing: 8, content: content)
             .font(.rowSubtitle)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(11)
-            .background(Theme.groupBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-            .overlay(RoundedRectangle(cornerRadius: Theme.cornerRadius).strokeBorder(Theme.groupBorder))
+            .padding(14)
+            .groupSurface()
     }
 
     private func detail(_ title: String, _ value: String) -> some View {

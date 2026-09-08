@@ -19,14 +19,16 @@ struct PopoverView: View {
     @State private var selectedCategory: Category = .everyday
     @FocusState private var searchFocused: Bool
 
+    private var compactHeight: Bool { height < 420 }
+
     var body: some View {
         VStack(spacing: 0) {
             header
             searchField
             if searchText.isEmpty {
-                CategoryNav(selection: $selectedCategory)
+                CategoryNav(selection: $selectedCategory, includesTweakCategories: !compactHeight)
             }
-            if let notice = store.notice {
+            if !compactHeight, let notice = store.notice {
                 NoticeView(notice: notice)
                     .padding(.horizontal, Theme.edgeInset)
                     .padding(.bottom, 10)
@@ -37,8 +39,6 @@ struct PopoverView: View {
                     applyRestarts()
                 }
             }
-            Hairline()
-            footer
         }
         .frame(width: Theme.popoverWidth, height: height)
         .background(VisualEffectBackground())
@@ -52,6 +52,12 @@ struct PopoverView: View {
         }
         .onChange(of: searchText) { _, newValue in
             store.search = newValue
+        }
+        .onChange(of: store.search) { _, newValue in
+            if searchText != newValue { searchText = newValue }
+        }
+        .onChange(of: store.category) { _, newValue in
+            if selectedCategory != newValue { selectedCategory = newValue }
         }
         .onChange(of: selectedCategory) { _, newValue in
             store.category = newValue
@@ -70,25 +76,19 @@ struct PopoverView: View {
     private var header: some View {
         HStack(spacing: 10) {
             Image(systemName: "point.3.connected.trianglepath.dotted")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 20, weight: .medium))
                 .foregroundStyle(Color.accentColor)
-                .frame(width: 26, height: 26)
-                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+                .frame(width: 28, height: 28)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Switchboard")
-                    .font(.popoverTitle)
-                    .foregroundStyle(Theme.primary)
-                Text("Useful fixes for everyday macOS friction")
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(Theme.secondary)
-            }
+            Text("Switchboard")
+                .font(.popoverTitle)
+                .foregroundStyle(Theme.primary)
             Spacer()
             settingsMenu
         }
         .padding(.horizontal, Theme.edgeInset)
-        .padding(.top, 8)
-        .frame(height: 54)
+        .padding(.top, 4)
+        .frame(height: 60)
     }
 
     private var settingsMenu: some View {
@@ -103,56 +103,69 @@ struct PopoverView: View {
                 }
             }
             Divider()
+            Button("Restore Original Settings") { store.restoreDefaults() }
+                .disabled(!store.canRestoreOriginalSettings)
+            Divider()
             Button("Quit Switchboard") { NSApp.terminate(nil) }
                 .keyboardShortcut("q", modifiers: .command)
         } label: {
-            Image(systemName: "ellipsis.circle")
-                .font(.system(size: 14))
+            Image(systemName: "gearshape")
+                .font(.system(size: 15))
                 .foregroundStyle(Theme.secondary)
+                .frame(width: 28, height: 28)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
+        .help("Switchboard settings")
         .accessibilityLabel("Switchboard settings")
     }
 
     private var searchField: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 11.5, weight: .medium))
-                .foregroundStyle(Theme.tertiary)
-            TextField("Search", text: $searchText)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Theme.secondary)
+            TextField("Search settings", text: $searchText)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
-                .font(.system(size: 12.5))
+                .font(.bodyText)
+                .accessibilityLabel("Search settings")
             if !searchText.isEmpty {
                 Button {
                     searchText = ""
                     searchFocused = true
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Theme.tertiary)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.secondary)
+                        .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
             }
         }
-        .padding(.horizontal, 7)
-        .frame(height: 24)
-        .background(Theme.fieldBackground, in: RoundedRectangle(cornerRadius: 6))
+        .padding(.horizontal, 10)
+        .frame(height: 34)
+        .background(Theme.fieldBackground, in: RoundedRectangle(cornerRadius: 8))
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(searchFocused ? Color.accentColor.opacity(0.4) : Theme.groupBorder,
                               lineWidth: 1)
         )
         .padding(.horizontal, Theme.edgeInset)
-        .padding(.bottom, 10)
+        .padding(.bottom, 14)
     }
 
     private var content: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 14) {
+            LazyVStack(alignment: .leading, spacing: 16) {
+                if compactHeight {
+                    if searchText.isEmpty, [.everyday, .files, .capture, .dock].contains(selectedCategory) {
+                        TweakCategoryNav(selection: $selectedCategory)
+                    }
+                    if let notice = store.notice { NoticeView(notice: notice) }
+                }
                 ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard && $0 != .system }, id: \.self) { category in
                     settingGroup(category)
                 }
@@ -166,11 +179,16 @@ struct PopoverView: View {
                     SystemMonitorView(monitor: monitor)
                 }
                 if store.visible.isEmpty && !shouldShowAudio && !shouldShowClipboard && !shouldShowSystem {
-                    Text("No matching settings")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 48)
+                    VStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.emptyStateGlyph)
+                            .accessibilityHidden(true)
+                        Text("No matching settings").font(.rowTitle)
+                        Text("Try a setting, app name, or category.").font(.rowSubtitle)
+                    }
+                    .foregroundStyle(Theme.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 48)
                 }
             }
             .padding(.horizontal, Theme.edgeInset)
@@ -201,19 +219,16 @@ struct PopoverView: View {
     }
 
     private var clipboardGroup: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                if store.visibleCategories.count > 1 || !searchText.isEmpty {
-                    Text(Category.clipboard.label.uppercased())
-                        .font(.sectionHeader)
-                        .kerning(0.5)
-                        .foregroundStyle(Theme.tertiary)
-                }
+                Text("Clipboard")
+                    .font(.sectionHeader)
+                    .foregroundStyle(Theme.secondary)
                 Spacer()
                 if !store.clips.isEmpty {
                     Button("Clear") { store.clearClips() }
                         .buttonStyle(.borderless)
-                        .font(.system(size: 10.5))
+                        .font(.rowSubtitle)
                 }
             }
             .padding(.horizontal, 4)
@@ -221,28 +236,27 @@ struct PopoverView: View {
             ClipboardHistoryList(store: store)
 
             Text("Kept in memory only and forgotten when Switchboard quits. Anything a password manager marks as private is skipped.")
-                .font(.system(size: 10.5))
-                .foregroundStyle(Theme.tertiary)
+                .font(.rowSubtitle)
+                .foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 4)
         }
     }
 
     private var audioGroup: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 10) {
             if store.visibleCategories.count > 1 || !searchText.isEmpty {
-                Text(Category.audio.label.uppercased())
+                Text(Category.audio.label)
                     .font(.sectionHeader)
-                    .kerning(0.5)
-                    .foregroundStyle(Theme.tertiary)
+                    .foregroundStyle(Theme.secondary)
                     .padding(.leading, 4)
             }
 
             AppVolumeList(store: store)
 
             Text("The first adjustment asks for System Audio Recording access. Set an app to 100% to return it to the normal system mixer.")
-                .font(.system(size: 10.5))
-                .foregroundStyle(Theme.tertiary)
+                .font(.rowSubtitle)
+                .foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 4)
         }
@@ -250,45 +264,36 @@ struct PopoverView: View {
 
     private func settingGroup(_ category: Category) -> some View {
         let tweaks = store.tweaks(in: category)
-        return VStack(alignment: .leading, spacing: 5) {
-            // Only worth naming when a search is showing several at once.
-            if store.visibleCategories.count > 1 {
-                Text(category.label.uppercased())
-                    .font(.sectionHeader)
-                    .kerning(0.5)
-                    .foregroundStyle(Theme.tertiary)
-                    .padding(.leading, 4)
-            }
+        let quickTools = Set(["everyday.keep-awake", "everyday.region-ocr"])
+        let groups = category == .everyday
+            ? [tweaks.filter { quickTools.contains($0.id) }, tweaks.filter { !quickTools.contains($0.id) }]
+            : [tweaks]
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(category.label)
+                .font(.sectionHeader)
+                .foregroundStyle(Theme.secondary)
+                .padding(.leading, 4)
 
-            VStack(spacing: 0) {
-                ForEach(Array(tweaks.enumerated()), id: \.element.id) { index, tweak in
-                    TweakRow(tweak: tweak, store: store)
-                    if index < tweaks.count - 1 {
-                        Theme.separator
-                            .frame(height: 1)
-                            .padding(.leading, Theme.rowInset + Theme.iconSize + Theme.rowSpacing)
-                    }
+            ForEach(groups.indices, id: \.self) { index in
+                if !groups[index].isEmpty {
+                    settingsCard(groups[index])
                 }
             }
-            .background(Theme.groupBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                    .strokeBorder(Theme.groupBorder, lineWidth: 1)
-            )
         }
     }
 
-    private var footer: some View {
-        HStack {
-            Button("Restore Original Settings") { store.restoreDefaults() }
-                .buttonStyle(.plain)
-                .font(.footerLabel)
-                .foregroundStyle(Theme.secondary)
-                .disabled(!store.canRestoreOriginalSettings)
-            Spacer()
+    private func settingsCard(_ tweaks: [Tweak]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(tweaks.enumerated()), id: \.element.id) { index, tweak in
+                TweakRow(tweak: tweak, store: store)
+                if index < tweaks.count - 1 {
+                    Hairline()
+                        .padding(.leading, Theme.rowInset + Theme.iconSize + Theme.rowSpacing)
+                        .padding(.trailing, Theme.rowInset)
+                }
+            }
         }
-        .padding(.horizontal, Theme.edgeInset)
-        .frame(height: 38)
+        .groupSurface()
     }
 
     private func updateLaunchAtLogin(_ enabled: Bool) {
@@ -365,15 +370,16 @@ private struct NoticeView: View {
     }
 
     var body: some View {
-        HStack(spacing: 7) {
+        HStack(alignment: .top, spacing: 8) {
             Image(systemName: symbol).foregroundStyle(colour)
             Text(notice.message)
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.secondary)
+                .font(.rowSubtitle)
+                .foregroundStyle(Theme.primary)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 10)
-        .frame(minHeight: 30)
-        .background(colour.opacity(0.09), in: RoundedRectangle(cornerRadius: 8))
+        .padding(12)
+        .frame(minHeight: 40)
+        .background(colour.opacity(0.09), in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
     }
 }

@@ -9,7 +9,7 @@ struct TweakRow: View {
         HStack(alignment: .center, spacing: Theme.rowSpacing) {
             RowIcon(symbol: tweak.symbol)
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 3) {
                 // The title is the whole point of the row, so it wraps rather
                 // than truncating -- a clipped setting name is unreadable.
                 Text(tweak.title)
@@ -34,9 +34,10 @@ struct TweakRow: View {
                 .layoutPriority(1)
         }
         .padding(.horizontal, Theme.rowInset)
-        .padding(.vertical, 8)
-        .frame(minHeight: 40)
+        .padding(.vertical, 12)
+        .frame(minHeight: 50)
         .contentShape(Rectangle())
+        .rowHoverHighlight()
     }
 
     @ViewBuilder
