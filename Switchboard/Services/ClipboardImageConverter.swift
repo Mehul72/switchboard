@@ -36,7 +36,12 @@ enum ClipboardImageFormat: String, Equatable {
 /// Current macOS clipboard screenshots arrive as one `public.png` item even
 /// when the saved-file preference is JPEG or HEIC. While clipboard capture is
 /// enabled, this watches for that shape and republishes the bytes using the
-/// selected image encoding. A receiving app can still normalise pasted images.
+/// selected image encoding, alongside a real file in that encoding.
+///
+/// The file flavour is what makes the setting visible. macOS transcodes image
+/// flavours on demand, so an app that pastes through `NSImage` gets raw pixels
+/// and re-encodes them, almost always as PNG. An app that accepts a pasted
+/// file keeps the bytes and the extension it was handed.
 final class ClipboardImageConverter {
     enum ConversionError: LocalizedError {
         case clipboardAccessDenied
@@ -61,17 +66,26 @@ final class ClipboardImageConverter {
         }
     }
 
+    /// A pasted file URL stays useful only while the file behind it exists, so
+    /// recent conversions are kept rather than deleted on the next capture.
+    static let spooledFileLimit = 5
+
     var onConversion: ((Result<ClipboardImageFormat, Error>) -> Void)?
 
     private let pasteboard: NSPasteboard
+    private let spoolDirectory: URL
     private var timer: Timer?
     private var targetFormat: ClipboardImageFormat?
     private var lastChangeCount: Int
     private var isConverting = false
     private var generation = 0
 
-    init(pasteboard: NSPasteboard = .general) {
+    init(pasteboard: NSPasteboard = .general, spoolDirectory: URL? = nil) {
         self.pasteboard = pasteboard
+        self.spoolDirectory = spoolDirectory ?? URL(fileURLWithPath: NSTemporaryDirectory(),
+                                                    isDirectory: true)
+            .appendingPathComponent("Switchboard", isDirectory: true)
+            .appendingPathComponent("ClipboardScreenshots", isDirectory: true)
         self.lastChangeCount = pasteboard.changeCount
     }
 
@@ -167,8 +181,16 @@ final class ClipboardImageConverter {
                     }
                     guard self.pasteboard.changeCount == observedChangeCount else { return }
 
+                    // The image data alone still pastes, so a spool failure
+                    // degrades the result rather than failing the conversion.
+                    let spooledFile = self.spool(data, as: targetFormat)
+                    if let spooledFile {
+                        _ = replacement.setString(spooledFile.absoluteString, forType: .fileURL)
+                    }
+
                     self.pasteboard.clearContents()
                     guard self.pasteboard.writeObjects([replacement]) else {
+                        self.discardSpooledFile(spooledFile)
                         self.pasteboard.clearContents()
                         _ = self.pasteboard.writeObjects([original])
                         self.lastChangeCount = self.pasteboard.changeCount
@@ -195,6 +217,77 @@ final class ClipboardImageConverter {
             onConversion?(.failure(ConversionError.clipboardReadFailed))
         }
     }
+
+    /// Writes the converted bytes where a pasting app can pick them up as a
+    /// file. Returns nil when the spool is unusable; the caller carries on
+    /// with the image flavour only.
+    private func spool(_ data: Data, as format: ClipboardImageFormat) -> URL? {
+        let files = FileManager.default
+        do {
+            try files.createDirectory(at: spoolDirectory, withIntermediateDirectories: true)
+        } catch {
+            return nil
+        }
+
+        let stamp = Self.fileNameStamp.string(from: Date())
+        var destination = spoolDirectory
+            .appendingPathComponent("Screenshot \(stamp)")
+            .appendingPathExtension(format.rawValue)
+        // Two captures inside the same second must not collide, and
+        // overwriting would change what an earlier paste resolves to.
+        var attempt = 2
+        while files.fileExists(atPath: destination.path) {
+            destination = spoolDirectory
+                .appendingPathComponent("Screenshot \(stamp) (\(attempt))")
+                .appendingPathExtension(format.rawValue)
+            attempt += 1
+        }
+
+        do {
+            try data.write(to: destination, options: .atomic)
+        } catch {
+            return nil
+        }
+        pruneSpool(keeping: destination)
+        return destination
+    }
+
+    private func discardSpooledFile(_ url: URL?) {
+        guard let url else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    /// Keeps the spool from growing without bound while leaving enough recent
+    /// files that a paste from a few screenshots ago still resolves.
+    private func pruneSpool(keeping newest: URL) {
+        let files = FileManager.default
+        guard let contents = try? files.contentsOfDirectory(
+            at: spoolDirectory,
+            includingPropertiesForKeys: [.contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        ) else { return }
+
+        let byNewestFirst = contents.sorted { left, right in
+            let leftDate = (try? left.resourceValues(forKeys: [.contentModificationDateKey]))?
+                .contentModificationDate ?? .distantPast
+            let rightDate = (try? right.resourceValues(forKeys: [.contentModificationDateKey]))?
+                .contentModificationDate ?? .distantPast
+            return leftDate > rightDate
+        }
+        for stale in byNewestFirst.dropFirst(Self.spooledFileLimit)
+        where stale.standardizedFileURL != newest.standardizedFileURL {
+            try? files.removeItem(at: stale)
+        }
+    }
+
+    /// Fixed locale and a path-safe time separator, so the name never picks up
+    /// a slash or a locale's ordering from the user's region settings.
+    private static let fileNameStamp: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
+        return formatter
+    }()
 
     private static func encode(_ pngData: Data,
                                as format: ClipboardImageFormat) -> Result<Data, Error> {

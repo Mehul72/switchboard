@@ -165,16 +165,24 @@ Use **Command-Shift-4** for region screenshots. Test a new screenshot after each
    file in the destination; paste or Preview > File > New from Clipboard works.
 4. With clipboard destination on, repeat PNG, JPEG, and HEIC. Allow at least a
    second for conversion. Expected: the image is pasteable and reaches history.
-   A receiving app may convert it to PNG. For exact encoding, the automated
-   conversion tests inspect the pasteboard and image bytes directly.
-5. Capture a large image, then immediately copy some text. Expected: a finishing
+   For exact encoding, the automated conversion tests inspect the pasteboard and
+   image bytes directly.
+5. With clipboard destination on and JPEG selected, capture, then paste into an
+   app that accepts a pasted file (Finder, Mail, or a chat with an upload area).
+   Expected: a `.jpg` named `Screenshot <date> at <time>`. Run `file` on it and
+   confirm real JPEG bytes, not a renamed PNG. Repeat with HEIC. An app that
+   pastes the image data alone still produces PNG; that is macOS transcoding it.
+6. Capture at least six times in a row with JPEG selected. Expected: pasting the
+   most recent capture still yields its file. Switchboard keeps only the last
+   few converted files in the temporary spool.
+7. Capture a large image, then immediately copy some text. Expected: a finishing
    image conversion must not replace the newer text.
-6. **Skip the floating thumbnail:** enable and capture. Expected: immediate save,
+8. **Skip the floating thumbnail:** enable and capture. Expected: immediate save,
    no thumbnail. Disable and capture. Expected: the thumbnail returns.
-7. **Remove window shadows:** press Command-Shift-4, then Space and click a window.
+9. **Remove window shadows:** press Command-Shift-4, then Space and click a window.
    Compare captures with the setting on and off. Expected: only the off capture
    includes the surrounding shadow. Region captures do not test this setting.
-8. Quit Switchboard with clipboard JPEG/HEIC enabled and capture again. The macOS
+10. Quit Switchboard with clipboard JPEG/HEIC enabled and capture again. The macOS
    preference persists, but Switchboard's clipboard converter only runs while
    the app is open. Reopen it before testing conversion again.
 

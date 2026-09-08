@@ -148,9 +148,12 @@ left on another Desktop. It sends a normal quit request, so anything unsaved
 still prompts you.
 
 For clipboard screenshots, turn on **Copy screenshots to clipboard** and choose
-JPEG or HEIC. Switchboard re-encodes new single-image clipboard captures while
-it runs; macOS may ask for Clipboard access. The pasteboard carries the selected
-encoding, although an app receiving the paste can still normalise it to PNG.
+JPEG or HEIC. macOS ignores the format setting for clipboard captures and always
+copies PNG, so Switchboard re-encodes new single-image clipboard captures while
+it runs; macOS may ask for Clipboard access. The clipboard then carries both the
+selected encoding and a matching `.jpg` or `.heic` file, so apps that accept a
+pasted file keep that encoding. An app that pastes through the image data alone
+still re-encodes to PNG, which macOS gives it on request.
 
 The **Audio** tab shows apps first. Expand **Output devices** below the app list
 to see each connected device's volume and a **System Default** label beside the

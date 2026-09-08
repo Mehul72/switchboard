@@ -203,15 +203,20 @@ final class ClipboardHistoryTests: XCTestCase {
 final class ClipboardImageCaptureTests: XCTestCase {
     private var pasteboard: NSPasteboard!
     private var history: ClipboardHistory!
+    private var spoolDirectory: URL!
 
     override func setUp() {
         super.setUp()
         pasteboard = NSPasteboard(name: NSPasteboard.Name("switchboard-image-tests-\(UUID().uuidString)"))
         pasteboard.clearContents()
         history = ClipboardHistory(pasteboard: pasteboard)
+        spoolDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("switchboard-spool-tests-\(UUID().uuidString)", isDirectory: true)
     }
 
     override func tearDown() {
+        try? FileManager.default.removeItem(at: spoolDirectory)
+        spoolDirectory = nil
         history = nil
         pasteboard.releaseGlobally()
         pasteboard = nil
@@ -289,7 +294,7 @@ final class ClipboardImageCaptureTests: XCTestCase {
 
     func testScreenshotConversionProducesJPEGAndHEIC() throws {
         for format in [ClipboardImageFormat.jpeg, .heic] {
-            let converter = ClipboardImageConverter(pasteboard: pasteboard)
+            let converter = ClipboardImageConverter(pasteboard: pasteboard, spoolDirectory: spoolDirectory)
             converter.configure(enabled: true, format: format.rawValue)
             let converted = expectation(description: format.label)
             converter.onConversion = { result in
@@ -311,7 +316,7 @@ final class ClipboardImageCaptureTests: XCTestCase {
     }
 
     func testScreenshotConversionDoesNotOverwriteANewerCopy() {
-        let converter = ClipboardImageConverter(pasteboard: pasteboard)
+        let converter = ClipboardImageConverter(pasteboard: pasteboard, spoolDirectory: spoolDirectory)
         converter.configure(enabled: true, format: "jpg")
         defer { converter.stop() }
         let converted = expectation(description: "stale conversion must not publish")
@@ -323,6 +328,86 @@ final class ClipboardImageCaptureTests: XCTestCase {
         pasteboard.setString("newer copy", forType: .string)
         wait(for: [converted], timeout: 0.3)
         XCTAssertEqual(pasteboard.string(forType: .string), "newer copy")
+    }
+
+    /// Drives one conversion to completion and returns the resulting clipboard item.
+    private func convertPNGOnClipboard(to format: ClipboardImageFormat,
+                                       using converter: ClipboardImageConverter,
+                                       size: Int = 40) throws -> NSPasteboardItem {
+        let converted = expectation(description: "converted to \(format.label)")
+        converter.onConversion = { result in
+            if case .failure(let error) = result { XCTFail(error.localizedDescription) }
+            converted.fulfill()
+        }
+        put(encoded(Self.swatch(width: size, height: size / 2), as: .png), as: .png)
+        converter.processNewClipboardContents()
+        wait(for: [converted], timeout: 5)
+        return try XCTUnwrap(pasteboard.pasteboardItems?.first)
+    }
+
+    /// Apps that paste through `NSImage` re-encode to PNG, which is what made
+    /// the format setting look broken. The file flavour is what survives.
+    func testConversionPublishesAFileInTheChosenFormat() throws {
+        for format in [ClipboardImageFormat.jpeg, .heic] {
+            let converter = ClipboardImageConverter(pasteboard: pasteboard,
+                                                    spoolDirectory: spoolDirectory)
+            defer { converter.stop() }
+            converter.configure(enabled: true, format: format.rawValue)
+            let item = try convertPNGOnClipboard(to: format, using: converter)
+
+            let urlString = try XCTUnwrap(item.string(forType: .fileURL),
+                                          "\(format.label) needs a pasteable file")
+            let file = try XCTUnwrap(URL(string: urlString))
+            XCTAssertEqual(file.pathExtension, format.rawValue)
+            XCTAssertEqual(file.deletingLastPathComponent().standardizedFileURL,
+                           spoolDirectory.standardizedFileURL)
+
+            let onDisk = try Data(contentsOf: file)
+            let source = try XCTUnwrap(CGImageSourceCreateWithData(onDisk as CFData, nil))
+            XCTAssertEqual(CGImageSourceGetType(source) as String?, format.contentType.identifier,
+                           "the file has to really be \(format.label), not just named that way")
+            let type = NSPasteboard.PasteboardType(format.contentType.identifier)
+            XCTAssertEqual(onDisk, item.data(forType: type),
+                           "the file and the image flavour must be the same bytes")
+        }
+    }
+
+    /// A file URL transcodes to text on some pasteboards. If that leaked, every
+    /// converted screenshot would land in the history as a path instead.
+    func testConvertedScreenshotStillRecordsAsAnImage() throws {
+        let converter = ClipboardImageConverter(pasteboard: pasteboard,
+                                                spoolDirectory: spoolDirectory)
+        defer { converter.stop() }
+        converter.configure(enabled: true, format: "jpg")
+        _ = try convertPNGOnClipboard(to: .jpeg, using: converter)
+
+        XCTAssertNil(pasteboard.string(forType: .string))
+        history.capture()
+        XCTAssertEqual(history.entries.count, 1)
+        XCTAssertTrue(history.entries.first?.isImage == true)
+        XCTAssertEqual(history.entries.first?.pixelSize, CGSize(width: 40, height: 20))
+    }
+
+    func testSpooledFilesAreCappedAndKeepTheNewest() throws {
+        let converter = ClipboardImageConverter(pasteboard: pasteboard,
+                                                spoolDirectory: spoolDirectory)
+        defer { converter.stop() }
+        converter.configure(enabled: true, format: "jpg")
+
+        var newest: URL?
+        for round in 0..<(ClipboardImageConverter.spooledFileLimit + 3) {
+            // Distinct sizes keep each conversion a distinct clipboard write.
+            let item = try convertPNGOnClipboard(to: .jpeg, using: converter, size: 40 + round * 2)
+            newest = URL(string: try XCTUnwrap(item.string(forType: .fileURL)))
+        }
+
+        let remaining = try FileManager.default.contentsOfDirectory(
+            at: spoolDirectory, includingPropertiesForKeys: nil
+        )
+        XCTAssertLessThanOrEqual(remaining.count, ClipboardImageConverter.spooledFileLimit)
+        let newestFile = try XCTUnwrap(newest)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: newestFile.path),
+                      "the file the clipboard points at must never be pruned")
     }
 
     func testStyledTextWithAnImagePreviewIsRecordedAsText() {
