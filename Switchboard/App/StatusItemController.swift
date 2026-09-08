@@ -19,6 +19,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         super.init()
         item.button?.image = MenuBarIcon.image
         item.button?.toolTip = "Switchboard"
+        item.button?.setAccessibilityLabel("Switchboard")
         item.button?.target = self
         item.button?.action = #selector(togglePopover)
 

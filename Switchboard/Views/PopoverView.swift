@@ -75,8 +75,11 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "point.3.connected.trianglepath.dotted")
-                .font(.system(size: 20, weight: .medium))
+            Image(.brandMark)
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 28, height: 28)
                 .accessibilityHidden(true)

@@ -19,7 +19,7 @@ in [AUDIT.md](AUDIT.md).
 
 ## Panel, navigation, and search
 
-1. Click the linked-points menu-bar icon. Expected: the panel opens fully onscreen.
+1. Click the routed S menu-bar icon. Expected: the panel opens fully onscreen.
 2. Visit Tweaks, Audio, Clipboard, and System. Inside Tweaks visit Everyday,
    Files, Capture, and Dock. Expected: all four main tabs fit without horizontal
    scrolling, and each category displays its controls and scrolls to its last row.

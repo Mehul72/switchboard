@@ -39,7 +39,7 @@ needed.
 1. Download the `.dmg` from the
    [latest release](https://github.com/Mehul72/switchboard/releases/latest).
 2. Open it and **drag Switchboard into Applications**.
-3. Launch it from Applications. An icon of three linked points appears in the menu bar.
+3. Launch it from Applications. A routed S icon appears in the menu bar.
 
 Do not run Switchboard from the Downloads folder. macOS relocates an app opened
 from there into a temporary read only location, and every permission you grant
@@ -76,7 +76,7 @@ survives future updates.
 1. Open `Switchboard.xcodeproj` in Xcode.
 2. Select the **Switchboard** scheme and **My Mac** destination.
 3. Press **Command-R**.
-4. Click the three linked points icon in the menu bar.
+4. Click the routed S icon in the menu bar.
 
 The app has no package dependencies. It is deliberately not App Sandbox enabled,
 because it must update macOS preference domains outside its own container.
