@@ -29,7 +29,7 @@ enum PrefValue: Equatable {
 }
 
 enum Category: String, CaseIterable {
-    case everyday, files, capture, dock, audio, clipboard
+    case everyday, files, capture, dock, audio, clipboard, system
 
     var label: String { rawValue.capitalized }
 
@@ -41,6 +41,7 @@ enum Category: String, CaseIterable {
         case .dock: return "dock.rectangle"
         case .audio: return "speaker.wave.2"
         case .clipboard: return "doc.on.clipboard"
+        case .system: return "waveform.path.ecg"
         }
     }
 }

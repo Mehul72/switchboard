@@ -1,10 +1,12 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 final class StatusItemController: NSObject, NSPopoverDelegate {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
     private let store = TweakStore()
+    private let monitor = SystemMonitor()
     private var hostingController: NSHostingController<PopoverView>?
     private var restartProtection = false
     private var restartProtectionGeneration = 0
@@ -65,7 +67,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         let height = min(Theme.popoverHeight, availableHeight)
         let size = NSSize(width: Theme.popoverWidth, height: height)
         let controller = NSHostingController(
-            rootView: PopoverView(store: store,
+            rootView: PopoverView(store: store, monitor: monitor,
                                   dismiss: { [weak self] in self?.popover.performClose(nil) },
                                   applyRestarts: { [weak self] in
                                       self?.applyPendingRestartsKeepingPopoverOpen()
@@ -117,5 +119,6 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         // away with the popover, and a missed one would leave the audio list
         // polling against a closed panel.
         store.setAudioListVisible(false)
+        monitor.stop()
     }
 }

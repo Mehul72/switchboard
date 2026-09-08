@@ -3,6 +3,7 @@ import SwiftUI
 
 struct PopoverView: View {
     @ObservedObject var store: TweakStore
+    @ObservedObject var monitor: SystemMonitor
     let dismiss: () -> Void
     let applyRestarts: () -> Void
     let height: CGFloat
@@ -152,7 +153,7 @@ struct PopoverView: View {
     private var content: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 14) {
-                ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard }, id: \.self) { category in
+                ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard && $0 != .system }, id: \.self) { category in
                     settingGroup(category)
                 }
                 if shouldShowAudio {
@@ -161,7 +162,10 @@ struct PopoverView: View {
                 if shouldShowClipboard {
                     clipboardGroup
                 }
-                if store.visible.isEmpty && !shouldShowAudio && !shouldShowClipboard {
+                if shouldShowSystem {
+                    SystemMonitorView(monitor: monitor)
+                }
+                if store.visible.isEmpty && !shouldShowAudio && !shouldShowClipboard && !shouldShowSystem {
                     Text("No matching settings")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.secondary)
@@ -174,6 +178,12 @@ struct PopoverView: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .frame(maxHeight: .infinity)
+    }
+
+    private var shouldShowSystem: Bool {
+        if searchText.isEmpty { return selectedCategory == .system }
+        return ["system", "monitor", "cpu", "gpu", "memory", "swap", "network", "battery", "power", "disk", "thermal"]
+            .contains { $0.localizedCaseInsensitiveContains(searchText) }
     }
 
     private var shouldShowAudio: Bool {

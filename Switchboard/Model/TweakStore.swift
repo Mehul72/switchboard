@@ -29,6 +29,13 @@ final class TweakStore: ObservableObject {
     var onScreenSelectionBegan: (() -> Void)?
     var onScreenSelectionEnded: (() -> Void)?
     @Published private(set) var audioVolumes: [String: Float] = [:]
+    /// Every device an app can be sent to, refreshed alongside the app list so
+    /// unplugging one takes it out of the menus.
+    @Published private(set) var audioOutputDevices: [AudioOutputDevice] = []
+    @Published private(set) var outputDeviceVolumes: [String: OutputVolumeState] = [:]
+    /// The device chosen per app, absent when the app follows the system default.
+    @Published private(set) var audioRoutes: [String: String] = [:]
+    @Published private(set) var systemDefaultOutputUID: String?
     @Published private(set) var isCapturingText = false
 
     private let ledger = UndoLedger()
@@ -37,6 +44,7 @@ final class TweakStore: ObservableObject {
     private let quitOnClose = QuitOnCloseController()
     private let clipboardImages = ClipboardImageConverter()
     private let appAudio = AppAudioEngine()
+    private let outputVolume = OutputDeviceVolume()
     private let history = ClipboardHistory()
     private static let translateKey = "TranslateCapturedText"
     /// Master switch for the capture translation feature. While false the
@@ -132,6 +140,11 @@ final class TweakStore: ObservableObject {
     func refreshAudioApps() {
         let latest = AppAudioEngine.runningApps()
         if latest != audioApps { audioApps = latest }
+        let devices = AppAudioEngine.outputDevices()
+        if devices != audioOutputDevices { audioOutputDevices = devices }
+        refreshOutputDeviceVolumes()
+        let defaultUID = AppAudioEngine.systemDefaultOutputUID()
+        if defaultUID != systemDefaultOutputUID { systemDefaultOutputUID = defaultUID }
         let failures = appAudio.reconcile(with: latest)
         // The maintenance timer now outlives an attenuated app going quiet, so
         // an unconditional assignment would publish a change every two seconds
@@ -140,6 +153,10 @@ final class TweakStore: ObservableObject {
             ($0.bundleID, appAudio.gain(for: $0.bundleID))
         })
         if volumes != audioVolumes { audioVolumes = volumes }
+        let routes = latest.reduce(into: [String: String]()) { routes, app in
+            routes[app.bundleID] = appAudio.selectedOutputUID(for: app.bundleID)
+        }
+        if routes != audioRoutes { audioRoutes = routes }
         updateAudioMaintenanceTimer()
         if let failure = failures.first {
             notice = StoreNotice(kind: .error, message: failure)
@@ -148,13 +165,56 @@ final class TweakStore: ObservableObject {
 
     func volume(for app: AudioApp) -> Float { audioVolumes[app.bundleID] ?? 1 }
 
+    private func refreshOutputDeviceVolumes() {
+        let volumes = audioOutputDevices.reduce(into: [String: OutputVolumeState]()) { result, device in
+            do {
+                result[device.uid] = try outputVolume.read(uid: device.uid)
+            } catch {
+                result[device.uid] = .unavailable(error.localizedDescription)
+            }
+        }
+        if volumes != outputDeviceVolumes { outputDeviceVolumes = volumes }
+    }
+
+    func setOutputVolume(_ volume: Float, for device: AudioOutputDevice) {
+        do {
+            try outputVolume.set(volume, uid: device.uid)
+        } catch {
+            notice = StoreNotice(kind: .error, message: "\(device.name): \(error.localizedDescription)")
+        }
+        // Read back the hardware value, including when a write fails or the driver rounds it.
+        refreshOutputDeviceVolumes()
+    }
+
+    /// The device an app is actually playing through, and the name to show for
+    /// it. A chosen device that has been unplugged reads as unavailable rather
+    /// than silently showing the default.
+    func outputSelection(for app: AudioApp) -> (uid: String?, isMissing: Bool) {
+        let selected = audioRoutes[app.bundleID]
+        return (selected, AudioRouting.selectedDeviceIsMissing(
+            selected: selected,
+            available: Set(audioOutputDevices.map(\.uid))
+        ))
+    }
+
+    func setOutputDevice(_ uid: String?, for app: AudioApp) {
+        if case .failure(let error) = appAudio.setOutputDevice(uid, for: app) {
+            notice = StoreNotice(kind: .error,
+                                 message: "\(app.name): \(error.localizedDescription)")
+        }
+        audioRoutes[app.bundleID] = appAudio.selectedOutputUID(for: app.bundleID)
+        updateAudioMaintenanceTimer()
+    }
+
     var hasAdjustedAudio: Bool { appAudio.isControllingAnything }
 
     func resetAudioVolumes() {
         appAudio.releaseAll()
         audioVolumes = [:]
+        audioRoutes = [:]
         updateAudioMaintenanceTimer()
-        notice = StoreNotice(kind: .success, message: "All app volumes are back at 100%.")
+        notice = StoreNotice(kind: .success,
+                             message: "Every app is back at 100% on the default output.")
     }
 
     func setVolume(_ volume: Float, for app: AudioApp) {
@@ -522,6 +582,7 @@ final class TweakStore: ObservableObject {
         let quitRestored = quitOnClose.setActive(false)
         appAudio.releaseAll()
         audioVolumes.removeAll()
+        audioRoutes.removeAll()
         updateAudioMaintenanceTimer()
         let restored = preferencesRestored && awakeRestored && scrollRestored && quitRestored
         refresh()

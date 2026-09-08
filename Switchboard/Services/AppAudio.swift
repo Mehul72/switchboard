@@ -26,6 +26,16 @@ struct AudioApp: Identifiable, Equatable {
     }
 }
 
+/// One output device an app's audio can be sent to.
+struct AudioOutputDevice: Identifiable, Equatable {
+    /// Core Audio's own persistent identifier. Names repeat across identical
+    /// hardware, so the UID is what a saved route remembers.
+    let uid: String
+    let name: String
+
+    var id: String { uid }
+}
+
 enum AppAudioError: LocalizedError {
     case noOutputDevice
     case unsupportedOutputDevice
@@ -120,14 +130,12 @@ final class AppAudioEngine {
                 && bytesPerFrame == expectedBytes
                 && bytesPerPacket == bytesPerFrame
         }
-    }
 
-    private struct OutputRoute: Equatable {
-        let deviceID: AudioDeviceID
-        let deviceUID: String
-        let streamID: AudioStreamID
-        let streamIndex: Int
-        let format: PCMFormat
+        /// The renderer walks one buffer of interleaved Float samples, so a
+        /// non-interleaved tap would have it read every other channel.
+        var isInterleavedFloat: Bool {
+            isSupported && flags & kAudioFormatFlagIsNonInterleaved == 0
+        }
     }
 
     private struct Aggregate {
@@ -162,7 +170,9 @@ final class AppAudioEngine {
 
     private struct Controlled {
         let processObjectIDs: [AudioObjectID]
-        let route: OutputRoute
+        /// Where this app is being rendered, which after routing is not
+        /// necessarily the system default.
+        let deviceUID: String
         let gain: AtomicGain
         let tapID: AudioObjectID
         let aggregate: Aggregate
@@ -242,6 +252,56 @@ final class AppAudioEngine {
         }
     }
 
+    /// Every device an app's audio can be sent to, in the order a person reads
+    /// them.
+    static func outputDevices() -> [AudioOutputDevice] {
+        objectList(
+            AudioObjectID(kAudioObjectSystemObject),
+            selector: kAudioHardwarePropertyDevices,
+            scope: kAudioObjectPropertyScopeGlobal
+        )
+        .compactMap { deviceID -> AudioOutputDevice? in
+            guard let uid = string(deviceID, kAudioDevicePropertyDeviceUID),
+                  AudioRouting.isSelectableOutput(
+                      uid: uid,
+                      isAlive: flag(deviceID, kAudioDevicePropertyDeviceIsAlive) ?? false,
+                      hasOutputStreams: !objectList(
+                          deviceID,
+                          selector: kAudioDevicePropertyStreams,
+                          scope: kAudioDevicePropertyScopeOutput
+                      ).isEmpty
+                  ),
+                  let name = string(deviceID, kAudioObjectPropertyName) else {
+                return nil
+            }
+            return AudioOutputDevice(uid: uid, name: name)
+        }
+        .sorted { $0.name.localizedLowercase < $1.name.localizedLowercase }
+    }
+
+    /// The device macOS is currently sending everything to, or nil when the Mac
+    /// has no usable output at all.
+    static func systemDefaultOutputUID() -> String? {
+        guard let deviceID = defaultOutputDeviceID() else { return nil }
+        return string(deviceID, kAudioDevicePropertyDeviceUID)
+    }
+
+    private static func defaultOutputDeviceID() -> AudioDeviceID? {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var deviceID = AudioDeviceID(kAudioObjectUnknown)
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        guard AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID
+        ) == noErr, deviceID != kAudioObjectUnknown else {
+            return nil
+        }
+        return deviceID
+    }
+
     /// Maps a helper process back to the regular app a person recognises.
     ///
     /// Chrome names its helpers after the browser, so trimming the bundle ID
@@ -273,69 +333,144 @@ final class AppAudioEngine {
         return nil
     }
 
-    // MARK: - Gain
+    // MARK: - Volume and routing
+
+    /// Device UIDs chosen per app, kept across launches so an app someone sent
+    /// to their speakers goes back there the next time it plays.
+    private var requestedRoutes: [String: String] = AppAudioEngine.savedRoutes()
 
     func gain(for bundleID: String) -> Float {
         requestedGains[bundleID] ?? 1
     }
 
-    /// A gain of 1 releases the app back to the normal system mixer.
+    /// The device chosen for an app, whether or not it is currently plugged in.
+    func selectedOutputUID(for bundleID: String) -> String? {
+        requestedRoutes[bundleID]
+    }
+
+    /// Full volume is not stored, so an app at 100% on the default output is
+    /// one this engine has no opinion about.
     func setGain(_ gain: Float, for app: AudioApp) -> Result<Void, AppAudioError> {
         let clamped = max(0, min(1, gain))
-        requestedGains[app.bundleID] = clamped
-
-        guard clamped < 1 else {
-            release(app.bundleID)
-            // Absent means normal volume, so there is nothing left to remember.
+        if AudioRouting.isFullVolume(clamped) {
             requestedGains.removeValue(forKey: app.bundleID)
+        } else {
+            requestedGains[app.bundleID] = clamped
+        }
+        return apply(to: app)
+    }
+
+    /// Sends an app to one output device, or back to the system default with
+    /// `nil`.
+    func setOutputDevice(_ uid: String?, for app: AudioApp) -> Result<Void, AppAudioError> {
+        if let uid {
+            requestedRoutes[app.bundleID] = uid
+        } else {
+            requestedRoutes.removeValue(forKey: app.bundleID)
+        }
+        Self.persistRoutes(requestedRoutes)
+        return apply(to: app)
+    }
+
+    /// Brings one app's tap into line with the volume and device chosen for it.
+    private func apply(to app: AudioApp) -> Result<Void, AppAudioError> {
+        let gain = requestedGains[app.bundleID] ?? 1
+        let selected = requestedRoutes[app.bundleID]
+        let systemDefault = Self.systemDefaultOutputUID()
+        let effective = AudioRouting.effectiveDeviceUID(
+            selected: selected,
+            available: Set(Self.outputDevices().map(\.uid)),
+            systemDefault: systemDefault
+        )
+
+        guard AudioRouting.needsTap(gain: gain, selected: selected,
+                                    effective: effective, systemDefault: systemDefault) else {
+            release(app.bundleID)
             return .success(())
         }
+        guard let effective else {
+            forgetRequest(app.bundleID)
+            return .failure(.noOutputDevice)
+        }
 
+        // A tap already pointed at the right device only needs the new gain,
+        // and rebuilding it would drop a moment of the app's audio.
         if let existing = controlled[app.bundleID],
-           existing.processObjectIDs == app.processObjectIDs {
-            existing.gain.store(clamped)
+           existing.processObjectIDs == app.processObjectIDs,
+           existing.deviceUID == effective {
+            existing.gain.store(gain)
             return .success(())
         }
 
         release(app.bundleID)
         do {
-            let route = try Self.defaultOutputRoute()
-            controlled[app.bundleID] = try install(app, gain: clamped, route: route)
+            controlled[app.bundleID] = try install(app, gain: gain, deviceUID: effective)
             return .success(())
         } catch let error as AppAudioError {
-            requestedGains.removeValue(forKey: app.bundleID)
+            forgetRequest(app.bundleID)
             return .failure(error)
         } catch {
-            requestedGains.removeValue(forKey: app.bundleID)
+            forgetRequest(app.bundleID)
             return .failure(.setupFailed)
         }
     }
 
-    /// Rebuilds controls when an app's helpers or the default output device
-    /// change, re-applies a chosen volume to an app that stopped and resumed
-    /// playing, and releases taps after an app quits while the Switchboard
-    /// panel is closed.
+    /// Drops a request nothing is enforcing, so a row never shows a volume or a
+    /// device that failed to take effect.
+    private func forgetRequest(_ bundleID: String) {
+        requestedGains.removeValue(forKey: bundleID)
+        if requestedRoutes.removeValue(forKey: bundleID) != nil {
+            Self.persistRoutes(requestedRoutes)
+        }
+    }
+
+    /// Rebuilds controls when an app's helpers change, when the default output
+    /// changes under an app that was following it, or when a chosen device is
+    /// unplugged; re-applies a choice to an app that stopped and resumed
+    /// playing; and releases taps after an app quits while the panel is closed.
     func reconcile(with apps: [AudioApp]) -> [String] {
-        let attenuated = requestedGains.filter { $0.value < 1 }
-        guard !controlled.isEmpty || !attenuated.isEmpty else { return [] }
+        guard isControllingAnything else { return [] }
 
         let current = Dictionary(uniqueKeysWithValues: apps.map { ($0.bundleID, $0) })
-        let route = try? Self.defaultOutputRoute()
+        let available = Set(Self.outputDevices().map(\.uid))
+        let systemDefault = Self.systemDefaultOutputUID()
         var failures: [String] = []
 
-        for bundleID in Set(controlled.keys).union(attenuated.keys) {
+        for bundleID in Set(controlled.keys)
+            .union(requestedGains.keys)
+            .union(requestedRoutes.keys) {
             guard let app = current[bundleID] else {
                 // An app leaves the Core Audio process list whenever it stops
-                // playing, so a missing entry is not a reason to forget the
-                // volume its owner chose. Only a quit app gets that.
+                // playing, so a missing entry is not a reason to forget what
+                // its owner chose. Only a quit app gets that.
                 release(bundleID)
-                if !Self.isRunning(bundleID) { requestedGains.removeValue(forKey: bundleID) }
+                if !Self.isRunning(bundleID) { forgetRequest(bundleID) }
+                continue
+            }
+
+            let gain = requestedGains[bundleID] ?? 1
+            let selected = requestedRoutes[bundleID]
+            let effective = AudioRouting.effectiveDeviceUID(selected: selected,
+                                                            available: available,
+                                                            systemDefault: systemDefault)
+
+            guard AudioRouting.needsTap(gain: gain, selected: selected,
+                                        effective: effective, systemDefault: systemDefault) else {
+                release(bundleID)
+                continue
+            }
+            guard let effective else {
+                // The Mac has no usable output at all. Say so once rather than
+                // every poll for as long as that lasts.
+                release(bundleID)
+                forgetRequest(bundleID)
+                failures.append("\(app.name): \(AppAudioError.noOutputDevice.localizedDescription)")
                 continue
             }
 
             if let existing = controlled[bundleID] {
                 guard existing.processObjectIDs != app.processObjectIDs
-                        || existing.route != route else {
+                        || existing.deviceUID != effective else {
                     if let failure = releaseIfRendererStalled(bundleID, playing: app.isPlaying) {
                         failures.append("\(app.name): \(failure)")
                     }
@@ -344,24 +479,36 @@ final class AppAudioEngine {
                 release(bundleID)
             }
 
-            let gain = requestedGains[bundleID] ?? 1
-            guard gain < 1 else { continue }
-            guard let route else {
-                requestedGains.removeValue(forKey: bundleID)
-                failures.append("\(app.name): \(AppAudioError.noOutputDevice.localizedDescription)")
-                continue
-            }
             do {
-                controlled[bundleID] = try install(app, gain: gain, route: route)
+                controlled[bundleID] = try install(app, gain: gain, deviceUID: effective)
             } catch let error as AppAudioError {
-                requestedGains.removeValue(forKey: bundleID)
+                forgetRequest(bundleID)
                 failures.append("\(app.name): \(error.localizedDescription)")
             } catch {
-                requestedGains.removeValue(forKey: bundleID)
+                forgetRequest(bundleID)
                 failures.append("\(app.name): \(AppAudioError.setupFailed.localizedDescription)")
             }
         }
         return failures
+    }
+
+    // MARK: - Saved routes
+
+    static let routesDefaultsKey = "audio.outputRoutes"
+
+    /// Anything stored under this key was written by an older version or by
+    /// hand, so a value that is not a device UID string is dropped rather than
+    /// crashing the app on launch.
+    static func savedRoutes(in defaults: UserDefaults = .standard) -> [String: String] {
+        defaults.dictionary(forKey: routesDefaultsKey)?
+            .compactMapValues { $0 as? String } ?? [:]
+    }
+
+    static func persistRoutes(_ routes: [String: String], in defaults: UserDefaults = .standard) {
+        guard !routes.isEmpty else {
+            return defaults.removeObject(forKey: routesDefaultsKey)
+        }
+        defaults.set(routes, forKey: routesDefaultsKey)
     }
 
     /// A started device calls its IOProc continuously, so no callbacks at all
@@ -397,26 +544,29 @@ final class AppAudioEngine {
             release(bundleID)
         }
         requestedGains.removeAll()
+        requestedRoutes.removeAll()
+        Self.persistRoutes(requestedRoutes)
     }
 
-    /// True while anything still needs maintaining: a live tap, or a volume
-    /// chosen for an app that has gone quiet and will need it again.
+    /// True while anything still needs maintaining: a live tap, a volume chosen
+    /// for an app that has gone quiet, or a device chosen for one. A route is
+    /// kept even when it matches the current default, because the app has to be
+    /// moved back if that default changes.
     var isControllingAnything: Bool {
-        !controlled.isEmpty || requestedGains.contains { $0.value < 1 }
+        !controlled.isEmpty || !requestedGains.isEmpty || !requestedRoutes.isEmpty
     }
 
     // MARK: - Tap and aggregate device
 
-    private func install(_ app: AudioApp, gain: Float, route: OutputRoute) throws -> Controlled {
+    private func install(_ app: AudioApp, gain: Float, deviceUID: String) throws -> Controlled {
         guard !app.processObjectIDs.isEmpty else { throw AppAudioError.setupFailed }
 
-        // Device-bound taps capture only streams destined for this output, and
-        // Core Audio guarantees that their format matches the chosen stream.
-        let description = CATapDescription(
-            processes: app.processObjectIDs,
-            deviceUID: route.deviceUID,
-            stream: UInt(route.streamIndex)
-        )
+        // A mixdown tap is not tied to a device, which is what lets the
+        // aggregate below play the app somewhere other than where it was
+        // already going. It always hands over interleaved stereo, so the
+        // destination's channel layout is the renderer's problem rather than a
+        // reason to refuse the device.
+        let description = CATapDescription(stereoMixdownOfProcesses: app.processObjectIDs)
         description.name = "Switchboard \(app.name)"
         description.isPrivate = true
         description.muteBehavior = .mutedWhenTapped
@@ -429,8 +579,7 @@ final class AppAudioEngine {
 
         guard let tapUID = Self.string(tapID, kAudioTapPropertyUID),
               let tapFormat = Self.audioFormat(tapID, selector: kAudioTapPropertyFormat),
-              tapFormat.isSupported,
-              tapFormat == route.format else {
+              tapFormat.isInterleavedFloat else {
             _ = AudioHardwareDestroyProcessTap(tapID)
             throw AppAudioError.unsupportedOutputDevice
         }
@@ -439,7 +588,7 @@ final class AppAudioEngine {
         do {
             aggregate = try Self.createAggregate(
                 named: "Switchboard \(app.name)",
-                outputUID: route.deviceUID,
+                outputUID: deviceUID,
                 tapUID: tapUID
             )
         } catch {
@@ -447,13 +596,11 @@ final class AppAudioEngine {
             throw error
         }
 
-        guard Self.aggregateFormatsMatch(aggregate.id, expected: route.format) else {
-            beginTeardown(aggregate: aggregate, tapID: tapID)
-            throw AppAudioError.unsupportedOutputDevice
-        }
-
         let gainState = AtomicGain(gain)
         let renderTicks = RenderTicks()
+        // Read once here rather than per callback: the audio thread must not
+        // call into the HAL, and a tap's format does not change under it.
+        let tapChannels = Int(tapFormat.channelsPerFrame)
         var ioProcID: AudioDeviceIOProcID?
         let createStatus = AudioDeviceCreateIOProcIDWithBlock(
             &ioProcID,
@@ -461,7 +608,21 @@ final class AppAudioEngine {
             nil
         ) { _, input, _, output, _ in
             renderTicks.advance()
-            Self.render(input: input, output: output, gain: gainState.load())
+            let inputBuffers = UnsafeMutableAudioBufferListPointer(
+                UnsafeMutablePointer(mutating: input)
+            )
+            let outputBuffers = UnsafeMutableAudioBufferListPointer(output)
+            guard let tapIndex = AudioRender.tapBufferIndex(in: inputBuffers,
+                                                            tapChannels: tapChannels) else {
+                // Core Audio hands the output buffer over holding whatever it
+                // last contained, so a cycle with nothing to play still has to
+                // write silence over it.
+                AudioRender.silence(outputBuffers)
+                return
+            }
+            AudioRender.render(source: inputBuffers[tapIndex],
+                               into: outputBuffers,
+                               gain: gainState.load())
         }
         guard createStatus == noErr, let ioProcID else {
             beginTeardown(aggregate: aggregate, tapID: tapID)
@@ -477,7 +638,7 @@ final class AppAudioEngine {
 
         return Controlled(
             processObjectIDs: app.processObjectIDs,
-            route: route,
+            deviceUID: deviceUID,
             gain: gainState,
             tapID: tapID,
             aggregate: aggregate,
@@ -540,45 +701,6 @@ final class AppAudioEngine {
         }
     }
 
-    /// Input and output were validated as the same Float32 PCM format. Buffer
-    /// shape is checked again for each callback before touching sample memory.
-    private static func render(
-        input: UnsafePointer<AudioBufferList>,
-        output: UnsafeMutablePointer<AudioBufferList>,
-        gain: Float
-    ) {
-        let inputBuffers = UnsafeMutableAudioBufferListPointer(
-            UnsafeMutablePointer(mutating: input)
-        )
-        let outputBuffers = UnsafeMutableAudioBufferListPointer(output)
-
-        for buffer in outputBuffers {
-            if let data = buffer.mData {
-                memset(data, 0, Int(buffer.mDataByteSize))
-            }
-        }
-        guard inputBuffers.count == outputBuffers.count else { return }
-
-        for index in inputBuffers.indices {
-            let inputBuffer = inputBuffers[index]
-            let outputBuffer = outputBuffers[index]
-            guard inputBuffer.mNumberChannels == outputBuffer.mNumberChannels,
-                  inputBuffer.mDataByteSize == outputBuffer.mDataByteSize,
-                  inputBuffer.mDataByteSize % UInt32(MemoryLayout<Float>.size) == 0,
-                  let sourceData = inputBuffer.mData,
-                  let destinationData = outputBuffer.mData else {
-                continue
-            }
-
-            let sampleCount = Int(inputBuffer.mDataByteSize) / MemoryLayout<Float>.size
-            let source = sourceData.assumingMemoryBound(to: Float.self)
-            let destination = destinationData.assumingMemoryBound(to: Float.self)
-            for sample in 0..<sampleCount {
-                destination[sample] = source[sample] * gain
-            }
-        }
-    }
-
     private static func createAggregate(
         named name: String,
         outputUID: String,
@@ -595,7 +717,10 @@ final class AppAudioEngine {
             kAudioAggregateDeviceTapListKey: [[
                 kAudioSubTapDriftCompensationKey: true,
                 kAudioSubTapUIDKey: tapUID
-            ]]
+            ]],
+            // Without this the tap can stay idle after the device starts, which
+            // leaves the app muted by the tap and rendered by nobody.
+            kAudioAggregateDeviceTapAutoStartKey: true
         ]
 
         var deviceID = AudioDeviceID(kAudioObjectUnknown)
@@ -607,69 +732,6 @@ final class AppAudioEngine {
     }
 
     // MARK: - Core Audio property helpers
-
-    private static func defaultOutputRoute() throws -> OutputRoute {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var deviceID = AudioDeviceID(kAudioObjectUnknown)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        guard AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &address,
-            0,
-            nil,
-            &size,
-            &deviceID
-        ) == noErr,
-        deviceID != kAudioObjectUnknown,
-        flag(deviceID, kAudioDevicePropertyDeviceIsAlive) == true,
-        let uid = string(deviceID, kAudioDevicePropertyDeviceUID) else {
-            throw AppAudioError.noOutputDevice
-        }
-
-        let streams = objectList(
-            deviceID,
-            selector: kAudioDevicePropertyStreams,
-            scope: kAudioDevicePropertyScopeOutput
-        )
-        // A device-bound tap targets one stream. Supporting several physical
-        // streams would require a mixer and channel routing rather than a copy.
-        guard streams.count == 1,
-              let format = audioFormat(streams[0], selector: kAudioStreamPropertyVirtualFormat),
-              format.isSupported else {
-            throw AppAudioError.unsupportedOutputDevice
-        }
-
-        return OutputRoute(
-            deviceID: deviceID,
-            deviceUID: uid,
-            streamID: streams[0],
-            streamIndex: 0,
-            format: format
-        )
-    }
-
-    private static func aggregateFormatsMatch(_ deviceID: AudioDeviceID, expected: PCMFormat) -> Bool {
-        let inputs = objectList(
-            deviceID,
-            selector: kAudioDevicePropertyStreams,
-            scope: kAudioDevicePropertyScopeInput
-        )
-        let outputs = objectList(
-            deviceID,
-            selector: kAudioDevicePropertyStreams,
-            scope: kAudioDevicePropertyScopeOutput
-        )
-        guard inputs.count == 1, outputs.count == 1,
-              let input = audioFormat(inputs[0], selector: kAudioStreamPropertyVirtualFormat),
-              let output = audioFormat(outputs[0], selector: kAudioStreamPropertyVirtualFormat) else {
-            return false
-        }
-        return input == expected && output == expected
-    }
 
     private static func objectList(
         _ object: AudioObjectID,

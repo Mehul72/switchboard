@@ -19,8 +19,20 @@ needed.
 - Dock: remove its reveal delay, hide recent apps, and minimise windows into
   their application icons.
 - Audio: change the volume of individual apps that currently own an audio
-  stream, without changing the Mac's main output volume.
+  stream, without changing the Mac's main output volume, and send an app to an
+  output device of its own while everything else stays on the system default.
+  A chosen device is remembered per app and reapplied the next time it plays;
+  unplugging that device hands the app back to the default rather than muting it.
+  Separate output-device sliders adjust the overall volume of each connected
+  device for every app playing through it.
 - Clipboard: the last 20 things you copied, text or image, ready to put back.
+- System: live CPU, GPU (where available), memory and swap history, Wi-Fi and
+  Ethernet traffic rates, disk space, thermal state, and battery details.
+  Readings refresh every two seconds only while the panel is visible. History
+  covers up to two minutes and resets when monitoring resumes. Memory excludes
+  reclaimable file cache. Battery power is the battery charging/discharging rate,
+  not total wall power. Hardware-dependent sensors display Unavailable when macOS
+  does not expose them. Open Activity Monitor from the panel to inspect processes.
 
 ## Installing
 
@@ -131,7 +143,15 @@ JPEG or HEIC. Switchboard re-encodes new single-image clipboard captures while
 it runs; macOS may ask for Clipboard access. The pasteboard carries the selected
 encoding, although an app receiving the paste can still normalise it to PNG.
 
-The **Audio** tab lists apps once they create an audio stream. Moving a slider
+The **Audio** tab shows apps first. Expand **Output devices** below the app list
+to see each connected device's volume and a **System Default** label beside the
+current default. The output section starts collapsed. Device sliders
+affect every app using that output, reflect changes made in macOS within two
+seconds while the panel is open, and do not require audio recording access.
+Devices without writable volume controls show an explanation. Device volume
+changes are left in place when Switchboard quits or app controls are reset.
+
+The **Apps** section lists apps once they create an audio stream. Moving an app slider
 below 100% asks for System Audio Recording access the first time. Switchboard
 then taps only that app's stream for the current output device and plays it back
 at the chosen level. Returning the slider to 100% releases the app to the normal
@@ -140,7 +160,8 @@ to 100% if the app, its audio helpers, or the output device cannot be safely
 reconnected.
 
 macOS shows a purple system-audio privacy indicator while these audio taps are
-active. **Reset All Volumes** releases all controls and returns apps to 100%.
+active. **Reset App Volumes and Outputs** releases app controls, clears saved
+routes, and returns apps to 100% on the default output. Device volumes stay unchanged.
 Switchboard cannot set the system indicator's disappearance timeout. Stopping a
 tap also stops applying its reduced volume.
 

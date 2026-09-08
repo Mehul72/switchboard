@@ -190,7 +190,7 @@ Keep the Mac's main volume comfortably low before testing reset or mute recovery
    volume persists. The purple dot can remain throughout this test.
 5. Return the app to 100%. Expected: its tap is released. If another app is still
    reduced, the dot can remain because that app still needs audio access.
-6. Reduce both apps, then press **Reset All Volumes**. Expected: all sliders show
+6. Reduce both apps, then press **Reset App Volumes and Outputs**. Expected: all app sliders show
    100%, normal playback continues, and Switchboard releases its taps. macOS owns
    indicator disappearance timing and may show recent access afterward. Another
    recording app can independently keep the indicator visible.
@@ -205,9 +205,64 @@ Keep the Mac's main volume comfortably low before testing reset or mute recovery
 11. Revoke System Audio Recording permission and try reducing volume. Expected:
     a useful error and no false claim that the volume was successfully changed.
 
-**Current limitation:** reduced volume requires continuous audio processing.
-The dot cannot disappear after five seconds of continuous reduced-volume playback
-with this implementation. Reset stops the processing by returning volume to 100%.
+**Current limitation:** reduced volume and per-app output both require
+continuous audio processing. The dot cannot disappear while either is in effect.
+Reset stops the processing by returning every app to 100% on the default output.
+
+## Per-app output device
+
+Needs at least two output devices. These steps assume AirPods are the system
+default and the built-in speakers are the second device.
+
+1. Play audio in one app and open Audio. Expected: each row shows an output menu
+   reading **System Default**, and the menu lists every device that can play,
+   with no microphones and nothing named after Switchboard.
+2. Send that app to **MacBook Pro Speakers**. Expected: only that app moves to the
+   speakers. Everything else, including system sounds, stays on the default.
+3. Leave its volume at 100%. Expected: routing alone still works, and the purple
+   dot appears because a tap is required to move the audio.
+4. Lower the routed app to 30%. Expected: it is quieter and still on the speakers.
+5. Set the app back to **System Default**. Expected: it returns to the default
+   device, and if its volume is also 100% the tap is released.
+6. Route an app to a device, quit Switchboard, relaunch it and play that app
+   again. Expected: the chosen device is remembered and reapplied.
+7. Route an app to a removable device, then unplug it. Expected: within about two
+   seconds the app returns to the default device and keeps playing. The menu
+   reads **Chosen device unavailable** in orange rather than showing the default.
+8. Plug that device back in. Expected: the app returns to it and the warning
+   clears.
+9. Change the Mac's default output while an app is routed elsewhere. Expected:
+   the routed app stays where it was sent; unrouted apps follow the new default.
+10. Route an app to a one-channel device, for example a virtual conferencing
+    device. Expected: audio is folded to mono and plays at normal pitch and
+    speed, never at half speed or an octave low.
+11. Route an app to a device that also has a microphone. Expected: the app's own
+    audio plays, never the microphone.
+12. Press **Reset App Volumes and Outputs**. Expected: every app is back at 100% on
+    the default device and the saved routes are cleared.
+
+## Output device volume
+
+1. Open Audio without any apps playing. Expected: the app section comes first,
+   followed by a collapsed **Output devices** section. Expand it: connected
+   outputs appear, with **System Default** beside the current default. Collapse
+   it again: device controls are hidden and the app section remains visible.
+2. Play two apps through the same output. Lower that device's slider. Expected:
+   both apps become quieter; their individual app sliders remain unchanged.
+3. Route one app to another output and lower that device's volume. Expected:
+   only sound on that device becomes quieter; the default output is unaffected.
+4. Change the default device's volume using macOS. Expected: its slider reflects
+   the change within two seconds while the Audio tab is open.
+5. With no per-app adjustments active, move a device slider. Expected: no audio
+   recording permission prompt and no new purple audio privacy indicator.
+6. Connect an output with no software volume control, such as a fixed-volume
+   HDMI output. Expected: a message to use its own controls, not a working slider.
+7. Disconnect a device while adjusting it. Expected: no change to another
+   output's volume; the disconnected row disappears on the next refresh.
+8. Set a stereo balance in macOS, then change device volume. Expected: balance
+   is preserved. Restore the original balance after checking.
+9. Press **Reset App Volumes and Outputs**, then quit and reopen Switchboard.
+   Expected: the device volumes remain at their chosen levels.
 
 ## Clipboard history
 
@@ -246,3 +301,20 @@ with this implementation. Reset stops the processing by returning volume to 100%
 5. Log out and in. Expected: exactly one installed Switchboard copy launches.
 6. Choose **Disable Launch at Login**, log out and in again. Expected: it does not
    launch automatically. macOS's separate “reopen windows” option may also reopen apps.
+
+
+## System monitor
+
+- Select System and wait two seconds. CPU and network should move from their
+  initial state to live readings. Compare memory, swap and CPU with Activity
+  Monitor, allowing for different sampling intervals.
+- Generate CPU/network load. Confirm graphs and traffic rates change, history
+  stays within two minutes, and scrolling through battery details stays responsive.
+- Close the popover or switch categories. Confirm sampling stops. Reopen System
+  and verify history restarts without a CPU/network spike.
+- Search for battery, CPU or network. Confirm the monitor appears with no empty
+  settings card or “No matching settings” message. Clear the search.
+- Check battery and adapter states on a laptop, and no-battery state on a desktop.
+  Missing GPU/battery sensors must display Unavailable rather than zero.
+- Open Activity Monitor using the panel button. Check keyboard navigation and
+  VoiceOver labels across categories and charts.

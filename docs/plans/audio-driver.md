@@ -64,3 +64,22 @@ API, because the result is undefined. That approach is not a supported replaceme
   and outside the sandbox. No lint-pass claim is made.
 - No live test of a driver, audio attenuation, or privacy-indicator disappearance
   has occurred. The original continuous-playback indicator request remains open.
+
+## Reference-app finding (8 September 2026)
+
+`vorssaint/vorssaint-utils` was read as a possible shortcut past the indicator.
+It is not one. Its mixer takes the same route this app already takes:
+`AudioHardwareCreateProcessTap` with `isPrivate = true` and
+`muteBehavior = .mutedWhenTapped`, rendered through an aggregate carrying
+`kAudioAggregateDeviceIsPrivateKey: true`. Its `Info.plist` declares
+`NSAudioCaptureUsageDescription` and its permission screen opens
+`Privacy_AudioCapture`, so it asks for the same consent and shows the same dot.
+
+It also keeps the tap alive for an app that is open but silent, as this app
+does. Its own comment states the intent: "Show every regular app that holds an
+audio connection, not only the ones making sound this instant." Its
+`requiresEngine` drops the tap only when the app has no audio objects left.
+
+So four references now agree that a process tap cannot avoid the indicator:
+Background Music, Faded, VolumeRouter, and this one. The output-only driver in
+steps 4 to 6 above remains the only untried approach.
