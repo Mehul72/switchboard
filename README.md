@@ -128,8 +128,11 @@ may require reopening affected apps, and the network-drive setting applies on
 the next mount.
 
 **Keep Mac awake** offers 30-minute, one-hour, two-hour, and open-ended choices.
-The assertion ends when its timer finishes, when you turn it off, when you
-restore settings, or when Switchboard quits.
+While it runs, the row replaces its description with the time left ("Ends in 24
+minutes") or, for the open-ended choice, how long it has been on ("On for 1 hour
+5 minutes"). Changing the duration mid-span does not restart that count. The
+assertion ends when its timer finishes, when you turn it off, when you restore
+settings, or when Switchboard quits.
 
 **Copy text from the screen** asks for Screen Recording access the first time.
 After approving Switchboard in **System Settings > Privacy & Security**, choose

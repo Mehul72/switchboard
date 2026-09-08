@@ -1,6 +1,43 @@
 import AppKit
 import Foundation
 
+/// How long the Mac has been held awake, and when that ends.
+struct AwakeSpan: Equatable {
+    let startedAt: Date
+    /// Nil when the span runs until the user stops it.
+    let endsAt: Date?
+}
+
+/// Wording for the keep-awake row. Minute granularity, because a second-by-
+/// second countdown on a row people glance at reads as noise.
+enum AwakeStatus {
+    /// Nil once a timed span has run out, so the row stops claiming the Mac is
+    /// awake in the moment between expiry and the timer that clears it.
+    static func text(for span: AwakeSpan, now: Date = Date()) -> String? {
+        guard let endsAt = span.endsAt else {
+            let elapsed = now.timeIntervalSince(span.startedAt)
+            return "On for " + phrase(minutes: Int((elapsed / 60).rounded(.down)))
+        }
+        let secondsLeft = endsAt.timeIntervalSince(now)
+        guard secondsLeft > 0 else { return nil }
+        // Rounded up so picking "30 minutes" does not immediately read as 29.
+        return "Ends in " + phrase(minutes: Int((secondsLeft / 60).rounded(.up)))
+    }
+
+    private static func phrase(minutes: Int) -> String {
+        guard minutes >= 1 else { return "less than a minute" }
+        let hours = minutes / 60
+        let leftoverMinutes = minutes % 60
+        guard hours >= 1 else { return pluralized(minutes, "minute") }
+        guard leftoverMinutes >= 1 else { return pluralized(hours, "hour") }
+        return pluralized(hours, "hour") + " " + pluralized(leftoverMinutes, "minute")
+    }
+
+    private static func pluralized(_ amount: Int, _ noun: String) -> String {
+        "\(amount) \(noun)\(amount == 1 ? "" : "s")"
+    }
+}
+
 /// Holds a power assertion for a chosen span. An open-ended assertion is easy
 /// to switch on and forget about for days, so the duration is part of the
 /// control rather than a separate thing to remember.
@@ -10,6 +47,7 @@ final class AwakeController {
 
     private var activity: NSObjectProtocol?
     private var expiry: Timer?
+    private var startedAt: Date?
     private(set) var minutes = 0
     private(set) var endsAt: Date?
 
@@ -19,10 +57,10 @@ final class AwakeController {
 
     var isActive: Bool { activity != nil }
 
-    /// Remaining time, for the subtitle. Nil when off or open-ended.
-    var remaining: TimeInterval? {
-        guard let endsAt else { return nil }
-        return max(0, endsAt.timeIntervalSinceNow)
+    /// What the row reports while the assertion is held. Nil when off.
+    var span: AwakeSpan? {
+        guard let startedAt, isActive else { return nil }
+        return AwakeSpan(startedAt: startedAt, endsAt: endsAt)
     }
 
     @discardableResult
@@ -51,6 +89,9 @@ final class AwakeController {
                 options: [.idleSystemSleepDisabled, .idleDisplaySleepDisabled],
                 reason: "Switchboard Keep Awake"
             )
+            // Changing the span later must not restart the clock: the Mac has
+            // been awake since this assertion began, not since the last edit.
+            startedAt = Date()
         }
         guard isActive else { minutes = 0; return false }
         minutes = newMinutes
@@ -74,6 +115,7 @@ final class AwakeController {
             ProcessInfo.processInfo.endActivity(activity)
             self.activity = nil
         }
+        startedAt = nil
     }
 
     deinit {

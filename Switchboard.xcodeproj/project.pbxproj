@@ -51,6 +51,7 @@
 		B5000000000000000000001E /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001E /* SystemMonitor.swift */; };
 		B5000000000000000000001F /* SystemMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001F /* SystemMonitorView.swift */; };
 		B50000000000000000000020 /* SystemMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000020 /* SystemMonitorTests.swift */; };
+		B50000000000000000000040 /* AwakeStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000040 /* AwakeStatusTests.swift */; };
 		B50000000000000000000021 /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001E /* SystemMonitor.swift */; };
 		CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E077C2A969EEAFE301C60E /* TweakCatalog.swift */; };
 		CD5993B1D118DDAB76607221 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */; };
@@ -108,6 +109,7 @@
 		B4000000000000000000001E /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		B4000000000000000000001F /* SystemMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorView.swift; sourceTree = "<group>"; };
 		B40000000000000000000020 /* SystemMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorTests.swift; sourceTree = "<group>"; };
+		B40000000000000000000040 /* AwakeStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeStatusTests.swift; sourceTree = "<group>"; };
 		B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartCoordinator.swift; sourceTree = "<group>"; };
 		B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceStore.swift; sourceTree = "<group>"; };
 		BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectBackground.swift; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 				B40000000000000000000030 /* AudioRenderTests.swift */,
 				C60000000000000000000005 /* OutputDeviceVolumeTests.swift */,
 				B40000000000000000000020 /* SystemMonitorTests.swift */,
+				B40000000000000000000040 /* AwakeStatusTests.swift */,
 				A2000000000000000000000A /* ClipboardHistoryTests.swift */,
 				A2000000000000000000000B /* LineCountTests.swift */,
 				A2000000000000000000000C /* PrefValueTests.swift */,
@@ -324,6 +327,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B50000000000000000000020 /* SystemMonitorTests.swift in Sources */,
+				B50000000000000000000040 /* AwakeStatusTests.swift in Sources */,
 				C60000000000000000000002 /* OutputDeviceVolume.swift in Sources */,
 				C60000000000000000000003 /* OutputDeviceVolumeTests.swift in Sources */,
 				B50000000000000000000021 /* SystemMonitor.swift in Sources */,

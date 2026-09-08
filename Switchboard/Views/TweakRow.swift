@@ -17,7 +17,11 @@ struct TweakRow: View {
                     .foregroundStyle(Theme.primary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
-                if let subtitle = tweak.subtitle {
+                // While a setting is running, what it is doing right now
+                // beats the description of what it would do.
+                if let span = liveSpan {
+                    AwakeStatusLabel(span: span)
+                } else if let subtitle = tweak.subtitle {
                     Text(subtitle)
                         .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
@@ -38,6 +42,11 @@ struct TweakRow: View {
         .frame(minHeight: 50)
         .contentShape(Rectangle())
         .rowHoverHighlight()
+    }
+
+    private var liveSpan: AwakeSpan? {
+        guard case .keepAwake = tweak.behavior else { return nil }
+        return store.keepAwakeSpan
     }
 
     @ViewBuilder
@@ -105,6 +114,28 @@ private struct ChoicePicker: View {
         .pickerStyle(.menu)
         .controlSize(.small)
         .frame(maxWidth: 125)
+    }
+}
+
+/// Counts on the timeline rather than a stored timer, so it ticks only while
+/// the row is on screen.
+private struct AwakeStatusLabel: View {
+    let span: AwakeSpan
+
+    var body: some View {
+        // The schedule only decides when to redraw. Its entry date trails the
+        // real clock by up to one tick, and rounding up turns that fraction of
+        // a second into a whole extra minute, so the wording reads the clock.
+        TimelineView(.periodic(from: span.startedAt, by: 1)) { _ in
+            if let status = AwakeStatus.text(for: span, now: Date()) {
+                Text(status)
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.secondary)
+                    .lineLimit(1)
+                    .monospacedDigit()
+                    .accessibilityLabel(status)
+            }
+        }
     }
 }
 

@@ -50,13 +50,21 @@ in [AUDIT.md](AUDIT.md).
 ### Keep Mac awake
 
 1. Select **30 minutes**. In Terminal, run `pmset -g assertions`.
-   Expected: a Switchboard sleep-prevention assertion is listed.
-2. Select **1 hour**, **2 hours**, and **Until I stop it** in turn. Reopen the panel
-   after each selection. Expected: the selected duration remains correct.
-3. Select **Off** and rerun the command. Expected: Switchboard's assertion disappears.
-4. Select **30 minutes**, leave it running for the full duration, and reopen the
-   panel. Expected: Off is selected and the expiry notice appears.
-5. Enable it again and quit Switchboard. Expected: its assertion disappears.
+   Expected: a Switchboard sleep-prevention assertion is listed, and the row reads
+   **Ends in 30 minutes** in place of its description.
+2. Watch the row for a minute. Expected: it reads **Ends in 30 minutes** from the
+   moment you pick it, never 31, and turns over to **Ends in 29 minutes** about a
+   minute later.
+3. Select **1 hour**, **2 hours**, and **Until I stop it** in turn. Reopen the panel
+   after each selection. Expected: the selected duration remains correct, timed
+   choices read **Ends in ...**, and **Until I stop it** reads **On for ...**
+   counting from when the assertion first started, not from the last change.
+4. Select **Off** and rerun the command. Expected: Switchboard's assertion disappears
+   and the row shows its description again.
+5. Select **30 minutes**, leave it running for the full duration, and reopen the
+   panel. Expected: Off is selected, the expiry notice appears, and no countdown
+   remains.
+6. Enable it again and quit Switchboard. Expected: its assertion disappears.
    Closing the laptop lid or choosing Sleep explicitly is outside this feature.
 
 ### Copy text from the screen
