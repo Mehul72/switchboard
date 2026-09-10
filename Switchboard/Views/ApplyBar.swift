@@ -10,7 +10,7 @@ struct ApplyBar: View {
                 .foregroundStyle(Color.accentColor)
             Text(SystemRestart.requirement(for: targets))
                 .font(.rowSubtitle)
-                .foregroundStyle(Theme.secondary)
+                .foregroundStyle(Theme.primary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
             Button(SystemRestart.summary(for: targets), action: action)
@@ -20,7 +20,7 @@ struct ApplyBar: View {
         .padding(.horizontal, Theme.edgeInset)
         .padding(.vertical, 12)
         .frame(minHeight: 48)
-        .background(.bar)
+        .background(Theme.groupBackground)
         .overlay(alignment: .top) { Hairline() }
     }
 }

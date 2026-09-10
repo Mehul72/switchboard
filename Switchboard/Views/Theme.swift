@@ -2,40 +2,59 @@ import AppKit
 import SwiftUI
 
 enum Theme {
-    static let primary = Color(nsColor: .labelColor)
-    static let secondary = Color(nsColor: .secondaryLabelColor)
-    static let tertiary = Color(nsColor: .tertiaryLabelColor)
-    static let separator = Color(nsColor: .separatorColor).opacity(0.45)
+    // Opaque colors keep contrast stable regardless of the window behind the panel.
+    static let canvas = adaptive(light: 0xF3F5F8, dark: 0x202226)
+    static let primary = adaptive(light: 0x20242C, dark: 0xF4F6FA)
+    static let secondary = adaptive(light: 0x535D6D, dark: 0xC0C7D2,
+                                    highContrastLight: 0x303947, highContrastDark: 0xE3E8F0)
+    static let tertiary = adaptive(light: 0x606B79, dark: 0xACB5C3,
+                                   highContrastLight: 0x303947, highContrastDark: 0xE3E8F0)
+    static let separator = adaptive(light: 0xDDE1E7, dark: 0x444A55)
+    static let groupBackground = adaptive(light: 0xFFFFFF, dark: 0x2B2E34)
+    static let groupBorder = adaptive(light: 0xD8DDE5, dark: 0x474E5A)
+    static let fieldBackground = adaptive(light: 0xFFFFFF, dark: 0x292C32)
+    static let controlBackground = adaptive(light: 0xE7ECF3, dark: 0x353A43)
+    static let accent = adaptive(light: 0x005BC4, dark: 0x8ABFFF)
+    static let selectionBackground = adaptive(light: 0xFFFFFF, dark: 0x484E58)
+    static let selectionForeground = primary
 
-    /// Cards sit on a vibrant popover background, so they lift with a very
-    /// light tint rather than a solid fill, the way System Settings does.
-    static let groupBackground = Color(nsColor: .controlBackgroundColor).opacity(0.5)
-    static let groupBorder = Color(nsColor: .separatorColor).opacity(0.45)
-    static let fieldBackground = Color(nsColor: .textBackgroundColor).opacity(0.35)
-
-    static let popoverWidth: CGFloat = 460
+    static let popoverWidth: CGFloat = 440
     static let popoverHeight: CGFloat = 560
-
-    /// One spacing scale, so nothing is nudged by eye.
-    static let edgeInset: CGFloat = 18
+    static let edgeInset: CGFloat = 16
     static let rowInset: CGFloat = 12
-    static let rowSpacing: CGFloat = 12
-    static let iconSize: CGFloat = 22
+    static let rowSpacing: CGFloat = 10
+    static let iconSize: CGFloat = 20
     static let cornerRadius: CGFloat = 10
-    /// Keeps a control from crowding out the label beside it.
     static let controlColumn: CGFloat = 118
+
+    private static func adaptive(light: UInt32, dark: UInt32,
+                                 highContrastLight: UInt32? = nil,
+                                 highContrastDark: UInt32? = nil) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let hex: UInt32
+            switch appearance.bestMatch(from: [.accessibilityHighContrastDarkAqua,
+                                                .accessibilityHighContrastAqua,
+                                                .darkAqua, .aqua]) {
+            case .darkAqua: hex = dark
+            case .accessibilityHighContrastAqua: hex = highContrastLight ?? light
+            case .accessibilityHighContrastDarkAqua: hex = highContrastDark ?? dark
+            default: hex = light
+            }
+            return NSColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+                           green: CGFloat((hex >> 8) & 0xFF) / 255,
+                           blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+        })
+    }
 }
 
 extension Font {
-    static let rowTitle = Font.system(size: 13)
-    static let rowSubtitle = Font.system(size: 11)
-    static let sectionHeader = Font.system(size: 11, weight: .semibold)
-    static let popoverTitle = Font.system(size: 15, weight: .semibold)
-    static let footerLabel = Font.system(size: 11)
-    /// Full-size text the user reads or types, rather than a row label.
-    static let bodyText = Font.system(size: 13)
-    /// The oversized glyph an empty list centres on.
-    static let emptyStateGlyph = Font.system(size: 26, weight: .light)
+    static let rowTitle = Font.callout
+    static let rowSubtitle = Font.system(size: NSFont.smallSystemFontSize)
+    static let sectionHeader = Font.system(size: NSFont.smallSystemFontSize, weight: .semibold)
+    static let popoverTitle = Font.headline
+    static let footerLabel = rowSubtitle
+    static let bodyText = Font.callout
+    static let emptyStateGlyph = Font.system(size: 22, weight: .regular)
 }
 
 struct Hairline: View {
@@ -49,8 +68,8 @@ struct RowIcon: View {
 
     var body: some View {
         Image(systemName: symbol)
-            .font(.system(size: 17, weight: .regular))
-            .symbolRenderingMode(.hierarchical)
+            .font(.system(size: 15, weight: .regular))
+            .symbolRenderingMode(.monochrome)
             .foregroundStyle(Theme.secondary)
             .frame(width: Theme.iconSize, height: Theme.iconSize)
             .accessibilityHidden(true)
@@ -83,7 +102,7 @@ private struct RowHoverHighlight: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(hovering ? Color.primary.opacity(0.04) : .clear)
+            .background(hovering ? Theme.controlBackground : .clear)
             .onHover { hovering = $0 }
     }
 }

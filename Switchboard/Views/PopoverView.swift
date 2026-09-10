@@ -20,6 +20,7 @@ struct PopoverView: View {
     @FocusState private var searchFocused: Bool
 
     private var compactHeight: Bool { height < 420 }
+    private let contentTop = "popover-content-top"
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,6 +34,7 @@ struct PopoverView: View {
                     .padding(.horizontal, Theme.edgeInset)
                     .padding(.bottom, 10)
             }
+            Hairline()
             content
             if !store.pendingRestarts.isEmpty {
                 ApplyBar(targets: store.pendingRestarts) {
@@ -41,7 +43,8 @@ struct PopoverView: View {
             }
         }
         .frame(width: Theme.popoverWidth, height: height)
-        .background(VisualEffectBackground())
+        .background(PopoverBackground())
+        .foregroundStyle(Theme.primary)
         .translationBridge(store)
         .onExitCommand {
             if searchText.isEmpty {
@@ -79,9 +82,9 @@ struct PopoverView: View {
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 24, height: 24)
+                .frame(width: 20, height: 20)
                 .foregroundStyle(Color.accentColor)
-                .frame(width: 28, height: 28)
+                .frame(width: 24, height: 24)
                 .accessibilityHidden(true)
             Text("Switchboard")
                 .font(.popoverTitle)
@@ -91,7 +94,7 @@ struct PopoverView: View {
         }
         .padding(.horizontal, Theme.edgeInset)
         .padding(.top, 4)
-        .frame(height: 60)
+        .frame(height: 44)
     }
 
     private var settingsMenu: some View {
@@ -113,7 +116,7 @@ struct PopoverView: View {
                 .keyboardShortcut("q", modifiers: .command)
         } label: {
             Image(systemName: "gearshape")
-                .font(.system(size: 15))
+                .font(.system(size: 13))
                 .foregroundStyle(Theme.secondary)
                 .frame(width: 28, height: 28)
         }
@@ -129,11 +132,12 @@ struct PopoverView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Theme.secondary)
-            TextField("Search settings", text: $searchText)
+            TextField("Search all settings", text: $searchText,
+                      prompt: Text("Search all settings").foregroundColor(Theme.secondary))
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
                 .font(.bodyText)
-                .accessibilityLabel("Search settings")
+                .accessibilityLabel("Search all settings")
             if !searchText.isEmpty {
                 Button {
                     searchText = ""
@@ -147,57 +151,83 @@ struct PopoverView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
             }
+            Button { searchFocused = true } label: {
+                Text("⌘F")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Theme.secondary)
+                    .frame(width: 28, height: 24)
+                    .background(Theme.controlBackground, in: RoundedRectangle(cornerRadius: 4))
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut("f", modifiers: .command)
+            .accessibilityLabel("Focus search")
+            .help("Search all settings (⌘F)")
         }
         .padding(.horizontal, 10)
-        .frame(height: 34)
+        .frame(height: 30)
         .background(Theme.fieldBackground, in: RoundedRectangle(cornerRadius: 8))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(searchFocused ? Color.accentColor.opacity(0.4) : Theme.groupBorder,
-                              lineWidth: 1)
+                .strokeBorder(searchFocused ? Theme.accent : Theme.groupBorder,
+                              lineWidth: searchFocused ? 1.5 : 1)
         )
         .padding(.horizontal, Theme.edgeInset)
-        .padding(.bottom, 14)
+        .padding(.bottom, 12)
     }
 
     private var content: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
-                if compactHeight {
-                    if searchText.isEmpty, [.everyday, .files, .capture, .dock].contains(selectedCategory) {
-                        TweakCategoryNav(selection: $selectedCategory)
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    if compactHeight {
+                        if searchText.isEmpty, [.everyday, .files, .capture, .dock].contains(selectedCategory) {
+                            TweakCategoryNav(selection: $selectedCategory)
+                        }
+                        if let notice = store.notice { NoticeView(notice: notice) }
                     }
-                    if let notice = store.notice { NoticeView(notice: notice) }
-                }
-                ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard && $0 != .system }, id: \.self) { category in
-                    settingGroup(category)
-                }
-                if shouldShowAudio {
-                    audioGroup
-                }
-                if shouldShowClipboard {
-                    clipboardGroup
-                }
-                if shouldShowSystem {
-                    SystemMonitorView(monitor: monitor)
-                }
-                if store.visible.isEmpty && !shouldShowAudio && !shouldShowClipboard && !shouldShowSystem {
-                    VStack(spacing: 10) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.emptyStateGlyph)
-                            .accessibilityHidden(true)
-                        Text("No matching settings").font(.rowTitle)
-                        Text("Try a setting, app name, or category.").font(.rowSubtitle)
+                    ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard && $0 != .system }, id: \.self) { category in
+                        settingGroup(category)
                     }
-                    .foregroundStyle(Theme.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 48)
+                    if shouldShowAudio {
+                        audioGroup
+                    }
+                    if shouldShowClipboard {
+                        clipboardGroup
+                    }
+                    if shouldShowSystem {
+                        SystemMonitorView(monitor: monitor)
+                    }
+                    if store.visible.isEmpty && !shouldShowAudio && !shouldShowClipboard && !shouldShowSystem {
+                        VStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.emptyStateGlyph)
+                                .accessibilityHidden(true)
+                            Text("No matching settings")
+                                .font(.rowTitle)
+                                .foregroundStyle(Theme.primary)
+                            Text("Try a setting, app name, or category.").font(.rowSubtitle)
+                            Button("Clear search") {
+                                searchText = ""
+                                searchFocused = true
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        .foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 48)
+                    }
                 }
+                .padding(.horizontal, Theme.edgeInset)
+                .padding(.top, 16)
+                .padding(.bottom, 14)
+                .id(contentTop)
+                .background(PopoverScrollStyle())
             }
-            .padding(.horizontal, Theme.edgeInset)
-            .padding(.bottom, 14)
+            .scrollIndicators(.visible)
+            .scrollBounceBehavior(.basedOnSize)
+            .onChange(of: selectedCategory) { _, _ in proxy.scrollTo(contentTop, anchor: .top) }
+            .onChange(of: searchText) { _, _ in proxy.scrollTo(contentTop, anchor: .top) }
         }
-        .scrollBounceBehavior(.basedOnSize)
         .frame(maxHeight: .infinity)
     }
 
@@ -226,10 +256,11 @@ struct PopoverView: View {
             HStack {
                 Text("Clipboard")
                     .font(.sectionHeader)
-                    .foregroundStyle(Theme.secondary)
+                    .foregroundStyle(Theme.primary)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if !store.clips.isEmpty {
-                    Button("Clear") { store.clearClips() }
+                    Button("Clear all") { store.clearClips() }
                         .buttonStyle(.borderless)
                         .font(.rowSubtitle)
                 }
@@ -251,17 +282,11 @@ struct PopoverView: View {
             if store.visibleCategories.count > 1 || !searchText.isEmpty {
                 Text(Category.audio.label)
                     .font(.sectionHeader)
-                    .foregroundStyle(Theme.secondary)
+                    .foregroundStyle(Theme.primary)
                     .padding(.leading, 4)
             }
 
             AppVolumeList(store: store)
-
-            Text("The first adjustment asks for System Audio Recording access. Set an app to 100% to return it to the normal system mixer.")
-                .font(.rowSubtitle)
-                .foregroundStyle(Theme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 4)
         }
     }
 
@@ -274,7 +299,8 @@ struct PopoverView: View {
         return VStack(alignment: .leading, spacing: 10) {
             Text(category.label)
                 .font(.sectionHeader)
-                .foregroundStyle(Theme.secondary)
+                .foregroundStyle(Theme.primary)
+                .accessibilityAddTraits(.isHeader)
                 .padding(.leading, 4)
 
             ForEach(groups.indices, id: \.self) { index in

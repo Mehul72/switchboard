@@ -6,9 +6,17 @@ struct AppVolumeList: View {
     @ObservedObject var store: TweakStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Apps").font(.sectionHeader)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("App volume")
+                        .font(.sectionHeader)
+                        .foregroundStyle(Theme.primary)
+                        .accessibilityAddTraits(.isHeader)
+                    Text("Adjust each app independently.")
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.secondary)
+                }
                 Spacer()
                 Text("\(store.audioApps.count) \(store.audioApps.count == 1 ? "app" : "apps")")
                     .font(.rowSubtitle)
@@ -21,13 +29,17 @@ struct AppVolumeList: View {
                     VStack(spacing: 10) {
                         Image(systemName: "speaker.wave.2")
                             .font(.emptyStateGlyph)
+                            .foregroundStyle(Theme.secondary)
                             .accessibilityHidden(true)
-                        Text("No audio apps yet").font(.rowTitle)
-                        Text("Apps appear here when they open an audio stream.")
+                        Text("No audio apps yet")
+                            .font(.rowTitle.weight(.medium))
+                            .foregroundStyle(Theme.primary)
+                        Text("Play something in an app to see its volume and output controls here.")
                             .font(.rowSubtitle)
+                            .foregroundStyle(Theme.secondary)
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .foregroundStyle(Theme.secondary)
                     .frame(maxWidth: .infinity)
                     .padding(28)
                 } else {
@@ -58,24 +70,48 @@ struct AppVolumeList: View {
             } label: {
                 HStack(spacing: 10) {
                     RowIcon(symbol: "speaker.wave.2")
-                    Text("Output devices").font(.rowTitle)
+                    Text("Output devices")
+                        .font(.rowTitle.weight(.medium))
+                        .foregroundStyle(Theme.primary)
                     Spacer(minLength: 4)
                     Text("\(store.audioOutputDevices.count) connected")
                         .font(.rowSubtitle).foregroundStyle(Theme.secondary)
                 }
             }
-            .disclosureGroupStyle(OutputDevicesDisclosureStyle())
+            .disclosureGroupStyle(AudioDisclosureStyle())
             .groupSurface()
 
-            VStack(alignment: .leading, spacing: 8) {
-                Button("Reset App Volumes and Outputs") { store.resetAudioVolumes() }
-                    .buttonStyle(.borderless)
-                    .font(.rowSubtitle)
-                    .disabled(!store.hasAdjustedAudio)
-                Text("macOS shows a purple audio privacy dot while an app's volume is reduced or its output is changed. Reset to stop all audio access.")
+            DisclosureGroup {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Your first adjustment asks for System Audio Recording access.")
+                    Text("macOS shows a purple privacy indicator while an app's volume is reduced or its output is changed. Reset app audio to stop all audio access.")
+                }
+                .font(.rowSubtitle)
+                .foregroundStyle(Theme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            } label: {
+                HStack(spacing: 10) {
+                    RowIcon(symbol: "info.circle")
+                    Text("About app audio")
+                        .font(.rowTitle)
+                        .foregroundStyle(Theme.primary)
+                    Spacer(minLength: 0)
+                }
+            }
+            .disclosureGroupStyle(AudioDisclosureStyle())
+            .groupSurface()
+
+            HStack {
+                Text(store.hasAdjustedAudio ? "Custom app audio is active" : "Using default app audio")
                     .font(.rowSubtitle)
                     .foregroundStyle(Theme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 12)
+                Button("Reset app audio") { store.resetAudioVolumes() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled(!store.hasAdjustedAudio)
+                    .help("Restore every app to full volume and the system default output.")
             }
             .padding(.horizontal, 4)
         }
@@ -85,7 +121,7 @@ struct AppVolumeList: View {
     }
 }
 
-private struct OutputDevicesDisclosureStyle: DisclosureGroupStyle {
+private struct AudioDisclosureStyle: DisclosureGroupStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
@@ -106,6 +142,7 @@ private struct OutputDevicesDisclosureStyle: DisclosureGroupStyle {
             .buttonStyle(.plain)
             .rowHoverHighlight()
             .accessibilityValue(configuration.isExpanded ? "Expanded" : "Collapsed")
+            .accessibilityHint(configuration.isExpanded ? "Hide details" : "Show details")
 
             if configuration.isExpanded {
                 configuration.content
@@ -123,7 +160,12 @@ private struct OutputDeviceVolumeRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(device.name).font(.rowTitle).lineLimit(1).help(device.name)
+                Text(device.name)
+                    .font(.rowTitle.weight(.medium))
+                    .foregroundStyle(Theme.primary)
+                    .lineLimit(1)
+                    .help(device.name)
+                Spacer(minLength: 4)
                 if device.uid == store.systemDefaultOutputUID {
                     Text("System Default").font(.rowSubtitle).foregroundStyle(Theme.secondary)
                 }
@@ -138,10 +180,12 @@ private struct OutputDeviceVolumeRow: View {
                     .controlSize(.small)
                     .disabled(!writable)
                     .accessibilityLabel("\(device.name) output volume")
+                    .accessibilityValue("\(Int((value * 100).rounded())) percent")
                     Text("\(Int((value * 100).rounded()))%")
                         .font(.rowSubtitle).monospacedDigit()
-                        .foregroundStyle(Theme.secondary)
+                        .foregroundStyle(Theme.primary)
                         .frame(width: 40, alignment: .trailing)
+                        .accessibilityHidden(true)
                 }
                 if !writable { status("Use this device's own volume controls.") }
             case .unsupported:
@@ -169,46 +213,53 @@ private struct AppVolumeRow: View {
         )
     }
 
+    private var volumePercent: Int {
+        Int((volume.wrappedValue * 100).rounded())
+    }
+
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Group {
-                if let icon = app.icon {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .interpolation(.high)
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    Image(systemName: "app.dashed").font(.system(size: 24))
-                }
-            }
-            .frame(width: 32, height: 32)
-            .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(app.name)
-                            .font(.rowTitle)
-                            .foregroundStyle(Theme.primary)
-                            .lineLimit(1)
-                            .help(app.name)
-                        Text(app.isPlaying ? "Playing" : "Idle")
-                            .font(.rowSubtitle)
-                            .foregroundStyle(Theme.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Group {
+                    if let icon = app.icon {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .interpolation(.high)
+                            .aspectRatio(contentMode: .fit)
+                    } else {
+                        Image(systemName: "app.dashed").font(.system(size: 24))
                     }
-                    .frame(width: 104, alignment: .leading)
-
-                    Slider(value: volume, in: 0...1)
-                        .controlSize(.small)
-                        .frame(minWidth: 80)
-                        .accessibilityLabel("\(app.name) volume")
-
-                    Text("\(Int((volume.wrappedValue * 100).rounded()))%")
-                        .font(.system(size: 12, weight: .medium))
-                        .monospacedDigit()
-                        .foregroundStyle(Theme.primary)
-                        .frame(width: 40, alignment: .trailing)
                 }
+                .frame(width: 28, height: 28)
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(app.name)
+                        .font(.rowTitle.weight(.medium))
+                        .foregroundStyle(Theme.primary)
+                        .lineLimit(1)
+                        .help(app.name)
+                    Text(app.isPlaying ? "Playing" : "Not playing")
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.secondary)
+                }
+                Spacer(minLength: 8)
+                Text("\(volumePercent)%")
+                    .font(.system(size: NSFont.systemFontSize, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.primary)
+                    .accessibilityHidden(true)
+            }
+
+            Slider(value: volume, in: 0...1)
+                .controlSize(.small)
+                .accessibilityLabel("\(app.name) volume")
+                .accessibilityValue("\(volumePercent) percent")
+
+            HStack(spacing: 8) {
+                Text("Output")
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.secondary)
                 OutputDeviceMenu(app: app, store: store)
             }
         }
@@ -233,11 +284,27 @@ private struct OutputDeviceMenu: View {
 
     var body: some View {
         Menu {
-            Button("System Default") { store.setOutputDevice(nil, for: app) }
+            Button {
+                store.setOutputDevice(nil, for: app)
+            } label: {
+                if selection.uid == nil {
+                    Label("System Default", systemImage: "checkmark")
+                } else {
+                    Text("System Default")
+                }
+            }
             if !store.audioOutputDevices.isEmpty {
                 Divider()
                 ForEach(store.audioOutputDevices) { device in
-                    Button(device.name) { store.setOutputDevice(device.uid, for: app) }
+                    Button {
+                        store.setOutputDevice(device.uid, for: app)
+                    } label: {
+                        if selection.uid == device.uid {
+                            Label(device.name, systemImage: "checkmark")
+                        } else {
+                            Text(device.name)
+                        }
+                    }
                 }
             }
         } label: {
@@ -252,7 +319,7 @@ private struct OutputDeviceMenu: View {
         .menuStyle(.button)
         .controlSize(.small)
         .font(.rowSubtitle)
-        .foregroundStyle(selection.isMissing ? Color.orange : Theme.secondary)
+        .foregroundStyle(Theme.primary)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: 250, alignment: .leading)
         .accessibilityLabel("\(app.name) output device")

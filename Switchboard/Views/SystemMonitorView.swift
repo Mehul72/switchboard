@@ -11,37 +11,42 @@ struct SystemMonitorView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("System").font(.sectionHeader).foregroundStyle(Theme.secondary)
+                Text("System").font(.sectionHeader).foregroundStyle(Theme.primary)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     Group {
                         if !monitor.isRunning {
-                            Text("Paused")
+                            Label("Paused", systemImage: "pause.circle")
                         } else if context.date.timeIntervalSince(reading.date) > 6 {
-                            Text("Updates delayed").foregroundStyle(.orange)
+                            Label("Updates delayed", systemImage: "clock.badge.exclamationmark")
                         } else if monitor.history.isEmpty {
-                            Text("Measuring…")
+                            Label("Measuring…", systemImage: "waveform.path")
                         } else if !reading.unavailable.isEmpty {
-                            Text("Some data unavailable").foregroundStyle(.orange)
+                            Label("Some data unavailable", systemImage: "exclamationmark.circle")
                         } else {
-                            Text("Live")
+                            Label("Live", systemImage: "waveform.path")
                         }
                     }
                     .font(.rowSubtitle)
-                    .foregroundStyle(Theme.secondary)
+                    .foregroundStyle(Theme.primary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Theme.controlBackground, in: Capsule())
                 }
             }
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                metric("CPU", value: percent(reading.cpu), detail: "All cores", color: .accentColor, key: \.cpu)
-                metric("GPU", value: percent(reading.gpu), detail: "Busiest GPU", color: .accentColor, key: \.gpu)
+                metric("CPU", value: percent(reading.cpu), detail: "All cores", color: Theme.accent, key: \.cpu)
+                metric("GPU", value: percent(reading.gpu), detail: "Busiest GPU", color: Theme.accent, key: \.gpu)
                 metric("Memory", value: bytes(reading.memoryUsed),
-                       detail: "of \(bytes(reading.memoryTotal))", color: .accentColor, key: \.memoryUsed,
+                       detail: "of \(bytes(reading.memoryTotal))", color: Theme.accent, key: \.memoryUsed,
                        maximum: reading.memoryTotal)
-                metric("Swap", value: bytes(reading.swapUsed), detail: "Used on disk", color: .accentColor,
+                metric("Swap", value: bytes(reading.swapUsed), detail: "Used on disk", color: Theme.accent,
                        key: \.swapUsed, maximum: max(1, monitor.history.compactMap(\.swapUsed).max() ?? 1))
             }
             panel {
-                Text("Network").font(.rowTitle)
+                Text("Network").font(.sectionHeader)
+                    .accessibilityAddTraits(.isHeader)
                 HStack {
                     Label(rate(reading.network?.received), systemImage: "arrow.down.circle")
                         .accessibilityLabel("Download " + rate(reading.network?.received))
@@ -49,12 +54,13 @@ struct SystemMonitorView: View {
                     Label(rate(reading.network?.sent), systemImage: "arrow.up.circle")
                         .accessibilityLabel("Upload " + rate(reading.network?.sent))
                 }
-                .font(.system(size: 11, design: .monospaced))
+                .font(.system(size: 12, design: .monospaced))
                 Text("Wi-Fi and Ethernet combined").font(.rowSubtitle).foregroundStyle(Theme.secondary)
             }
             panel {
                 HStack {
-                    Text("Power").font(.rowTitle)
+                    Text("Power").font(.sectionHeader)
+                        .accessibilityAddTraits(.isHeader)
                     Spacer()
                     Text(reading.power.state).foregroundStyle(Theme.secondary)
                 }
@@ -80,16 +86,19 @@ struct SystemMonitorView: View {
                 }
             }
             if !reading.unavailable.isEmpty {
-                Text("Could not read: " + reading.unavailable.joined(separator: ", ") + ". Retrying automatically.")
-                    .font(.rowSubtitle).foregroundStyle(.orange)
+                message("Could not read: " + reading.unavailable.joined(separator: ", ") + ". Retrying automatically.",
+                        symbol: "exclamationmark.circle")
             }
-            Text("Graphs show up to two minutes while this panel is open. GPU and battery sensors may be unavailable on some Macs.")
-                .font(.rowSubtitle).foregroundStyle(Theme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Button("Open Activity Monitor", action: openActivityMonitor)
-                .buttonStyle(.borderless)
+            message("Graphs show up to two minutes while this panel is open. GPU and battery sensors may be unavailable on some Macs.",
+                    symbol: "info.circle")
+            Button(action: openActivityMonitor) {
+                Label("Open Activity Monitor", systemImage: "arrow.up.forward.app")
+                    .frame(minHeight: 26)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.regular)
             if let openError {
-                Text(openError).font(.rowSubtitle).foregroundStyle(.red)
+                message(openError, symbol: "exclamationmark.triangle")
             }
         }
         .onAppear { monitor.start() }
@@ -99,9 +108,10 @@ struct SystemMonitorView: View {
     private func metric(_ title: String, value: String, detail: String, color: Color,
                         key: KeyPath<SystemReading, Double?>, maximum: Double = 100) -> some View {
         panel {
-            Text(title).font(.sectionHeader).foregroundStyle(Theme.secondary)
+            Text(title).font(.sectionHeader).foregroundStyle(Theme.primary)
+                .accessibilityAddTraits(.isHeader)
             Text(value)
-                .font(.system(size: 22, weight: .medium))
+                .font(.system(size: 20, weight: .medium))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.65)
@@ -132,17 +142,34 @@ struct SystemMonitorView: View {
     private func panel<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8, content: content)
             .font(.rowSubtitle)
+            .foregroundStyle(Theme.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
             .groupSurface()
     }
 
     private func detail(_ title: String, _ value: String) -> some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(title).foregroundStyle(Theme.secondary)
             Spacer()
-            Text(value).monospacedDigit()
+            Text(value).monospacedDigit().multilineTextAlignment(.trailing)
         }
+    }
+
+    private func message(_ text: String, symbol: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: symbol)
+                .foregroundStyle(Theme.accent)
+                .accessibilityHidden(true)
+            Text(text)
+                .foregroundStyle(Theme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.rowSubtitle)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Theme.controlBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+        .accessibilityElement(children: .combine)
     }
 
     private func percent(_ value: Double?) -> String {
