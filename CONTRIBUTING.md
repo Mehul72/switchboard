@@ -1,67 +1,99 @@
-# Contributing to Switchboard
+# Contributing
 
-Notes for changing and releasing the app. If you only want to use Switchboard,
-the [README](README.md) is all you need.
+## Build
 
-## Building from source
+Use Xcode 16 or later on macOS 14.2 or later. Open `Switchboard.xcodeproj`, select
+**Switchboard > My Mac**, and press **Command-R**.
 
-Only needed if you want to change Switchboard. To use it, download the disk
-image above.
+Debug builds use your Apple Development certificate. A build signed with a
+different identity needs its own Accessibility permission. App Sandbox is
+disabled because Switchboard updates macOS preference domains outside its
+container.
 
-Requires Xcode 16 or later on macOS 14.2 or later.
+## Test
 
-1. Clone the repository and open `Switchboard.xcodeproj`.
-2. Select the **Switchboard** scheme and the **My Mac** destination.
-3. Press **Command-R**.
+Run the test suite with **Command-U** in Xcode, or from the repository root:
 
-The app has no package dependencies. It is deliberately not App Sandbox enabled,
-because it must write macOS preference domains outside its own container.
-
-Debug builds sign with your own Apple Development certificate, so a build of
-your own needs its Accessibility permission granted separately from a release
-copy.
-
-Run `./scripts/check-appearance.sh` after changing the theme. It checks opaque
-surfaces and text contrast over white and black backgrounds in light and dark
-appearances. Increase Contrast modes are checked when macOS exposes them;
-otherwise the script reports them as skipped. Use the panel checks in
-[MANUAL_TESTS.md](MANUAL_TESTS.md) for live keyboard and VoiceOver verification.
-
-## Releasing
-
-Debug builds sign with your Apple Development certificate. Release builds sign
-with Developer ID and enable the Hardened Runtime, which notarisation requires.
-
-Store your notary credentials once, using an app specific password from
-appleid.apple.com rather than your Apple ID password:
-
+```sh
+xcodebuild -project Switchboard.xcodeproj -scheme Switchboard \
+  -destination 'platform=macOS' -derivedDataPath build/tests \
+  CODE_SIGNING_ALLOWED=NO test
 ```
+
+After changing theme colors, check text contrast:
+
+```sh
+./scripts/check-appearance.sh
+```
+
+The appearance check covers light and dark surfaces over white and black
+backgrounds. It reports increased-contrast modes as skipped when macOS does not
+expose them in the current accessibility settings.
+
+Before a release, check the app on a Mac with disposable files and quiet audio:
+
+- Visit each tab in light and dark appearances. Test search, keyboard navigation,
+  VoiceOver, long labels, and scrolling on a short display.
+- Change a Finder or Dock setting, apply its restart, and restore the original
+  value. Check Launch at Login from a signed copy in Applications.
+- Check Keep Awake's timer and expiry. Test red-button quit with multiple,
+  minimized, and full-screen windows, and with unsaved work.
+- Grant and revoke Accessibility and Screen Recording access. Confirm mouse
+  scrolling, screen text capture, and red-button quit report missing access.
+- Play two apps at low volume. Adjust each app, switch outputs, disconnect a
+  device, and reset app audio. Check device volume separately, including an
+  output with no software volume control.
+- Copy text and images, expand and remove history entries, and clear history.
+  Check that private clipboard content stays excluded and that JPEG/HEIC
+  screenshots can be pasted into apps that accept files.
+- Compare System readings with Activity Monitor. Close the panel and reopen it
+  to check that monitoring resumes.
+
+Record failures in an issue with the macOS version, hardware, and reproduction
+steps. Automated tests do not replace permission, hardware, or accessibility
+checks.
+
+## Artwork
+
+The app icon master is [artwork/app-icon-master.png](artwork/app-icon-master.png).
+The menu bar and header use the vector
+[BrandMark.svg](Switchboard/Assets.xcassets/BrandMark.imageset/BrandMark.svg).
+
+After editing the master, regenerate the icon sizes:
+
+```sh
+./scripts/generate-app-icons.sh
+```
+
+Keep the master's transparent padding. Check the smallest icons and the menu bar
+mark in light and dark appearances before committing the exported assets.
+
+## Release
+
+Release builds use Developer ID and Hardened Runtime. Store notarization
+credentials once using an app-specific Apple ID password:
+
+```sh
 xcrun notarytool store-credentials switchboard-notary \
-    --apple-id you@example.com --team-id MACDPWQG37
+  --apple-id you@example.com --team-id MACDPWQG37
 ```
 
-Omitting `--password` makes notarytool prompt for it securely, so it never
-enters your shell history. Create the app specific password at
-account.apple.com under Sign-In and Security. It is shown once, so store it in
-your password manager; if you lose it, revoke it and generate another.
+Omit `--password` so the tool prompts for it without putting it in shell history.
+Then run:
 
-Then:
-
-```
+```sh
 ./scripts/release.sh
 ```
 
-It bumps the build number, archives, exports with Developer ID, verifies the
-signature, notarises, staples the ticket, and writes a stapled disk image to
-`build/`. Upload that `.dmg` to a GitHub release.
+The script increments the build number, archives the app, signs it, notarizes
+both the app and DMG, and staples their tickets. It replaces `build/` and writes
+`build/Switchboard-<version>.dmg`. Upload that DMG to the corresponding GitHub
+release.
 
-Stapling is not optional. Without it the app refuses to launch for anyone whose
-Mac cannot reach Apple to check the notarisation.
+## Add a setting
 
-## Adding a preference
-
-Add one `Tweak` to `TweakCatalog`; the interface chooses its control from the
-model:
+Add a `Tweak` to `Switchboard/Model/TweakCatalog.swift`. The model determines which
+control the interface displays:
 
 ```swift
 Tweak(id: "dock.hide-recents",
@@ -72,7 +104,6 @@ Tweak(id: "dock.hide-recents",
       onValue: .bool(false), offValue: .bool(true), restart: .dock)
 ```
 
-Omit `offValue` when disabling the setting should delete the preference and hand
-behaviour back to macOS. Runtime features such as Keep Awake, Region OCR,
-per-app audio, clipboard cleanup, clipboard image conversion, and quit-on-close
-live in `Services` rather than as preference-only rows.
+Omit `offValue` when disabling the setting should delete the preference and let
+macOS choose its default. Features that run continuously or perform actions,
+such as Keep Awake and screen text capture, belong in `Switchboard/Services`.

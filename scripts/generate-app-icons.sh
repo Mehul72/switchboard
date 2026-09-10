@@ -2,7 +2,7 @@
 set -eu
 
 project_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-master="$project_root/docs/brand/app-icon-master.png"
+master="$project_root/artwork/app-icon-master.png"
 icon_set="$project_root/Switchboard/Assets.xcassets/AppIcon.appiconset"
 
 if [ ! -f "$master" ]; then

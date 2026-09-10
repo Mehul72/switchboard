@@ -1,218 +1,83 @@
 # Switchboard
 
-Switchboard is a macOS 14.2+ menu bar utility for small, recurring Mac annoyances.
-It uses native SwiftUI/AppKit controls, reads the current macOS preference before
-showing a value, verifies every write, and explains when a service restart is
-needed.
+A macOS menu bar app for everyday settings, per-app audio, clipboard history,
+and system monitoring. Requires macOS 14.2 or later.
 
-## What it fixes
+## Install
 
-- Everyday: keep the Mac awake for a chosen time, copy text from any screen
-  region, quit an app when its last window closes, give a mouse traditional
-  scrolling without changing the trackpad, choose scroll-bar behaviour, and
-  strip rich formatting from the clipboard.
-- Files: reveal hidden files and extensions, show Finder paths, keep folders on
-  top, search the current folder, hide desktop clutter, and stop `.DS_Store`
-  files on network drives.
-- Capture: save screenshots to a folder or the clipboard, choose PNG, JPEG, or
-  HEIC encoding, skip the floating thumbnail, and remove window shadows.
-- Dock: remove its reveal delay, hide recent apps, and minimise windows into
-  their application icons.
-- Audio: change the volume of individual apps that currently own an audio
-  stream, without changing the Mac's main output volume, and send an app to an
-  output device of its own while everything else stays on the system default.
-  A chosen device is remembered per app and reapplied the next time it plays;
-  unplugging that device hands the app back to the default rather than muting it.
-  Separate output-device sliders adjust the overall volume of each connected
-  device for every app playing through it.
-- Clipboard: the last 20 things you copied, text or image, ready to put back.
-- System: live CPU, GPU (where available), memory and swap history, Wi-Fi and
-  Ethernet traffic rates, disk space, thermal state, and battery details.
-  Readings refresh every two seconds only while the panel is visible. History
-  covers up to two minutes and resets when monitoring resumes. Memory excludes
-  reclaimable file cache. Battery power is the battery charging/discharging rate,
-  not total wall power. Hardware-dependent sensors display Unavailable when macOS
-  does not expose them. Open Activity Monitor from the panel to inspect processes.
+1. Download the DMG from the [latest release](https://github.com/Mehul72/switchboard/releases/latest).
+2. Open it and drag Switchboard into **Applications**.
+3. Launch Switchboard from Applications and click its menu bar icon.
 
-## Installing
+Keep the app in Applications. Running it from Downloads or the disk image can
+cause problems with permissions and Launch at Login.
 
-1. Download the `.dmg` from the
-   [latest release](https://github.com/Mehul72/switchboard/releases/latest).
-2. Open it and **drag Switchboard into Applications**.
-3. Launch it from Applications. A routed S icon appears in the menu bar.
+## Features
 
-Do not run Switchboard from the Downloads folder. macOS relocates an app opened
-from there into a temporary read only location, and every permission you grant
-is attached to that copy, so the settings below silently stop working.
+- **Tweaks:** keep your Mac awake, copy text from the screen, quit apps when
+  their last window closes, change mouse scrolling independently of the
+  trackpad, and adjust Finder, screenshot, and Dock settings.
+- **Audio:** adjust volume and output devices per app, or change a connected
+  device's overall volume.
+- **Clipboard:** keep the last 20 text and image clips ready to copy again.
+- **System:** view CPU, GPU, memory, network, disk, and battery readings.
+  Some sensors are unavailable on certain Macs.
 
-## Permissions
+## Using Switchboard
 
-Most of Switchboard needs no permission at all. Three features do, and macOS
-asks the first time each one is used.
+Search across all settings with **Command-F**. **Escape** clears the search;
+press it again to close the panel. Tweaks are grouped into Everyday, Files,
+Capture, and Dock. Your last category is remembered when you return to Tweaks.
 
-| Feature | Permission | Where to grant it |
-| --- | --- | --- |
-| Traditional mouse scrolling, Red button quits the app | Accessibility | System Settings > Privacy & Security > Accessibility |
-| Copy text from the screen | Screen Recording | System Settings > Privacy & Security > Screen Recording |
-| Per app volume | Audio Recording | Prompted on the first slider change |
-
-Switching a toggle on before its permission exists opens the relevant prompt and
-leaves the toggle off. Grant the permission, then switch it on again.
-
-Switchboard is signed with a stable Developer ID, so a permission granted once
-survives future updates.
-
-## What it never does
-
-- No clipboard history is written to disk. It lives in memory and is forgotten
-  when Switchboard quits, and anything a password manager marks as private is
-  skipped entirely.
-- Nothing is sent anywhere. There is no network code in the app.
-- Every preference it changes is recorded first, and **Restore Original
-  Settings** puts them all back.
-
-## Build and run
-
-1. Open `Switchboard.xcodeproj` in Xcode.
-2. Select the **Switchboard** scheme and **My Mac** destination.
-3. Press **Command-R**.
-4. Click the routed S icon in the menu bar.
-
-The app has no package dependencies. It is deliberately not App Sandbox enabled,
-because it must update macOS preference domains outside its own container.
-
-## Releasing
-
-Debug builds sign with your Apple Development certificate. Release builds sign
-with Developer ID and enable the Hardened Runtime, which notarisation requires.
-
-Store your notary credentials once, using an app specific password from
-appleid.apple.com rather than your Apple ID password:
-
-```
-xcrun notarytool store-credentials switchboard-notary \
-    --apple-id you@example.com --team-id MACDPWQG37
-```
-
-Omit `--password` so notarytool prompts securely and the app-specific password
-does not enter your shell history.
-
-Then:
-
-```
-./scripts/release.sh
-```
-
-It bumps the build number, archives, exports with Developer ID, verifies the
-signature, notarises, staples the ticket, and writes a stapled disk image to
-`build/`. Upload that `.dmg` to a GitHub release.
-
-Stapling is not optional. Without it the app refuses to launch for anyone whose
-Mac cannot reach Apple to check the notarisation.
-
-## Using it
-
-The panel follows your Mac's light or dark appearance, with solid surfaces that
-stay readable over bright windows. Compact macOS text styles keep labels at
-12 points and descriptions at 11 points. Its four main tabs are
-**Tweaks**, **Audio**, **Clipboard**, and **System**. Inside Tweaks, choose
-**Everyday**, **Files**, **Capture**, or **Dock**. Switchboard remembers that
-category when you return from another tab. Each category opens at the top of its
-list. Search looks across all categories; press **Command-F** to focus it and
-**Escape** to clear a search before closing the panel.
+Most changes apply immediately. Settings that need Finder or the Dock to restart
+show a restart button, so you can apply several changes together. Some global
+settings take effect when affected apps reopen.
 
 The settings gear contains **Launch at Login**, **Restore Original Settings**,
-and **Quit Switchboard**. On shorter screens the content scrolls so the controls
-and restart bar remain reachable. A scrollbar stays visible whenever the list
-has more content below or above the visible area.
+and **Quit Switchboard**. Restore Original Settings puts preferences back to the
+values they had before Switchboard changed them.
 
-Changes that macOS can read immediately show a confirmation. Finder and Dock
-changes show a restart bar; use its button once after making all the changes you
-want. Switchboard keeps its panel open during that restart. Global app settings
-may require reopening affected apps, and the network-drive setting applies on
-the next mount.
+### Permissions
 
-**Keep Mac awake** offers 30-minute, one-hour, two-hour, and open-ended choices.
-While it runs, the row replaces its description with the time left ("Ends in 24
-minutes") or, for the open-ended choice, how long it has been on ("On for 1 hour
-5 minutes"). Changing the duration mid-span does not restart that count. The
-assertion ends when its timer finishes, when you turn it off, when you restore
-settings, or when Switchboard quits.
+macOS asks for access when you first use a feature that needs it.
 
-**Copy text from the screen** asks for Screen Recording access the first time.
-After approving Switchboard in **System Settings > Privacy & Security**, choose
-**Select Area**, drag over the text, and paste the recognised result anywhere.
+| Feature | Permission |
+| --- | --- |
+| Traditional mouse scrolling and red-button quit | Accessibility |
+| Copy text from the screen | Screen Recording |
+| Per-app audio controls | System Audio Recording |
 
-**Quit apps from the red close button** and mouse-only scroll inversion require
-Accessibility access because they observe system-wide input. Turn the feature
-on, approve Switchboard in **System Settings > Privacy & Security >
-Accessibility**, then turn it on once more. These features work while
-Switchboard is running.
+If a toggle stays off while you grant access, enable it again afterward.
+Permissions are managed in **System Settings > Privacy & Security**. Launch at
+Login may also need approval under **General > Login Items**.
 
-The red button quits an app only when it closes that app's **last** window.
-Closing one of several windows just closes that window, and windows you cannot
-see at that moment still count: minimised ones, ones in full screen, and ones
-left on another Desktop. It sends a normal quit request, so anything unsaved
-still prompts you.
+### Audio
 
-For clipboard screenshots, turn on **Copy screenshots to clipboard** and choose
-JPEG or HEIC. macOS ignores the format setting for clipboard captures and always
-copies PNG, so Switchboard re-encodes new single-image clipboard captures while
-it runs; macOS may ask for Clipboard access. The clipboard then carries both the
-selected encoding and a matching `.jpg` or `.heic` file, so apps that accept a
-pasted file keep that encoding. An app that pastes through the image data alone
-still re-encodes to PNG, which macOS gives it on request.
+Apps appear after opening an audio stream. Lowering an app's volume or choosing
+another output uses a Core Audio tap, so macOS shows a purple recording indicator
+while that control is active. These controls work while Switchboard is running.
 
-The **Audio** tab shows apps first. Expand **Output devices** below the app list
-to see each connected device's volume and a **System Default** label beside the
-current default. The output section starts collapsed. Device sliders
-affect every app using that output, reflect changes made in macOS within two
-seconds while the panel is open, and do not require audio recording access.
-Devices without writable volume controls show an explanation. Device volume
-changes are left in place when Switchboard quits or app controls are reset.
+**Reset app audio** returns apps to full volume on the system default output and
+releases their taps. A chosen output is remembered per app; if it disconnects,
+playback falls back to the default output.
 
-The **App volume** section lists apps once they create an audio stream. Moving an app slider
-below 100% asks for System Audio Recording access the first time. Switchboard
-then taps only that app's stream for the current output device and plays it back
-at the chosen level. Returning the slider to 100% releases the app to the normal
-system mixer. These controls work only while Switchboard is running and reset
-to 100% if the app, its audio helpers, or the output device cannot be safely
-reconnected.
+Expand **Output devices** to control a device's overall volume. These sliders
+affect every app using that device and do not need recording access. Device
+volume changes remain in place when app audio is reset or Switchboard quits.
 
-macOS shows a purple system-audio privacy indicator while these audio taps are
-active. **Reset app audio** releases app controls, clears saved
-routes, and returns apps to 100% on the default output. Device volumes stay unchanged.
-Switchboard cannot set the system indicator's disappearance timeout. Stopping a
-tap also stops applying its reduced volume.
+### Screenshots and clipboard
 
-Expand **About app audio** for the permission and privacy explanation. The reset
-button is enabled while app volumes or outputs have custom adjustments.
+When clipboard screenshots are set to JPEG or HEIC, Switchboard converts new
+captures while it runs. The clipboard includes the chosen format and a matching
+file. Some receiving apps still convert image data to PNG when pasting.
 
-For step-by-step checks of every exposed feature, see [Manual tests](MANUAL_TESTS.md).
-The [feature audit](AUDIT.md) separates automated results from live checks still needed.
+Clipboard history stays in memory and is cleared when Switchboard quits.
+Content marked private by a password manager is skipped. Switchboard does not
+send clipboard content or usage data to a server.
 
-Before Switchboard first changes a key, `UndoLedger` records its exact previous
-value—including an unset key. **Restore Original Settings** in the settings gear
-menu replays that ledger.
+## Development
 
-Launch at Login is in the settings gear menu. macOS may require approval in **System
-Settings > General > Login Items**.
+Open `Switchboard.xcodeproj` in Xcode, select **Switchboard > My Mac**, and run
+with **Command-R**. The app has no package dependencies.
 
-## Adding a preference
-
-Add one `Tweak` to `TweakCatalog`; the interface chooses its control from the
-model:
-
-```swift
-Tweak(id: "dock.hide-recents",
-      title: "Hide recent apps",
-      category: .dock,
-      symbol: "clock.arrow.circlepath",
-      domain: "com.apple.dock", key: "show-recents",
-      onValue: .bool(false), offValue: .bool(true), restart: .dock)
-```
-
-Omit `offValue` when disabling the setting should delete the preference and hand
-behaviour back to macOS. Runtime features such as Keep Awake, Region OCR,
-per-app audio, clipboard cleanup, clipboard image conversion, and quit-on-close
-live in `Services` rather than as preference-only rows.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for testing, artwork, and release instructions.
