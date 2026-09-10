@@ -24,7 +24,7 @@ struct CategoryNav: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             NavigationStrip(options: ["Tweaks", "Audio", "Clipboard", "System"],
                             selection: section, label: "Sections", enclosed: true)
             if showingTweaks && includesTweakCategories {
@@ -32,7 +32,7 @@ struct CategoryNav: View {
             }
         }
         .padding(.horizontal, Theme.edgeInset)
-        .padding(.bottom, 16)
+        .padding(.bottom, 8)
         .onAppear { rememberTweakCategory() }
         .onChange(of: selection) { _, _ in rememberTweakCategory() }
     }
@@ -66,29 +66,66 @@ private struct NavigationStrip: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
     @FocusState private var focusedOption: String?
+    @State private var hoveredOption: String?
+
+    private func symbol(for option: String) -> String {
+        switch option {
+        case "Tweaks": return "slider.horizontal.3"
+        case "Audio": return "speaker.wave.2"
+        case "Clipboard": return "doc.on.clipboard"
+        default: return "gauge.with.dots.needle.50percent"
+        }
+    }
 
     var body: some View {
         HStack(spacing: 2) {
             ForEach(options, id: \.self) { option in
                 Button { selection = option } label: {
-                    Text(option)
-                        .font(.system(size: enclosed ? 13 : 12,
-                                      weight: selection == option ? .semibold : .regular))
-                        .foregroundStyle(selection == option ? Color.accentColor : Theme.primary)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: enclosed ? 30 : 26)
-                        .background(selection == option ? Color.accentColor.opacity(0.12) : .clear,
-                                    in: RoundedRectangle(cornerRadius: 7))
-                        .overlay {
-                            if selection == option {
-                                RoundedRectangle(cornerRadius: 7)
-                                    .strokeBorder(Color.accentColor.opacity(contrast == .increased ? 1 : 0.2))
-                            }
+                    HStack(spacing: 6) {
+                        if enclosed {
+                            Image(systemName: symbol(for: option))
+                                .font(.system(size: 12))
+                                .foregroundStyle(selection == option ? Theme.accent : Theme.secondary)
+                                .accessibilityHidden(true)
                         }
-                        .contentShape(RoundedRectangle(cornerRadius: 7))
+                        Text(option)
+                            .font(enclosed ? .rowTitle : .rowSubtitle)
+                            .fontWeight(selection == option ? .medium : .regular)
+                    }
+                    .foregroundStyle(selection == option ?
+                                     (enclosed ? Theme.selectionForeground : Theme.accent) : Theme.secondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 28)
+                    .background {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(selection == option && enclosed ? Theme.selectionBackground :
+                                  hoveredOption == option ? Theme.controlBackground : .clear)
+                            .shadow(color: .black.opacity(enclosed && selection == option ? 0.08 : 0),
+                                    radius: 2, y: 1)
+                    }
+                    .overlay(alignment: .bottom) {
+                        if !enclosed && selection == option {
+                            Capsule().fill(Theme.accent).frame(height: 2)
+                                .padding(.horizontal, 16)
+                        }
+                    }
+                    .overlay {
+                        if focusedOption == option {
+                            RoundedRectangle(cornerRadius: 6)
+                                .strokeBorder(Theme.accent, lineWidth: 2)
+                                .padding(-2)
+                                .allowsHitTesting(false)
+                        } else if enclosed && selection == option {
+                            RoundedRectangle(cornerRadius: 6)
+                                .strokeBorder(contrast == .increased ? Theme.secondary : Theme.groupBorder)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .contentShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .focused($focusedOption, equals: option)
+                .onHover { hoveredOption = $0 ? option : nil }
                 .accessibilityAddTraits(selection == option ? .isSelected : [])
             }
         }

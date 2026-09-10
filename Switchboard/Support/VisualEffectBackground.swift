@@ -1,26 +1,36 @@
 import AppKit
 import SwiftUI
 
-struct VisualEffectBackground: View {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
+struct PopoverBackground: View {
     var body: some View {
-        if reduceTransparency {
-            Color(nsColor: .windowBackgroundColor)
-        } else {
-            PopoverMaterial()
-        }
+        Theme.canvas
     }
 }
 
-private struct PopoverMaterial: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = .popover
-        view.blendingMode = .behindWindow
-        view.state = .followsWindowActiveState
-        return view
+// SwiftUI follows the system's auto-hiding scrollbar preference. This panel
+// needs a persistent position cue when its settings extend below the fold.
+struct PopoverScrollStyle: NSViewRepresentable {
+    func makeNSView(context: Context) -> ScrollAnchor { ScrollAnchor() }
+
+    func updateNSView(_ view: ScrollAnchor, context: Context) {
+        view.configureScrollView()
     }
 
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
+    final class ScrollAnchor: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            configureScrollView()
+        }
+
+        func configureScrollView() {
+            DispatchQueue.main.async { [weak self] in
+                guard let scrollView = self?.enclosingScrollView else { return }
+                scrollView.hasVerticalScroller = true
+                scrollView.autohidesScrollers = true
+                scrollView.scrollerStyle = .legacy
+                scrollView.verticalScroller?.controlSize = .small
+                scrollView.drawsBackground = false
+            }
+        }
+    }
 }

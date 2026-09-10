@@ -25,9 +25,14 @@ in [AUDIT.md](AUDIT.md).
    scrolling, and each category displays its controls and scrolls to its last row.
    Select Files, switch to Audio, then return to Tweaks. Expected: Files remains
    selected. Close and reopen the panel while on Audio and repeat the return.
+   Scroll Files to the bottom, then choose Capture. Expected: Capture starts at
+   its heading and first setting. Repeat while entering and clearing a search.
 3. Search for `hidden`, `volume`, and `clipboard` separately. Expected: matching
    settings or the relevant special list appear.
-4. Search for `no-such-setting-928`. Expected: **No matching settings**.
+4. Search for `no-such-setting-928`. Expected: **No matching settings** with a
+   **Clear search** button. Click it to return to the selected category.
+   Move focus to a setting and press **Command-F**, both with and without an
+   existing query. Expected: the search field receives focus.
 5. Press Escape once with a search present. Expected: search clears. Press again.
    Expected: panel closes. Reopen it and click outside. Expected: it closes.
 6. Repeat on a smaller display if available. Expected: bottom controls remain reachable.
@@ -36,6 +41,11 @@ in [AUDIT.md](AUDIT.md).
 7. Repeat in light and dark appearances. Check readable descriptions, output
    device names, native controls, and clipboard previews. Try a long app/device
    name and empty Audio and Clipboard lists.
+   Place the panel over a white browser window, then a dark window. Expected:
+   the panel, cards, descriptions, headings, and selected tabs keep the same
+   contrast. In Files, the scrollbar remains visible while idle and can be
+   dragged to the bottom. A short list does not need a scrollbar. Repeat with
+   macOS's Show scroll bars preference set to Automatically and Always.
 8. With Keyboard navigation enabled, Tab through search, the settings gear,
    navigation, and controls. Use left/right arrows within each navigation row and
    Space to activate a focused button. Expected: visible focus and the selected
@@ -222,7 +232,7 @@ Keep the Mac's main volume comfortably low before testing reset or mute recovery
    volume persists. The purple dot can remain throughout this test.
 5. Return the app to 100%. Expected: its tap is released. If another app is still
    reduced, the dot can remain because that app still needs audio access.
-6. Reduce both apps, then press **Reset App Volumes and Outputs**. Expected: all app sliders show
+6. Reduce both apps, then press **Reset app audio**. Expected: all app sliders show
    100%, normal playback continues, and Switchboard releases its taps. macOS owns
    indicator disappearance timing and may show recent access afterward. Another
    recording app can independently keep the indicator visible.
@@ -270,7 +280,7 @@ default and the built-in speakers are the second device.
     speed, never at half speed or an octave low.
 11. Route an app to a device that also has a microphone. Expected: the app's own
     audio plays, never the microphone.
-12. Press **Reset App Volumes and Outputs**. Expected: every app is back at 100% on
+12. Press **Reset app audio**. Expected: every app is back at 100% on
     the default device and the saved routes are cleared.
 
 ## Output device volume
@@ -293,7 +303,7 @@ default and the built-in speakers are the second device.
    output's volume; the disconnected row disappears on the next refresh.
 8. Set a stereo balance in macOS, then change device volume. Expected: balance
    is preserved. Restore the original balance after checking.
-9. Press **Reset App Volumes and Outputs**, then quit and reopen Switchboard.
+9. Press **Reset app audio**, then quit and reopen Switchboard.
    Expected: the device volumes remain at their chosen levels.
 
 ## Clipboard history
@@ -312,7 +322,7 @@ default and the built-in speakers are the second device.
 7. Keep the mouse outside the list. Tab to Copy and Remove and activate them with
    Space. Expected: both controls remain visible and usable without hovering.
    Repeat with VoiceOver navigation if you use it.
-8. Click **Clear** in the Clipboard section. Expected: history stays empty until
+8. Click **Clear all** in the Clipboard section. Expected: history stays empty until
    a new copy; the system clipboard itself is not erased. A copy just before
    clearing must not reappear on the next poll.
 9. Quit and relaunch Switchboard. Expected: history is empty. It is memory-only.

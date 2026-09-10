@@ -112,14 +112,19 @@ Mac cannot reach Apple to check the notarisation.
 
 ## Using it
 
-The panel follows your Mac's light or dark appearance. Its four main tabs are
+The panel follows your Mac's light or dark appearance, with solid surfaces that
+stay readable over bright windows. Compact macOS text styles keep labels at
+12 points and descriptions at 11 points. Its four main tabs are
 **Tweaks**, **Audio**, **Clipboard**, and **System**. Inside Tweaks, choose
 **Everyday**, **Files**, **Capture**, or **Dock**. Switchboard remembers that
-category when you return from another tab. Search looks across all categories.
+category when you return from another tab. Each category opens at the top of its
+list. Search looks across all categories; press **Command-F** to focus it and
+**Escape** to clear a search before closing the panel.
 
 The settings gear contains **Launch at Login**, **Restore Original Settings**,
 and **Quit Switchboard**. On shorter screens the content scrolls so the controls
-and restart bar remain reachable.
+and restart bar remain reachable. A scrollbar stays visible whenever the list
+has more content below or above the visible area.
 
 Changes that macOS can read immediately show a confirmation. Finder and Dock
 changes show a restart bar; use its button once after making all the changes you
@@ -166,7 +171,7 @@ seconds while the panel is open, and do not require audio recording access.
 Devices without writable volume controls show an explanation. Device volume
 changes are left in place when Switchboard quits or app controls are reset.
 
-The **Apps** section lists apps once they create an audio stream. Moving an app slider
+The **App volume** section lists apps once they create an audio stream. Moving an app slider
 below 100% asks for System Audio Recording access the first time. Switchboard
 then taps only that app's stream for the current output device and plays it back
 at the chosen level. Returning the slider to 100% releases the app to the normal
@@ -175,10 +180,13 @@ to 100% if the app, its audio helpers, or the output device cannot be safely
 reconnected.
 
 macOS shows a purple system-audio privacy indicator while these audio taps are
-active. **Reset App Volumes and Outputs** releases app controls, clears saved
+active. **Reset app audio** releases app controls, clears saved
 routes, and returns apps to 100% on the default output. Device volumes stay unchanged.
 Switchboard cannot set the system indicator's disappearance timeout. Stopping a
 tap also stops applying its reduced volume.
+
+Expand **About app audio** for the permission and privacy explanation. The reset
+button is enabled while app volumes or outputs have custom adjustments.
 
 For step-by-step checks of every exposed feature, see [Manual tests](MANUAL_TESTS.md).
 The [feature audit](AUDIT.md) separates automated results from live checks still needed.

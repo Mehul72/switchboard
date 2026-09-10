@@ -21,6 +21,12 @@ Debug builds sign with your own Apple Development certificate, so a build of
 your own needs its Accessibility permission granted separately from a release
 copy.
 
+Run `./scripts/check-appearance.sh` after changing the theme. It checks opaque
+surfaces and text contrast over white and black backgrounds in light and dark
+appearances. Increase Contrast modes are checked when macOS exposes them;
+otherwise the script reports them as skipped. Use the panel checks in
+[MANUAL_TESTS.md](MANUAL_TESTS.md) for live keyboard and VoiceOver verification.
+
 ## Releasing
 
 Debug builds sign with your Apple Development certificate. Release builds sign

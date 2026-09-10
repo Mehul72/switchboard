@@ -38,8 +38,8 @@ struct TweakRow: View {
                 .layoutPriority(1)
         }
         .padding(.horizontal, Theme.rowInset)
-        .padding(.vertical, 12)
-        .frame(minHeight: 50)
+        .padding(.vertical, 10)
+        .frame(minHeight: 44)
         .contentShape(Rectangle())
         .rowHoverHighlight()
     }

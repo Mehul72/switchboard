@@ -12,11 +12,13 @@ struct ClipboardHistoryList: View {
                 VStack(spacing: 10) {
                     Image(systemName: "doc.on.clipboard")
                         .font(.emptyStateGlyph)
-                        .foregroundStyle(Theme.secondary)
+                        .foregroundStyle(Theme.accent)
+                        .frame(width: 56, height: 56)
+                        .background(Theme.controlBackground, in: RoundedRectangle(cornerRadius: 14))
                         .accessibilityHidden(true)
                     Text("Nothing copied yet")
                         .font(.rowTitle)
-                        .foregroundStyle(Theme.secondary)
+                        .foregroundStyle(Theme.primary)
                     Text("Anything you copy while Switchboard runs shows up here")
                         .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
@@ -58,6 +60,12 @@ private struct ClipRow: View {
         return formatter.localizedString(for: clip.date, relativeTo: Date())
     }
 
+    private var accessibilitySummary: String {
+        if clip.isImage { return "image, \(clip.sizeLabel)" }
+        let preview = String(clip.preview.prefix(40))
+        return preview.isEmpty ? "text clip" : "text clip: \(preview)"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if clip.isImage {
@@ -72,6 +80,12 @@ private struct ClipRow: View {
                                 RoundedRectangle(cornerRadius: 5)
                                     .strokeBorder(Theme.groupBorder, lineWidth: 1)
                             )
+                            .accessibilityLabel("Copied image")
+                            .accessibilityValue(clip.sizeLabel)
+                    } else {
+                        Label("Image preview unavailable", systemImage: "photo")
+                            .font(.rowSubtitle)
+                            .foregroundStyle(Theme.secondary)
                     }
                     Text(clip.sizeLabel)
                         .font(.rowSubtitle)
@@ -91,20 +105,25 @@ private struct ClipRow: View {
             }
 
             if !clip.isImage, clip.lineCount > 2 || clip.preview.count > 90 {
-                Button(expanded ? "Show less" : expandLabel) {
+                Button {
                     expanded.toggle()
+                } label: {
+                    Text(expanded ? "Show less" : expandLabel)
+                        .frame(minHeight: 28)
                 }
                 .buttonStyle(.borderless)
                 .font(.rowSubtitle)
+                .foregroundStyle(Theme.accent)
+                .accessibilityLabel("\(expanded ? "Collapse" : "Expand") \(accessibilitySummary)")
             }
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 if let note = clip.note {
                     Text(note)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.accentColor.opacity(0.14),
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.accent)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Theme.controlBackground,
                                     in: RoundedRectangle(cornerRadius: 4))
                 }
                 Text(timestamp)
@@ -113,19 +132,24 @@ private struct ClipRow: View {
                 Spacer(minLength: 0)
                 Button { store.copyBack(clip) } label: {
                     Label("Copy", systemImage: "doc.on.doc")
+                        .frame(minHeight: 24)
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .font(.rowSubtitle)
+                .accessibilityLabel("Copy \(accessibilitySummary)")
+                .help("Copy this item to the clipboard")
                 Button {
                     store.removeClip(clip)
                 } label: {
                     Image(systemName: "trash")
                         .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 28, height: 28)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Remove clip")
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Remove \(accessibilitySummary)")
+                .help("Remove this item from history")
             }
         }
         .padding(.horizontal, Theme.rowInset)
