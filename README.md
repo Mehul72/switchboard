@@ -22,6 +22,8 @@ cause problems with permissions and Launch at Login.
 - **Clipboard:** keep the last 20 text and image clips ready to copy again.
 - **System:** view CPU, GPU, memory, network, disk, and battery readings.
   Some sensors are unavailable on certain Macs.
+- **Global shortcuts:** open the panel or clipboard history, capture screen
+  text, and toggle keep-awake without leaving the keyboard.
 
 ## Using Switchboard
 
@@ -33,9 +35,45 @@ Most changes apply immediately. Settings that need Finder or the Dock to restart
 show a restart button, so you can apply several changes together. Some global
 settings take effect when affected apps reopen.
 
-The settings gear contains **Launch at Login**, **Restore Original Settings**,
-and **Quit Switchboard**. Restore Original Settings puts preferences back to the
-values they had before Switchboard changed them.
+The settings gear contains **Keyboard Shortcuts**, **Launch at Login**,
+**Restore Original Settings**, and **Quit Switchboard**. Restore Original
+Settings puts system preferences back to the values they had before Switchboard
+changed them. Shortcut bindings are managed separately.
+
+### Global shortcuts
+
+These shortcuts work from any app while Switchboard is running. Actions run
+once when you release the shortcut key.
+
+| Action | Default shortcut |
+| --- | --- |
+| Show or hide Switchboard | Control-Option-Command-S |
+| Open clipboard history | Control-Option-Command-V |
+| Copy text from the screen | Control-Option-Command-T |
+| Toggle keep-awake | Control-Option-Command-A |
+
+Keep-awake starts a one-hour session when off and stops any active session,
+then opens the panel so you can see the new state.
+Text capture opens the region selector directly, then shows the result in the
+panel. Other shortcuts are paused while a capture is in progress.
+
+Open **settings gear > Keyboard Shortcuts** to customise a binding. Click its
+shortcut button and press a combination containing Control or Option, or
+Command with another modifier. Use letters, numbers, punctuation, arrows,
+Space, or F1 to F12. A global shortcut takes the combination away from every
+app: Option plus a letter stops typing characters such as å, and Control plus a
+letter can replace text editing keys such as Control-A. Bindings follow physical key positions; labels reflect the keyboard layout.
+Press **Escape** to cancel, **Delete** to disable, or **Tab** to leave recording.
+Each row's options menu also provides **Restore Default** and **Disable Shortcut**.
+Changes take effect immediately and survive relaunch.
+
+Conflicting shortcuts show an error and keep the previous binding. macOS or
+another app may consume a combination before the recorder receives it; choose
+another if that happens. If a saved shortcut is unavailable at launch, close
+the app using it and choose **Retry Unavailable Shortcuts**, or record another.
+
+Global shortcut registration needs no additional permission. Screen text
+capture still needs Screen Recording access.
 
 ### Permissions
 

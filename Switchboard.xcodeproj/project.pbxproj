@@ -58,6 +58,16 @@
 		C60000000000000000000003 /* OutputDeviceVolumeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60000000000000000000005 /* OutputDeviceVolumeTests.swift */; };
 		CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E077C2A969EEAFE301C60E /* TweakCatalog.swift */; };
 		CD5993B1D118DDAB76607221 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */; };
+		D71000000000000000000001 /* GlobalShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000001 /* GlobalShortcut.swift */; };
+		D71000000000000000000002 /* GlobalShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000002 /* GlobalShortcuts.swift */; };
+		D71000000000000000000003 /* HotKeyRegistrar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000003 /* HotKeyRegistrar.swift */; };
+		D71000000000000000000005 /* ShortcutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000005 /* ShortcutSettingsView.swift */; };
+		D72000000000000000000001 /* GlobalShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000001 /* GlobalShortcut.swift */; };
+		D72000000000000000000002 /* GlobalShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000002 /* GlobalShortcuts.swift */; };
+		D72000000000000000000003 /* HotKeyRegistrar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000003 /* HotKeyRegistrar.swift */; };
+		D72000000000000000000004 /* GlobalShortcutsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000004 /* GlobalShortcutsTests.swift */; };
+		D72000000000000000000005 /* ShortcutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000005 /* ShortcutSettingsView.swift */; };
+		D72000000000000000000006 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF49656E31E00F535E0CB517 /* Theme.swift */; };
 		E826485CA77D0E4BB839211A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF49656E31E00F535E0CB517 /* Theme.swift */; };
 		F22DE98F5478599D7A3100DB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F5AEA8ABFB9E4FB7596DA695 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -117,6 +127,11 @@
 		C60000000000000000000004 /* OutputDeviceVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputDeviceVolume.swift; sourceTree = "<group>"; };
 		C60000000000000000000005 /* OutputDeviceVolumeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputDeviceVolumeTests.swift; sourceTree = "<group>"; };
 		D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
+		D70000000000000000000001 /* GlobalShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcut.swift; sourceTree = "<group>"; };
+		D70000000000000000000002 /* GlobalShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcuts.swift; sourceTree = "<group>"; };
+		D70000000000000000000003 /* HotKeyRegistrar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRegistrar.swift; sourceTree = "<group>"; };
+		D70000000000000000000004 /* GlobalShortcutsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutsTests.swift; sourceTree = "<group>"; };
+		D70000000000000000000005 /* ShortcutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutSettingsView.swift; sourceTree = "<group>"; };
 		F5AEA8ABFB9E4FB7596DA695 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -138,6 +153,7 @@
 		2B624AED26B69B7A9D488540 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				D70000000000000000000001 /* GlobalShortcut.swift */,
 				8BACE0936C396083BBBE9867 /* Tweak.swift */,
 				30E077C2A969EEAFE301C60E /* TweakCatalog.swift */,
 				88D18FDF62CAF03392D61CAF /* TweakStore.swift */,
@@ -157,6 +173,7 @@
 		A20000000000000000000001 /* SwitchboardTests */ = {
 			isa = PBXGroup;
 			children = (
+				D70000000000000000000004 /* GlobalShortcutsTests.swift */,
 				B40000000000000000000031 /* AudioRoutingTests.swift */,
 				B40000000000000000000030 /* AudioRenderTests.swift */,
 				C60000000000000000000005 /* OutputDeviceVolumeTests.swift */,
@@ -182,6 +199,7 @@
 		A49570240DADA4DBFD79C923 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D70000000000000000000005 /* ShortcutSettingsView.swift */,
 				B4000000000000000000001F /* SystemMonitorView.swift */,
 				351B9788911C1DDE92BDB476 /* ApplyBar.swift */,
 				A1000000000000000000000D /* AppVolumeList.swift */,
@@ -207,6 +225,8 @@
 		EF2BE610A650242C0C4EFB43 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				D70000000000000000000003 /* HotKeyRegistrar.swift */,
+				D70000000000000000000002 /* GlobalShortcuts.swift */,
 				C60000000000000000000004 /* OutputDeviceVolume.swift */,
 				B4000000000000000000001E /* SystemMonitor.swift */,
 				D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */,
@@ -326,6 +346,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D72000000000000000000006 /* Theme.swift in Sources */,
+				D72000000000000000000005 /* ShortcutSettingsView.swift in Sources */,
+				D72000000000000000000004 /* GlobalShortcutsTests.swift in Sources */,
+				D72000000000000000000003 /* HotKeyRegistrar.swift in Sources */,
+				D72000000000000000000002 /* GlobalShortcuts.swift in Sources */,
+				D72000000000000000000001 /* GlobalShortcut.swift in Sources */,
 				B50000000000000000000020 /* SystemMonitorTests.swift in Sources */,
 				B50000000000000000000040 /* AwakeStatusTests.swift in Sources */,
 				C60000000000000000000002 /* OutputDeviceVolume.swift in Sources */,
@@ -353,6 +379,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D71000000000000000000005 /* ShortcutSettingsView.swift in Sources */,
+				D71000000000000000000003 /* HotKeyRegistrar.swift in Sources */,
+				D71000000000000000000002 /* GlobalShortcuts.swift in Sources */,
+				D71000000000000000000001 /* GlobalShortcut.swift in Sources */,
 				B5000000000000000000001F /* SystemMonitorView.swift in Sources */,
 				C60000000000000000000001 /* OutputDeviceVolume.swift in Sources */,
 				B5000000000000000000001E /* SystemMonitor.swift in Sources */,
@@ -410,7 +440,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.0.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -453,7 +483,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 24;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -517,7 +547,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.0.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -560,7 +590,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 24;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

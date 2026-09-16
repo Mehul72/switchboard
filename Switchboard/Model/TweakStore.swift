@@ -489,6 +489,10 @@ final class TweakStore: ObservableObject {
         keepAwakeSpan = awake.span
     }
 
+    func toggleKeepAwake() {
+        setKeepAwake(minutes: awake.isActive ? 0 : 60)
+    }
+
     private func setKeepAwake(minutes: Int) {
         let applied = awake.set(minutes: minutes)
         syncKeepAwake()

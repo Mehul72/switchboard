@@ -7,16 +7,24 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private let store = TweakStore()
     private let monitor = SystemMonitor()
+    private let shortcuts = GlobalShortcuts(registrar: HotKeyRegistrar())
+    private var shortcutSettings: ShortcutSettingsController?
     private var hostingController: NSHostingController<PopoverView>?
     private var restartProtection = false
     private var restartProtectionGeneration = 0
     private var restartProtectionRelease: DispatchWorkItem?
     /// Only restore the panel if it was actually open when selection started.
     private var selectionWasShowingPopover = false
+    private var captureWasStartedByShortcut = false
     private var lastDismissedNoticeID: UUID?
 
     override init() {
         super.init()
+        shortcuts.onAction = { [weak self] action in self?.performShortcut(action) }
+        if !shortcuts.errors.isEmpty {
+            store.notice = StoreNotice(kind: .error,
+                                      message: "Some shortcuts are unavailable. Open Keyboard Shortcuts from the settings gear to review them.")
+        }
         item.button?.image = MenuBarIcon.image
         item.button?.toolTip = "Switchboard"
         item.button?.setAccessibilityLabel("Switchboard")
@@ -37,25 +45,37 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             self.popover.animates = true
         }
         store.onScreenSelectionEnded = { [weak self] in
-            guard let self, self.selectionWasShowingPopover else { return }
+            guard let self, self.selectionWasShowingPopover || self.captureWasStartedByShortcut else { return }
             self.selectionWasShowingPopover = false
+            self.captureWasStartedByShortcut = false
             // Let screencapture finish tearing down its overlay first, or the
             // popover is presented against a screen that is still captured.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 guard let self, !self.popover.isShown else { return }
-                self.togglePopover()
+                self.showPopover()
             }
         }
     }
 
     @objc private func togglePopover() {
-        guard let button = item.button else { return }
+        guard !store.isCapturingText else { return }
         if popover.isShown {
             popover.performClose(nil)
             return
         }
+        showPopover()
+    }
 
+    private func showPopover(category: Category? = nil) {
+        guard !store.isCapturingText, let button = item.button else { return }
+        if let category { store.category = category }
         store.search = ""
+        if popover.isShown {
+            popover.contentViewController?.view.window?.makeKey()
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
         if let notice = store.notice,
            notice.kind != .error,
            notice.id == lastDismissedNoticeID {
@@ -73,6 +93,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                                   applyRestarts: { [weak self] in
                                       self?.applyPendingRestartsKeepingPopoverOpen()
                                   },
+                                  showShortcuts: { [weak self] in self?.showShortcutSettings() },
                                   height: height)
         )
 
@@ -88,6 +109,32 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
+    }
+
+    private func performShortcut(_ action: ShortcutAction) {
+        guard !store.isCapturingText else { return }
+        switch action {
+        case .togglePanel:
+            togglePopover()
+        case .clipboard:
+            showPopover(category: .clipboard)
+        case .captureText:
+            guard let tweak = store.catalog.first(where: { $0.id == "everyday.region-ocr" }) else { return }
+            captureWasStartedByShortcut = true
+            shortcutSettings?.window?.orderOut(nil)
+            store.perform(tweak)
+        case .toggleAwake:
+            store.toggleKeepAwake()
+            showPopover(category: .everyday)
+        }
+    }
+
+    private func showShortcutSettings() {
+        popover.performClose(nil)
+        if shortcutSettings == nil {
+            shortcutSettings = ShortcutSettingsController(shortcuts: shortcuts)
+        }
+        shortcutSettings?.open()
     }
 
     private func applyPendingRestartsKeepingPopoverOpen() {

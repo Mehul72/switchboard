@@ -6,6 +6,7 @@ struct PopoverView: View {
     @ObservedObject var monitor: SystemMonitor
     let dismiss: () -> Void
     let applyRestarts: () -> Void
+    let showShortcuts: () -> Void
     let height: CGFloat
 
     @State private var launchAtLoginState = LaunchAtLogin.state
@@ -99,6 +100,8 @@ struct PopoverView: View {
 
     private var settingsMenu: some View {
         Menu {
+            Button("Keyboard Shortcuts…", action: showShortcuts)
+            Divider()
             Button(launchAtLoginTitle) {
                 if launchAtLoginState == .unavailable {
                     recoverLaunchAtLogin()

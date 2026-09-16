@@ -46,6 +46,11 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
 - Copy text and images, expand and remove history entries, and clear history.
   Check that private clipboard content stays excluded and that JPEG/HEIC
   screenshots can be pasted into apps that accept files.
+- From another app, test all four global shortcuts, including holding a key.
+  Record a new binding, cancel with Escape or Tab, disable and restore it,
+  and relaunch to check persistence. Try duplicates and occupied combinations.
+  Check recording with VoiceOver and a different keyboard layout. Confirm
+  capture shortcuts respect Screen Recording permission and do not overlap.
 - Compare System readings with Activity Monitor. Close the panel and reopen it
   to check that monitoring resumes.
 
