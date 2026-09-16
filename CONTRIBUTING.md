@@ -46,11 +46,20 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
 - Copy text and images, expand and remove history entries, and clear history.
   Check that private clipboard content stays excluded and that JPEG/HEIC
   screenshots can be pasted into apps that accept files.
-- From another app, test all four global shortcuts, including holding a key.
+- From another app, test the four Switchboard shortcuts, including holding a key.
   Record a new binding, cancel with Escape or Tab, disable and restore it,
   and relaunch to check persistence. Try duplicates and occupied combinations.
   Check recording with VoiceOver and a different keyboard layout. Confirm
   capture shortcuts respect Screen Recording permission and do not overlap.
+- Turn on window snapping without Accessibility, then with it. Snap a
+  resizable window, a fixed-size window, a Chrome or Electron window, and a
+  full-screen window through every layout and Restore. Walk the arrow map in
+  all four directions from full screen, a third, and a free window, including
+  Terminal. Drag with Control across cells on each display, release Control
+  before the mouse, and drag without Control to confirm macOS tiling still
+  works. Move a window between two displays of different sizes, including one
+  above or left of the main display. Turn snapping off and confirm
+  Control-Option-Left and Control-drags reach apps again.
 - Compare System readings with Activity Monitor. Close the panel and reopen it
   to check that monitoring resumes.
 

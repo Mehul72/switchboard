@@ -39,6 +39,10 @@ final class TweakStore: ObservableObject {
     @Published private(set) var audioRoutes: [String: String] = [:]
     @Published private(set) var systemDefaultOutputUID: String?
     @Published private(set) var isCapturingText = false
+    /// True while window shortcuts should be registered: switched on and
+    /// allowed under Accessibility.
+    @Published private(set) var isWindowSnappingActive = false
+    var onWindowSnappingChange: ((Bool) -> Void)?
 
     private let ledger = UndoLedger()
     private let awake = AwakeController()
@@ -49,6 +53,7 @@ final class TweakStore: ObservableObject {
     private let outputVolume = OutputDeviceVolume()
     private let history = ClipboardHistory()
     private static let translateKey = "TranslateCapturedText"
+    private static let windowSnappingKey = "WindowSnappingEnabled"
     /// Master switch for the capture translation feature. While false the
     /// toggle is absent from the catalog and captures are never translated,
     /// even if the preference was switched on earlier.
@@ -116,6 +121,7 @@ final class TweakStore: ObservableObject {
         syncKeepAwake()
         customStates["everyday.mouse-scroll"] = scroll.isActive
         customStates["everyday.quit-on-close"] = quitOnClose.isActive
+        syncWindowSnapping()
         syncClipboardImageConversion()
         refreshAudioApps()
     }
@@ -275,7 +281,7 @@ final class TweakStore: ObservableObject {
     var hasUndoRecord: Bool { !ledger.isEmpty }
     var canRestoreOriginalSettings: Bool {
         hasUndoRecord || awake.isActive || scroll.isActive || quitOnClose.isActive
-            || appAudio.isControllingAnything
+            || isWindowSnappingActive || appAudio.isControllingAnything
     }
 
     func tweaks(in category: Category) -> [Tweak] {
@@ -294,6 +300,8 @@ final class TweakStore: ObservableObject {
             return customStates[tweak.id] ?? false
         case .quitOnClose:
             return customStates[tweak.id] ?? false
+        case .windowSnapping:
+            return isWindowSnappingActive
         case .regionOCR:
             return false
         case .translateCaptures:
@@ -332,6 +340,8 @@ final class TweakStore: ObservableObject {
             setMouseScrollInverted(on, for: tweak)
         case .quitOnClose:
             setQuitOnClose(on, for: tweak)
+        case .windowSnapping:
+            setWindowSnapping(on)
         case .regionOCR:
             break
         case .translateCaptures:
@@ -372,6 +382,40 @@ final class TweakStore: ObservableObject {
                              message: applied
                                 ? "The red button now quits an app when it closes the last window."
                                 : "macOS could not start the close-button monitor.")
+    }
+
+    /// Global shortcuts need no permission, but moving another app's windows
+    /// does, so the toggle only reads as on when both agree.
+    private func setWindowSnapping(_ on: Bool) {
+        guard on else {
+            UserDefaults.standard.set(false, forKey: Self.windowSnappingKey)
+            syncWindowSnapping()
+            notice = StoreNotice(kind: .success,
+                                 message: "Window snapping is off. Its key combinations work in other apps again.")
+            return
+        }
+        guard WindowSnapper.hasPermission else {
+            WindowSnapper.requestPermission()
+            syncWindowSnapping()
+            notice = StoreNotice(kind: .information,
+                                 message: "Allow Switchboard under Accessibility, then switch this on again.")
+            return
+        }
+        UserDefaults.standard.set(true, forKey: Self.windowSnappingKey)
+        // Set before syncing, so a conflict reported while the shortcuts
+        // register replaces this message instead of being hidden by it.
+        notice = StoreNotice(kind: .success,
+                             message: "Press Control-Option with an arrow key, or hold Control while dragging a window. Every shortcut is in Keyboard Shortcuts.")
+        syncWindowSnapping()
+    }
+
+    /// Accessibility can be revoked while the app runs. The preference is
+    /// kept, so granting access again brings the shortcuts back.
+    private func syncWindowSnapping() {
+        let active = UserDefaults.standard.bool(forKey: Self.windowSnappingKey) && WindowSnapper.hasPermission
+        guard active != isWindowSnappingActive else { return }
+        isWindowSnappingActive = active
+        onWindowSnappingChange?(active)
     }
 
     /// The scroll tap is a system-wide input hook, so the first attempt usually
@@ -591,6 +635,7 @@ final class TweakStore: ObservableObject {
         let awakeRestored = awake.setActive(false)
         let scrollRestored = scroll.setActive(false)
         let quitRestored = quitOnClose.setActive(false)
+        UserDefaults.standard.set(false, forKey: Self.windowSnappingKey)
         appAudio.releaseAll()
         audioVolumes.removeAll()
         audioRoutes.removeAll()

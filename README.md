@@ -24,6 +24,8 @@ cause problems with permissions and Launch at Login.
   Some sensors are unavailable on certain Macs.
 - **Global shortcuts:** open the panel or clipboard history, capture screen
   text, and toggle keep-awake without leaving the keyboard.
+- **Window snapping:** move windows into halves, quarters, thirds, or onto
+  another display with keyboard shortcuts, or drag them onto a grid.
 
 ## Using Switchboard
 
@@ -57,11 +59,61 @@ then opens the panel so you can see the new state.
 Text capture opens the region selector directly, then shows the result in the
 panel. Other shortcuts are paused while a capture is in progress.
 
+### Window snapping
+
+Switch on **Snap windows** in Everyday. It needs Accessibility access and is
+off by default, because its shortcuts take common Control-Option combinations
+away from other apps. While it is off, window shortcuts are not registered, but
+you can still change their bindings.
+
+**Arrow keys.** Control-Option-arrows move a window around a map of layouts:
+
+- **Up** goes to full screen from any layout. From full screen, Up gives the
+  top half.
+- Left from full screen gives the left half, then the left third. Right from
+  the left half goes back to full screen. From any third, Left and Right move
+  between the left, centre, and right thirds.
+- Left and Right keep a window's row, so full screen, Up, Left gives the
+  top-left quarter, and Left again the top-left third.
+- **Down** joins a top-row layout back to full height, then gives the bottom
+  half of that width. Full screen plus Down is the bottom half of the screen.
+- A window that is on no layout starts at the left half, right half, full
+  screen (Up), or bottom half (Down). At the edge of the map the Mac beeps.
+
+**Dragging.** Start dragging a window by its title bar, then hold **Control**.
+A grid of six columns and two rows appears. The cell under the pointer when you
+press Control is where the layout starts; move across cells to extend it, then
+release the mouse. Three columns make a half and two make a third. Release
+Control before the mouse to drop the window normally. Option is not used
+because macOS uses it for its own tiling during a drag.
+
+**Other shortcuts** jump straight to a layout:
+
+| Action | Default shortcut |
+| --- | --- |
+| Top-left, top-right, bottom-left, bottom-right quarter | Control-Option-U, I, J, K |
+| Left, centre, or right third | Control-Option-D, F, G |
+| Left or right two thirds | Control-Option-E, T |
+| Maximise | Control-Option-Return |
+| Centre | Control-Option-C |
+| Restore previous size | Control-Option-Delete |
+| Move to next or previous display | Control-Option-Command-Right or Left |
+
+Shortcuts act on the focused window of the frontmost app. Maximise fills the
+screen without entering full screen. Moving to another display keeps the
+window's relative position and size. Restore returns a window to where it was
+before its first snap or drag; moving the window by hand starts a new run. Windows that
+cannot be resized keep their size and move against the matching screen edge.
+Full-screen windows and Switchboard's own windows are not moved; the Mac beeps
+instead.
+
+### Customising shortcuts
+
 Open **settings gear > Keyboard Shortcuts** to customise a binding. Click its
 shortcut button and press a combination containing Control or Option, or
 Command with another modifier. Use letters, numbers, punctuation, arrows,
-Space, or F1 to F12. A global shortcut takes the combination away from every
-app: Option plus a letter stops typing characters such as å, and Control plus a
+Return, Delete, Space, or F1 to F12. A global shortcut takes the combination
+away from every app: Option plus a letter stops typing characters such as å, and Control plus a
 letter can replace text editing keys such as Control-A. Bindings follow physical key positions; labels reflect the keyboard layout.
 Press **Escape** to cancel, **Delete** to disable, or **Tab** to leave recording.
 Each row's options menu also provides **Restore Default** and **Disable Shortcut**.
@@ -73,7 +125,8 @@ another if that happens. If a saved shortcut is unavailable at launch, close
 the app using it and choose **Retry Unavailable Shortcuts**, or record another.
 
 Global shortcut registration needs no additional permission. Screen text
-capture still needs Screen Recording access.
+capture still needs Screen Recording access, and window snapping needs
+Accessibility.
 
 ### Permissions
 
@@ -81,7 +134,7 @@ macOS asks for access when you first use a feature that needs it.
 
 | Feature | Permission |
 | --- | --- |
-| Traditional mouse scrolling and red-button quit | Accessibility |
+| Traditional mouse scrolling, red-button quit, and window snapping | Accessibility |
 | Copy text from the screen | Screen Recording |
 | Per-app audio controls | System Audio Recording |
 

@@ -92,6 +92,7 @@ enum TweakBehavior {
     case plainTextClipboard
     case mouseScrollDirection
     case quitOnClose
+    case windowSnapping
     case regionOCR
     case translateCaptures
 }

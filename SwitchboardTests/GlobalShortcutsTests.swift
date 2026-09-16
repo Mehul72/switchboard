@@ -22,9 +22,10 @@ final class GlobalShortcutsTests: XCTestCase {
         super.tearDown()
     }
 
-    func testFirstLaunchRegistersFourDistinctDefaults() {
+    func testFirstLaunchRegistersOnlyTheFourSwitchboardDefaults() {
         let shortcuts = makeShortcuts()
-        XCTAssertEqual(shortcuts.bindings.count, 4)
+        XCTAssertEqual(shortcuts.bindings.count, ShortcutAction.allCases.count)
+        XCTAssertFalse(shortcuts.windowActionsEnabled)
         XCTAssertEqual(Set(registrar.bindings.values).count, 4)
         XCTAssertTrue(shortcuts.errors.isEmpty)
     }
@@ -115,8 +116,9 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertEqual(actions, [.toggleAwake])
     }
 
-    func testAllFourActionsDispatchToTheirOwnHandler() {
+    func testEveryActionDispatchesToItsOwnHandler() {
         let shortcuts = makeShortcuts()
+        shortcuts.setWindowActionsEnabled(true)
         var actions: [ShortcutAction] = []
         shortcuts.onAction = { actions.append($0) }
         for action in ShortcutAction.allCases {
@@ -124,6 +126,81 @@ final class GlobalShortcutsTests: XCTestCase {
             registrar.onEvent?(id(for: action), false)
         }
         XCTAssertEqual(actions, ShortcutAction.allCases)
+    }
+
+    func testEveryDefaultIsValidAndDistinct() {
+        let defaults = ShortcutAction.allCases.map(\.defaultShortcut)
+        XCTAssertEqual(Set(defaults).count, defaults.count)
+        for action in ShortcutAction.allCases {
+            XCTAssertNil(action.defaultShortcut.validationError, action.rawValue)
+        }
+        XCTAssertEqual(ShortcutAction.allCases.filter { $0.windowCommand != nil }.count, 18)
+    }
+
+    func testWindowBindingsRegisterOnlyWhileSnappingIsOn() {
+        let shortcuts = makeShortcuts()
+        XCTAssertEqual(registrar.bindings.count, 4)
+        shortcuts.setWindowActionsEnabled(true)
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count)
+        shortcuts.setWindowActionsEnabled(true)
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count)
+        XCTAssertTrue(shortcuts.errors.isEmpty)
+
+        shortcuts.setWindowActionsEnabled(false)
+        XCTAssertEqual(Set(registrar.bindings.values),
+                       Set(ShortcutAction.allCases.filter { $0.group == .switchboard }.map(\.defaultShortcut)))
+        shortcuts.retryUnavailable()
+        XCTAssertEqual(registrar.bindings.count, 4)
+    }
+
+    func testDisablingSnappingDropsAHeldWindowShortcut() {
+        let shortcuts = makeShortcuts()
+        shortcuts.setWindowActionsEnabled(true)
+        var actions: [ShortcutAction] = []
+        shortcuts.onAction = { actions.append($0) }
+        let key = id(for: .snapStepLeft)
+        registrar.onEvent?(key, true)
+        shortcuts.setWindowActionsEnabled(false)
+        registrar.onEvent?(key, false)
+        XCTAssertTrue(actions.isEmpty)
+    }
+
+    func testWindowBindingEditedWhileOffPersistsAndRegistersLater() {
+        let shortcuts = makeShortcuts()
+        let replacement = GlobalShortcut(keyCode: 37, modifiers: UInt32(controlKey | optionKey))
+        XCTAssertTrue(shortcuts.set(replacement, for: .snapMaximize))
+        XCTAssertFalse(registrar.bindings.values.contains(replacement))
+        XCTAssertNotNil(defaults.object(forKey: GlobalShortcuts.preferenceKey(for: .snapMaximize)))
+
+        let relaunched = GlobalShortcuts(defaults: defaults, registrar: registrar)
+        relaunched.setWindowActionsEnabled(true)
+        XCTAssertTrue(registrar.bindings.values.contains(replacement))
+    }
+
+    func testDuplicatesAreCaughtAcrossGroupsEvenWhileSnappingIsOff() {
+        let shortcuts = makeShortcuts()
+        XCTAssertFalse(shortcuts.set(ShortcutAction.togglePanel.defaultShortcut, for: .snapCenter))
+        XCTAssertNotNil(shortcuts.errors[.snapCenter])
+        XCTAssertFalse(shortcuts.set(ShortcutAction.snapCenter.defaultShortcut, for: .clipboard))
+        XCTAssertEqual(shortcuts.bindings[.clipboard], ShortcutAction.clipboard.defaultShortcut)
+    }
+
+    func testTakenWindowShortcutReportsAnErrorThatClearsWhenSnappingTurnsOff() {
+        registrar.rejected.insert(ShortcutAction.snapStepLeft.defaultShortcut)
+        let shortcuts = makeShortcuts()
+        shortcuts.setWindowActionsEnabled(true)
+        XCTAssertNotNil(shortcuts.errors[.snapStepLeft])
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count - 1)
+        shortcuts.setWindowActionsEnabled(false)
+        XCTAssertTrue(shortcuts.errors.isEmpty)
+    }
+
+    func testReturnAndDeleteCanBeBound() {
+        let modifiers = UInt32(controlKey | optionKey)
+        XCTAssertNil(GlobalShortcut(keyCode: UInt32(kVK_Return), modifiers: modifiers).validationError)
+        XCTAssertEqual(GlobalShortcut(keyCode: UInt32(kVK_Delete), modifiers: modifiers).label, "⌃⌥Delete")
+        XCTAssertEqual(GlobalShortcut(keyCode: UInt32(kVK_Return), modifiers: modifiers).spokenLabel,
+                       "Control Option Return")
     }
 
     func testDisabledAndReplacedBindingsCannotDispatchQueuedEvents() {

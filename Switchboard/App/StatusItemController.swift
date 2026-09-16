@@ -8,6 +8,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let store = TweakStore()
     private let monitor = SystemMonitor()
     private let shortcuts = GlobalShortcuts(registrar: HotKeyRegistrar())
+    private let snapper = WindowSnapper()
+    private lazy var dragGrid = WindowDragGrid(snapper: snapper)
     private var shortcutSettings: ShortcutSettingsController?
     private var hostingController: NSHostingController<PopoverView>?
     private var restartProtection = false
@@ -21,6 +23,18 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     override init() {
         super.init()
         shortcuts.onAction = { [weak self] action in self?.performShortcut(action) }
+        shortcuts.setWindowActionsEnabled(store.isWindowSnappingActive)
+        setDragGridActive(store.isWindowSnappingActive)
+        store.onWindowSnappingChange = { [weak self] active in
+            guard let self else { return }
+            self.shortcuts.setWindowActionsEnabled(active)
+            self.setDragGridActive(active)
+            let taken = ShortcutAction.allCases.contains { $0.group == .windows && self.shortcuts.errors[$0] != nil }
+            if active, taken {
+                self.store.notice = StoreNotice(kind: .error,
+                                                message: "Some window shortcuts are in use by another app. Review them in Keyboard Shortcuts.")
+            }
+        }
         if !shortcuts.errors.isEmpty {
             store.notice = StoreNotice(kind: .error,
                                       message: "Some shortcuts are unavailable. Open Keyboard Shortcuts from the settings gear to review them.")
@@ -126,6 +140,33 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         case .toggleAwake:
             store.toggleKeepAwake()
             showPopover(category: .everyday)
+        default:
+            guard let command = action.windowCommand else { return }
+            snapFocusedWindow(command)
+        }
+    }
+
+    private func setDragGridActive(_ active: Bool) {
+        guard !dragGrid.setActive(active) else { return }
+        store.notice = StoreNotice(kind: .error,
+                                   message: "macOS would not let Switchboard watch window drags. Keyboard snapping still works.")
+    }
+
+    private func snapFocusedWindow(_ command: WindowCommand) {
+        snapper.perform(command) { [weak self] outcome in
+            switch outcome {
+            case .moved:
+                break
+            case .nothingToMove:
+                NSSound.beep()
+            case .needsPermission:
+                WindowSnapper.requestPermission()
+                self?.store.notice = StoreNotice(kind: .information,
+                                                 message: "Allow Switchboard under Accessibility so window shortcuts can move windows.")
+                // The toggle turns itself off on refresh, so show the panel
+                // where that state and this notice can be seen together.
+                self?.showPopover(category: .everyday)
+            }
         }
     }
 

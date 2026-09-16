@@ -7,6 +7,9 @@ final class GlobalShortcuts: ObservableObject {
     @Published private(set) var bindings: [ShortcutAction: GlobalShortcut] = [:]
     @Published private(set) var errors: [ShortcutAction: String] = [:]
     @Published private(set) var recordingAction: ShortcutAction?
+    /// Window bindings take common Control-Option combinations from every
+    /// app, so they are only registered while window snapping is switched on.
+    @Published private(set) var windowActionsEnabled = false
     var onAction: ((ShortcutAction) -> Void)?
 
     private struct Press {
@@ -79,24 +82,13 @@ final class GlobalShortcuts: ObservableObject {
                 return false
             }
         }
-        if bindings[action] == shortcut, registrations[action] != nil {
+        if bindings[action] == shortcut, registrations[action] != nil || !isLive(action) {
             errors[action] = nil
             return true
         }
         do {
             let data = try JSONEncoder().encode(shortcut)
-            let newID = try shortcut.map { try register($0) }
-            do {
-                if let previousID = registrations[action] { try registrar.unregister(id: previousID) }
-            } catch {
-                if let newID {
-                    do { try registrar.unregister(id: newID) }
-                    catch { logger.error("Shortcut rollback failed: \(error.localizedDescription, privacy: .public)") }
-                }
-                throw error
-            }
-            presses.removeAll()
-            registrations[action] = newID
+            if isLive(action) { try replaceRegistration(of: action, with: shortcut) }
             bindings[action] = shortcut
             defaults.set(data, forKey: Self.preferenceKey(for: action))
             errors[action] = nil
@@ -108,9 +100,51 @@ final class GlobalShortcuts: ObservableObject {
         }
     }
 
+    func setWindowActionsEnabled(_ enabled: Bool) {
+        guard enabled != windowActionsEnabled else { return }
+        windowActionsEnabled = enabled
+        guard !enabled else {
+            activateBindings()
+            return
+        }
+        for action in ShortcutAction.allCases where action.group == .windows {
+            // Unreadable saved bindings keep their message; registration
+            // failures no longer apply once nothing is being registered.
+            if bindings[action] != nil { errors[action] = nil }
+            guard let id = registrations.removeValue(forKey: action) else { continue }
+            presses[id] = nil
+            do {
+                try registrar.unregister(id: id)
+            } catch {
+                logger.error("Could not release \(action.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            }
+        }
+    }
+
     func retryUnavailable() {
         for action in registrations.keys { errors[action] = nil }
         activateBindings()
+    }
+
+    private func isLive(_ action: ShortcutAction) -> Bool {
+        action.group == .switchboard || windowActionsEnabled
+    }
+
+    /// Registers the replacement before releasing the old binding, so a
+    /// combination another app holds leaves the working one in place.
+    private func replaceRegistration(of action: ShortcutAction, with shortcut: GlobalShortcut?) throws {
+        let newID = try shortcut.map { try register($0) }
+        do {
+            if let previousID = registrations[action] { try registrar.unregister(id: previousID) }
+        } catch {
+            if let newID {
+                do { try registrar.unregister(id: newID) }
+                catch { logger.error("Shortcut rollback failed: \(error.localizedDescription, privacy: .public)") }
+            }
+            throw error
+        }
+        presses.removeAll()
+        registrations[action] = newID
     }
 
     private func register(_ shortcut: GlobalShortcut) throws -> UInt32 {
@@ -121,7 +155,7 @@ final class GlobalShortcuts: ObservableObject {
     }
 
     private func activateBindings() {
-        for action in ShortcutAction.allCases where registrations[action] == nil {
+        for action in ShortcutAction.allCases where registrations[action] == nil && isLive(action) {
             guard let shortcut = bindings[action] else { continue }
             if let duplicate = registrations.keys.first(where: { bindings[$0] == shortcut }) {
                 errors[action] = "Already used by “\(duplicate.title)”. Record another shortcut."

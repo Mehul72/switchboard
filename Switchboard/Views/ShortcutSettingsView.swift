@@ -91,16 +91,14 @@ private struct ShortcutSettingsView: View {
                     .foregroundStyle(Theme.secondary)
             }
             ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(ShortcutAction.allCases) { action in
-                        shortcutRow(action)
-                        if action != ShortcutAction.allCases.last { Hairline() }
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(ShortcutAction.Group.allCases, id: \.self) { group in
+                        section(group)
                     }
                 }
-                .groupSurface()
             }
             Text(shortcuts.recordingAction == nil
-                 ? "Shortcuts work while Switchboard is running. Screen text capture requires Screen Recording access."
+                 ? "Shortcuts work while Switchboard is running. Screen text capture requires Screen Recording access, and window snapping requires Accessibility."
                  : "Press Escape to cancel, Delete to disable, or Tab to leave the recorder.")
                 .font(.rowSubtitle)
                 .foregroundStyle(Theme.secondary)
@@ -127,15 +125,41 @@ private struct ShortcutSettingsView: View {
         }
     }
 
+    private func section(_ group: ShortcutAction.Group) -> some View {
+        let actions = ShortcutAction.allCases.filter { $0.group == group }
+        return VStack(alignment: .leading, spacing: 6) {
+            Text(group.title)
+                .font(.rowTitle)
+                .foregroundStyle(Theme.secondary)
+                .accessibilityAddTraits(.isHeader)
+            // Bindings can be edited while snapping is off; say why they do nothing yet.
+            if group == .windows, !shortcuts.windowActionsEnabled {
+                Text("Switch on “Snap windows” in Everyday to use these.")
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            VStack(spacing: 0) {
+                ForEach(actions) { action in
+                    shortcutRow(action)
+                    if action != actions.last { Hairline() }
+                }
+            }
+            .groupSurface()
+        }
+    }
+
     private func shortcutRow(_ action: ShortcutAction) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(action.title).font(.rowTitle)
-                    Text(action.detail)
-                        .font(.rowSubtitle)
-                        .foregroundStyle(Theme.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if let detail = action.detail {
+                        Text(detail)
+                            .font(.rowSubtitle)
+                            .foregroundStyle(Theme.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 Spacer(minLength: 0)
                 Button {
