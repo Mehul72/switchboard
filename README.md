@@ -7,7 +7,13 @@ and system monitoring. Requires macOS 14.2 or later.
 
 1. Download the DMG from the [latest release](https://github.com/Mehul72/switchboard/releases/latest).
 2. Open it and drag Switchboard into **Applications**.
-3. Launch Switchboard from Applications and click its menu bar icon.
+3. Launch Switchboard from Applications. A welcome window shows where the
+   menu bar icon is and what each section does.
+
+The welcome window opens once for each installed copy of the app. Relaunching
+never shows it again. Deleting Switchboard and installing it again shows it,
+and so does installing an update from a new DMG, because that also replaces
+the app.
 
 Keep the app in Applications. Running it from Downloads or the disk image can
 cause problems with permissions and Launch at Login.

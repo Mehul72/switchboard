@@ -32,6 +32,11 @@ expose them in the current accessibility settings.
 
 Before a release, check the app on a Mac with disposable files and quiet audio:
 
+- Install a fresh copy in Applications and launch it: the welcome window
+  opens. Quit with it open, relaunch, and log out and back in with Launch at
+  Login on: it stays closed. Move the app to Trash, install it again, and
+  install a newer DMG over it: each shows the welcome. Check Return, Escape,
+  and VoiceOver in the window.
 - Visit each tab in light and dark appearances. Test search, keyboard navigation,
   VoiceOver, long labels, and scrolling on a short display.
 - Change a Finder or Dock setting, apply its restart, and restore the original

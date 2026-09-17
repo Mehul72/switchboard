@@ -16,5 +16,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = StatusItemController()
+        statusItem.showWelcomeIfNewCopy()
     }
 }

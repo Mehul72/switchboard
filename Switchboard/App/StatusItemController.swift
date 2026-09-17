@@ -1,8 +1,10 @@
 import AppKit
+import OSLog
 import SwiftUI
 
 @MainActor
 final class StatusItemController: NSObject, NSPopoverDelegate {
+    private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "welcome")
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
     private let store = TweakStore()
@@ -11,6 +13,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let snapper = WindowSnapper()
     private lazy var dragGrid = WindowDragGrid(snapper: snapper)
     private var shortcutSettings: ShortcutSettingsController?
+    private var welcome: WelcomeWindowController?
     private var hostingController: NSHostingController<PopoverView>?
     private var restartProtection = false
     private var restartProtectionGeneration = 0
@@ -69,6 +72,31 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                 self.showPopover()
             }
         }
+    }
+
+    /// Opens the welcome window on the first launch of this copy of the app.
+    func showWelcomeIfNewCopy() {
+        let copy: AppCopy
+        do {
+            copy = try AppCopy.current()
+        } catch {
+            // Without an identity every launch would look new, and showing the
+            // welcome each time is worse than skipping it once.
+            logger.error("Welcome skipped, app bundle unreadable: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        guard WelcomeGate().claim(copy) else { return }
+        logger.info("Showing welcome for new copy \(copy.id, privacy: .public)")
+        let controller = WelcomeWindowController(
+            panelShortcut: shortcuts.bindings[.togglePanel],
+            openPanel: { [weak self] in self?.showPopover() },
+            onClose: { [weak self] in
+                // Released on the next turn so the controller outlives its own close callback.
+                DispatchQueue.main.async { self?.welcome = nil }
+            }
+        )
+        welcome = controller
+        controller.open()
     }
 
     @objc private func togglePopover() {
