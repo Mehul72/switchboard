@@ -135,7 +135,6 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         store.search = ""
         if popover.isShown {
             popover.contentViewController?.view.window?.makeKey()
-            NSApp.activate(ignoringOtherApps: true)
             return
         }
 
@@ -170,7 +169,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.contentSize = size
 
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        NSApp.activate(ignoringOtherApps: true)
+        // The popover manages activation. Explicitly activating the app over a
+        // full-screen Space makes it resign active again and closes this transient popover.
         popover.contentViewController?.view.window?.makeKey()
     }
 
@@ -240,7 +240,6 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         let generation = restartProtectionGeneration
         store.applyPendingRestarts()
 
-        NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
 
         let release = DispatchWorkItem { [weak self] in

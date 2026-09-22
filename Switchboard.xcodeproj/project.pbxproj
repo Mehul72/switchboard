@@ -17,6 +17,8 @@
 		301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */; };
 		46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */; };
 		4D63E359B5595FFF4E6D6937 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
+		4DBC964A5A2EC8E943B7BC86 /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
+		5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
 		7714C916CD8F3D6033084CE3 /* SwitcherInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
@@ -95,8 +97,6 @@
 		F91000000000000000000003 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000003 /* WelcomeView.swift */; };
 		F92000000000000000000001 /* WelcomeGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000001 /* WelcomeGate.swift */; };
 		F92000000000000000000002 /* WelcomeGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000002 /* WelcomeGateTests.swift */; };
-		4DBC964A5A2EC8E943B7BC86 /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
-		5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +110,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandTabHotKeys.swift; sourceTree = "<group>"; };
 		1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchboardApp.swift; sourceTree = "<group>"; };
 		2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcher.swift; sourceTree = "<group>"; };
 		30E077C2A969EEAFE301C60E /* TweakCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakCatalog.swift; sourceTree = "<group>"; };
@@ -175,7 +176,6 @@
 		F90000000000000000000001 /* WelcomeGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGate.swift; sourceTree = "<group>"; };
 		F90000000000000000000002 /* WelcomeGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGateTests.swift; sourceTree = "<group>"; };
 		F90000000000000000000003 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
-		07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandTabHotKeys.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -526,7 +526,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -569,7 +569,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 37;
+				CURRENT_PROJECT_VERSION = 39;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -633,7 +633,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -676,7 +676,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 37;
+				CURRENT_PROJECT_VERSION = 39;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

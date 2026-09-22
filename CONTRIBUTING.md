@@ -52,6 +52,10 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   Check that private clipboard content stays excluded and that JPEG/HEIC
   screenshots can be pasted into apps that accept files.
 - From another app, test the four Switchboard shortcuts, including holding a key.
+  Repeat with that app in a full-screen Space and its menu bar hidden. The panel
+  must stay open on that Space, accept typing in search, and close with Escape,
+  an outside click, or the panel shortcut. Open clipboard history while the
+  panel is already showing and confirm it stays open with keyboard focus.
   Record a new binding, cancel with Escape or Tab, disable and restore it,
   and relaunch to check persistence. Try duplicates and occupied combinations.
   Check recording with VoiceOver and a different keyboard layout. Confirm
