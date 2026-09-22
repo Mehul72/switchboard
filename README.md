@@ -32,6 +32,8 @@ cause problems with permissions and Launch at Login.
   text, and toggle keep-awake without leaving the keyboard.
 - **Window snapping:** move windows into halves, quarters, thirds, or onto
   another display with keyboard shortcuts, or drag them onto a grid.
+- **Window switcher:** preview and switch between individual windows, including
+  multiple windows of the same app, with Command-Tab.
 
 ## Using Switchboard
 
@@ -50,8 +52,8 @@ changed them. Shortcut bindings are managed separately.
 
 ### Global shortcuts
 
-These shortcuts work from any app while Switchboard is running. Actions run
-once when you release the shortcut key.
+These shortcuts work from any app while Switchboard is running. The four
+actions below run once when you release the shortcut key.
 
 | Action | Default shortcut |
 | --- | --- |
@@ -113,12 +115,77 @@ cannot be resized keep their size and move against the matching screen edge.
 Full-screen windows and Switchboard's own windows are not moved; the Mac beeps
 instead.
 
+### Window switcher
+
+Switch on **Window switcher** in Everyday and allow **Accessibility** access.
+The feature is off by default. When enabled, it replaces the macOS Command-Tab
+switcher with individual windows, so two Finder windows or two browser windows
+get separate cards.
+
+| Action | Default shortcut |
+| --- | --- |
+| Next window across apps | Command-Tab |
+| Previous window across apps | Command-Shift-Tab |
+| Next window of the current app | Option-` |
+| Previous window of the current app | Option-Shift-` |
+
+Keep Command held and press Tab again to cycle. Release Command to focus the
+selected window. For the current-app shortcuts, hold and release Option instead.
+While the preview panel is open, Tab, Shift-Tab,
+Left and Right move the selection; Return confirms and Escape cancels. Moving
+the pointer over a card selects it, and clicking a card switches to it.
+Cancelling leaves your original window focused. The panel appears on the
+display containing the pointer and scrolls when there are more windows than fit.
+
+Apps that are still running with all their windows closed appear after the
+window cards under **Apps without windows**, most recently used first, with an
+icon and no preview. Choosing one brings the app forward without opening a
+window, like the macOS switcher. The current-app shortcuts list windows only.
+
+Press **Q** while the panel is open to quit the selected card's app, as with
+the macOS switcher. The app may still ask about unsaved changes. Its cards
+disappear once it quits and the switcher stays open. Holding Q quits only one
+app, and Finder is never quit.
+
+Choose **Enable Previews** in the switcher to allow **Screen Recording**.
+Without it, the same controls work with app icons and window titles. Previews
+cover windows on other Spaces, full-screen apps, minimized windows and hidden
+apps. Each card is captured when the open panel first shows it, selected card
+first, so a quick press and release captures nothing. Small thumbnails stay in
+memory so the next opening shows them at once, and are refreshed when older
+than two seconds. They are never written to disk. Thumbnails of closed windows
+are dropped the next time the switcher opens, and all of them are discarded
+when the Mac sleeps, another user takes over the screen, the feature is
+switched off, or the switcher finds Screen Recording turned off. A window macOS
+will not capture keeps its app icon. macOS may require relaunching Switchboard
+after granting access.
+
+Minimized windows are restored when selected, and hidden apps are revealed.
+Windows on other Spaces, including full-screen apps, are listed, and choosing
+one moves to its Space. Cards follow the order you last used each window, on
+any Space, so Command-Tab goes back to the window you came from. Windows not
+used since Switchboard started follow, in stacking order and by when their app
+was last active. Only windows exposed by macOS Accessibility are
+listed, and Switchboard's own windows are excluded. While the switcher is on,
+Switchboard notes each Space's windows as you visit it, so a second full-screen
+window of the same app stays listed. A window that has not been shown since
+Switchboard started, such as one macOS restored into full screen at login, can
+be missing unless it is its app's main window; showing its Space once fixes that.
+
+All four bindings can be changed in **settings gear > Keyboard Shortcuts**.
+With a custom shortcut, hold its Control, Option or Command modifiers and
+release any one to switch. Shift only affects direction. Turning the feature
+off releases its shortcuts and closes any open switcher. Native Command-Tab
+returns when the feature is disabled or Switchboard quits. Existing saved
+Option-Tab defaults migrate to Command-Tab once; custom and disabled bindings stay as set.
+
 ### Customising shortcuts
 
 Open **settings gear > Keyboard Shortcuts** to customise a binding. Click its
 shortcut button and press a combination containing Control or Option, or
-Command with another modifier. Use letters, numbers, punctuation, arrows,
-Return, Delete, Space, or F1 to F12. A global shortcut takes the combination
+Command with another modifier. Window switcher actions also accept Command-Tab.
+Use letters, numbers, punctuation, arrows,
+Tab, Return, Delete, Space, or F1 to F12. A global shortcut takes the combination
 away from every app: Option plus a letter stops typing characters such as å, and Control plus a
 letter can replace text editing keys such as Control-A. Bindings follow physical key positions; labels reflect the keyboard layout.
 Press **Escape** to cancel, **Delete** to disable, or **Tab** to leave recording.
@@ -132,7 +199,8 @@ the app using it and choose **Retry Unavailable Shortcuts**, or record another.
 
 Global shortcut registration needs no additional permission. Screen text
 capture still needs Screen Recording access, and window snapping needs
-Accessibility.
+Accessibility. The window switcher also needs Accessibility, with optional
+Screen Recording for previews.
 
 ### Permissions
 
@@ -140,8 +208,9 @@ macOS asks for access when you first use a feature that needs it.
 
 | Feature | Permission |
 | --- | --- |
-| Traditional mouse scrolling, red-button quit, and window snapping | Accessibility |
+| Traditional mouse scrolling, red-button quit, window snapping and switching | Accessibility |
 | Copy text from the screen | Screen Recording |
+| Window previews (optional) | Screen Recording |
 | Per-app audio controls | System Audio Recording |
 
 If a toggle stays off while you grant access, enable it again afterward.

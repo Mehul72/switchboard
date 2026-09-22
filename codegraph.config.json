@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "languages": [],
+  "ignore": [],
+  "maxFileBytes": 1500000,
+  "defaultBudget": 1200,
+  "maxHeuristicCandidates": 4,
+  "links": [],
+  "repo": "switchboard"
+}

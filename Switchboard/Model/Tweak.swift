@@ -99,6 +99,7 @@ enum TweakBehavior {
     case mouseScrollDirection
     case quitOnClose
     case windowSnapping
+    case windowSwitching
     case regionOCR
     case translateCaptures
 }

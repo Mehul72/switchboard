@@ -10,6 +10,7 @@
 		063B50456E3C47AD1182E762 /* UndoLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DAD93FDFB9505014881B70 /* UndoLedger.swift */; };
 		15F083EC0B9DB0EE44D9585C /* Tweak.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BACE0936C396083BBBE9867 /* Tweak.swift */; };
 		1793CCE3A2BB273424433034 /* PreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */; };
+		1C173F15B732BB0F0B2BB6A5 /* WindowSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */; };
 		23C39A08D796B4517CBEB9A6 /* TweakStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D18FDF62CAF03392D61CAF /* TweakStore.swift */; };
 		28E4DDC1EE8BD894B772EDA7 /* CategoryNav.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EA744DB07D578E6A2066FC /* CategoryNav.swift */; };
 		2ACE5320E3A5CF28D5A5A15E /* RestartCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */; };
@@ -17,7 +18,10 @@
 		46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */; };
 		4D63E359B5595FFF4E6D6937 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
+		7714C916CD8F3D6033084CE3 /* SwitcherInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
+		9129C38BF6DE472138BAE216 /* SwitcherInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */; };
+		9C231EED807985BFA42B6505 /* WindowSwitchingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23BFDEAA6A9E9E172BFCB28 /* WindowSwitchingTests.swift */; };
 		9D1C7530247EDF3FF722473D /* ApplyBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351B9788911C1DDE92BDB476 /* ApplyBar.swift */; };
 		A10000000000000000000002 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		A10000000000000000000004 /* ScrollDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* ScrollDirection.swift */; };
@@ -49,6 +53,7 @@
 		A30000000000000000000001 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		A30000000000000000000002 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
+		B3127D0373858B0D5513464D /* SwitcherWindows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78E765882650F906DC78EB3 /* SwitcherWindows.swift */; };
 		B5000000000000000000001E /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001E /* SystemMonitor.swift */; };
 		B5000000000000000000001F /* SystemMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001F /* SystemMonitorView.swift */; };
 		B50000000000000000000020 /* SystemMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000020 /* SystemMonitorTests.swift */; };
@@ -56,11 +61,16 @@
 		B50000000000000000000030 /* AudioRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000030 /* AudioRenderTests.swift */; };
 		B50000000000000000000031 /* AudioRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000031 /* AudioRoutingTests.swift */; };
 		B50000000000000000000040 /* AwakeStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40000000000000000000040 /* AwakeStatusTests.swift */; };
+		B85D611FDC874C198231DB43 /* SwitcherPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F353935AA0655F9FC461E885 /* SwitcherPreviews.swift */; };
+		BEF43D4AE96D799DE0963FA4 /* WindowSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */; };
+		C4B7E6C9171095961F80CAAF /* WindowSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */; };
 		C60000000000000000000001 /* OutputDeviceVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60000000000000000000004 /* OutputDeviceVolume.swift */; };
 		C60000000000000000000002 /* OutputDeviceVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60000000000000000000004 /* OutputDeviceVolume.swift */; };
 		C60000000000000000000003 /* OutputDeviceVolumeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60000000000000000000005 /* OutputDeviceVolumeTests.swift */; };
 		CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E077C2A969EEAFE301C60E /* TweakCatalog.swift */; };
+		CB7FE7587EEF473CCE0BF50A /* WindowSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */; };
 		CD5993B1D118DDAB76607221 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */; };
+		D641C2D0E147B6A06BC29C68 /* SwitcherPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F353935AA0655F9FC461E885 /* SwitcherPreviews.swift */; };
 		D71000000000000000000001 /* GlobalShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000001 /* GlobalShortcut.swift */; };
 		D71000000000000000000002 /* GlobalShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000002 /* GlobalShortcuts.swift */; };
 		D71000000000000000000003 /* HotKeyRegistrar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000003 /* HotKeyRegistrar.swift */; };
@@ -71,6 +81,9 @@
 		D72000000000000000000004 /* GlobalShortcutsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000004 /* GlobalShortcutsTests.swift */; };
 		D72000000000000000000005 /* ShortcutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000005 /* ShortcutSettingsView.swift */; };
 		D72000000000000000000006 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF49656E31E00F535E0CB517 /* Theme.swift */; };
+		D7A1F96EDB96214533303D76 /* WindowSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */; };
+		D9457089A30998F96907BDB2 /* SwitcherWindows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78E765882650F906DC78EB3 /* SwitcherWindows.swift */; };
+		DBACD04104557CF48B39CBE2 /* WindowSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */; };
 		E81000000000000000000001 /* WindowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000001 /* WindowLayout.swift */; };
 		E81000000000000000000003 /* WindowSnapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000003 /* WindowSnapper.swift */; };
 		E81000000000000000000004 /* WindowDragGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000004 /* WindowDragGrid.swift */; };
@@ -82,6 +95,8 @@
 		F91000000000000000000003 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000003 /* WelcomeView.swift */; };
 		F92000000000000000000001 /* WelcomeGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000001 /* WelcomeGate.swift */; };
 		F92000000000000000000002 /* WelcomeGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000002 /* WelcomeGateTests.swift */; };
+		4DBC964A5A2EC8E943B7BC86 /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
+		5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,11 +111,14 @@
 
 /* Begin PBXFileReference section */
 		1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchboardApp.swift; sourceTree = "<group>"; };
+		2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcher.swift; sourceTree = "<group>"; };
 		30E077C2A969EEAFE301C60E /* TweakCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakCatalog.swift; sourceTree = "<group>"; };
 		351B9788911C1DDE92BDB476 /* ApplyBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplyBar.swift; sourceTree = "<group>"; };
 		4004C53F482006BE156FAA88 /* Switchboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Switchboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		456B0B01FA009470CEEE8A25 /* TweakRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakRow.swift; sourceTree = "<group>"; };
 		49EA744DB07D578E6A2066FC /* CategoryNav.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryNav.swift; sourceTree = "<group>"; };
+		4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitching.swift; sourceTree = "<group>"; };
+		61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherInput.swift; sourceTree = "<group>"; };
 		7587F57B35741679DAF0A5F0 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		88D18FDF62CAF03392D61CAF /* TweakStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakStore.swift; sourceTree = "<group>"; };
 		88DAD93FDFB9505014881B70 /* UndoLedger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoLedger.swift; sourceTree = "<group>"; };
@@ -126,6 +144,7 @@
 		A2000000000000000000000C /* PrefValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefValueTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000013 /* CloseWatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloseWatchTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* CaptureDestinationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureDestinationTests.swift; sourceTree = "<group>"; };
+		A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcherView.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B4000000000000000000001E /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		B4000000000000000000001F /* SystemMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorView.swift; sourceTree = "<group>"; };
@@ -139,6 +158,8 @@
 		BF49656E31E00F535E0CB517 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C60000000000000000000004 /* OutputDeviceVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputDeviceVolume.swift; sourceTree = "<group>"; };
 		C60000000000000000000005 /* OutputDeviceVolumeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputDeviceVolumeTests.swift; sourceTree = "<group>"; };
+		C78E765882650F906DC78EB3 /* SwitcherWindows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherWindows.swift; sourceTree = "<group>"; };
+		D23BFDEAA6A9E9E172BFCB28 /* WindowSwitchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitchingTests.swift; sourceTree = "<group>"; };
 		D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		D70000000000000000000001 /* GlobalShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcut.swift; sourceTree = "<group>"; };
 		D70000000000000000000002 /* GlobalShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcuts.swift; sourceTree = "<group>"; };
@@ -149,10 +170,12 @@
 		E80000000000000000000002 /* WindowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutTests.swift; sourceTree = "<group>"; };
 		E80000000000000000000003 /* WindowSnapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSnapper.swift; sourceTree = "<group>"; };
 		E80000000000000000000004 /* WindowDragGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowDragGrid.swift; sourceTree = "<group>"; };
+		F353935AA0655F9FC461E885 /* SwitcherPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherPreviews.swift; sourceTree = "<group>"; };
 		F5AEA8ABFB9E4FB7596DA695 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F90000000000000000000001 /* WelcomeGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGate.swift; sourceTree = "<group>"; };
 		F90000000000000000000002 /* WelcomeGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGateTests.swift; sourceTree = "<group>"; };
 		F90000000000000000000003 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandTabHotKeys.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -173,6 +196,7 @@
 		2B624AED26B69B7A9D488540 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */,
 				D70000000000000000000001 /* GlobalShortcut.swift */,
 				E80000000000000000000001 /* WindowLayout.swift */,
 				8BACE0936C396083BBBE9867 /* Tweak.swift */,
@@ -194,6 +218,7 @@
 		A20000000000000000000001 /* SwitchboardTests */ = {
 			isa = PBXGroup;
 			children = (
+				D23BFDEAA6A9E9E172BFCB28 /* WindowSwitchingTests.swift */,
 				D70000000000000000000004 /* GlobalShortcutsTests.swift */,
 				E80000000000000000000002 /* WindowLayoutTests.swift */,
 				F90000000000000000000002 /* WelcomeGateTests.swift */,
@@ -223,6 +248,7 @@
 		A49570240DADA4DBFD79C923 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */,
 				D70000000000000000000005 /* ShortcutSettingsView.swift */,
 				B4000000000000000000001F /* SystemMonitorView.swift */,
 				351B9788911C1DDE92BDB476 /* ApplyBar.swift */,
@@ -250,6 +276,11 @@
 		EF2BE610A650242C0C4EFB43 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */,
+				2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */,
+				F353935AA0655F9FC461E885 /* SwitcherPreviews.swift */,
+				61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */,
+				C78E765882650F906DC78EB3 /* SwitcherWindows.swift */,
 				D70000000000000000000003 /* HotKeyRegistrar.swift */,
 				D70000000000000000000002 /* GlobalShortcuts.swift */,
 				E80000000000000000000003 /* WindowSnapper.swift */,
@@ -374,6 +405,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */,
+				CB7FE7587EEF473CCE0BF50A /* WindowSwitcherView.swift in Sources */,
+				C4B7E6C9171095961F80CAAF /* WindowSwitcher.swift in Sources */,
+				B85D611FDC874C198231DB43 /* SwitcherPreviews.swift in Sources */,
+				D9457089A30998F96907BDB2 /* SwitcherWindows.swift in Sources */,
+				7714C916CD8F3D6033084CE3 /* SwitcherInput.swift in Sources */,
+				9C231EED807985BFA42B6505 /* WindowSwitchingTests.swift in Sources */,
+				1C173F15B732BB0F0B2BB6A5 /* WindowSwitching.swift in Sources */,
 				D72000000000000000000006 /* Theme.swift in Sources */,
 				D72000000000000000000005 /* ShortcutSettingsView.swift in Sources */,
 				D72000000000000000000004 /* GlobalShortcutsTests.swift in Sources */,
@@ -414,6 +453,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DBC964A5A2EC8E943B7BC86 /* CommandTabHotKeys.swift in Sources */,
+				DBACD04104557CF48B39CBE2 /* WindowSwitcherView.swift in Sources */,
+				D7A1F96EDB96214533303D76 /* WindowSwitcher.swift in Sources */,
+				D641C2D0E147B6A06BC29C68 /* SwitcherPreviews.swift in Sources */,
+				9129C38BF6DE472138BAE216 /* SwitcherInput.swift in Sources */,
+				B3127D0373858B0D5513464D /* SwitcherWindows.swift in Sources */,
+				BEF43D4AE96D799DE0963FA4 /* WindowSwitching.swift in Sources */,
 				D71000000000000000000005 /* ShortcutSettingsView.swift in Sources */,
 				D71000000000000000000003 /* HotKeyRegistrar.swift in Sources */,
 				D71000000000000000000002 /* GlobalShortcuts.swift in Sources */,
@@ -480,7 +526,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.9;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -523,7 +569,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 37;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -587,7 +633,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.9;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -630,7 +676,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 37;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

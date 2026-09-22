@@ -7,8 +7,8 @@ struct PopoverBackground: View {
     }
 }
 
-// SwiftUI follows the system's auto-hiding scrollbar preference. This panel
-// needs a persistent position cue when its settings extend below the fold.
+// The scroll bar style itself comes from PreferenceStore.keepScrollBarsVisible,
+// so SwiftUI sizes the content for it; this only tunes the bar's appearance.
 struct PopoverScrollStyle: NSViewRepresentable {
     func makeNSView(context: Context) -> ScrollAnchor { ScrollAnchor() }
 
@@ -27,7 +27,6 @@ struct PopoverScrollStyle: NSViewRepresentable {
                 guard let scrollView = self?.enclosingScrollView else { return }
                 scrollView.hasVerticalScroller = true
                 scrollView.autohidesScrollers = true
-                scrollView.scrollerStyle = .legacy
                 scrollView.verticalScroller?.controlSize = .small
                 scrollView.drawsBackground = false
             }

@@ -11,6 +11,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let monitor = SystemMonitor()
     private let shortcuts = GlobalShortcuts(registrar: HotKeyRegistrar())
     private let snapper = WindowSnapper()
+    private let switcher = WindowSwitcher()
     private lazy var dragGrid = WindowDragGrid(snapper: snapper)
     private var shortcutSettings: ShortcutSettingsController?
     private var welcome: WelcomeWindowController?
@@ -26,6 +27,23 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     override init() {
         super.init()
         shortcuts.onAction = { [weak self] action in self?.performShortcut(action) }
+        switcher.onBegin = { [weak self] in self?.popover.performClose(nil) }
+        switcher.isRegisteredShortcut = { [weak self] shortcut in self?.shortcuts.isRegistered(shortcut) ?? false }
+        switcher.onError = { [weak self] message in
+            self?.store.notice = StoreNotice(kind: .error, message: message)
+            self?.showPopover(category: .everyday)
+        }
+        shortcuts.setSwitcherActionsEnabled(store.isWindowSwitchingActive)
+        switcher.setEnabled(store.isWindowSwitchingActive)
+        store.onWindowSwitchingChange = { [weak self] active in
+            guard let self else { return }
+            self.switcher.setEnabled(active)
+            self.shortcuts.setSwitcherActionsEnabled(active)
+            if active, ShortcutAction.allCases.contains(where: { $0.group == .windowSwitcher && self.shortcuts.errors[$0] != nil }) {
+                self.store.notice = StoreNotice(kind: .error,
+                                                message: "Some switcher shortcuts are unavailable. Review them in Keyboard Shortcuts.")
+            }
+        }
         shortcuts.setWindowActionsEnabled(store.isWindowSnappingActive)
         setDragGridActive(store.isWindowSnappingActive)
         store.onWindowSnappingChange = { [weak self] active in
@@ -53,7 +71,9 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.delegate = self
 
         store.onScreenSelectionBegan = { [weak self] in
-            guard let self, self.popover.isShown else { return }
+            guard let self else { return }
+            self.switcher.cancel()
+            guard self.popover.isShown else { return }
             self.selectionWasShowingPopover = true
             // The crosshair is already up, so the panel has to go at once --
             // the usual fade leaves it sitting over the thing being selected.
@@ -110,6 +130,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private func showPopover(category: Category? = nil) {
         guard !store.isCapturingText, let button = item.button else { return }
+        switcher.cancel()
         if let category { store.category = category }
         store.search = ""
         if popover.isShown {
@@ -155,6 +176,11 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private func performShortcut(_ action: ShortcutAction) {
         guard !store.isCapturingText else { return }
+        if let mode = action.switcherMode, let binding = shortcuts.bindings[action] {
+            switcher.advance(sameAppOnly: mode.sameApp, backwards: mode.backwards, modifiers: binding.modifiers)
+            return
+        }
+        switcher.cancel()
         switch action {
         case .togglePanel:
             togglePopover()
@@ -199,6 +225,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     private func showShortcutSettings() {
+        switcher.cancel()
         popover.performClose(nil)
         if shortcutSettings == nil {
             shortcutSettings = ShortcutSettingsController(shortcuts: shortcuts)

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "command": "codegraph",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

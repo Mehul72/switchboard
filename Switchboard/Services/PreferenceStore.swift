@@ -17,6 +17,17 @@ enum PreferenceStore {
         return CFPreferencesCopyAppValue(key as CFString, appID(for: domain))
     }
 
+    /// The panel keeps a visible scroll bar as a cue that settings continue below
+    /// the fold. Setting it for this process, instead of forcing a style onto one
+    /// scroll view, lets SwiftUI lay content out beside the bar; the forced style
+    /// left content wider than its view, so it scrolled sideways. The user's own
+    /// setting is untouched, and tweaks still read it.
+    static func keepScrollBarsVisible(in defaults: UserDefaults = .standard) {
+        var arguments = defaults.volatileDomain(forName: UserDefaults.argumentDomain)
+        arguments["AppleShowScrollBars"] = "Always"
+        defaults.setVolatileDomain(arguments, forName: UserDefaults.argumentDomain)
+    }
+
     /// Order matters: the first key holding a value wins, the way the system
     /// prefers a current key over the legacy one it replaced.
     static func effectiveValue(domain: String, keys: [String]) -> Any? {

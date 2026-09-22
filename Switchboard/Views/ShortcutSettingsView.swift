@@ -98,7 +98,7 @@ private struct ShortcutSettingsView: View {
                 }
             }
             Text(shortcuts.recordingAction == nil
-                 ? "Shortcuts work while Switchboard is running. Screen text capture requires Screen Recording access, and window snapping requires Accessibility."
+                 ? "Shortcuts work while Switchboard is running. Window snapping and switching need Accessibility. Screen Recording enables text capture and window previews."
                  : "Press Escape to cancel, Delete to disable, or Tab to leave the recorder.")
                 .font(.rowSubtitle)
                 .foregroundStyle(Theme.secondary)
@@ -135,6 +135,14 @@ private struct ShortcutSettingsView: View {
             // Bindings can be edited while snapping is off; say why they do nothing yet.
             if group == .windows, !shortcuts.windowActionsEnabled {
                 Text("Switch on “Snap windows” in Everyday to use these.")
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if group == .windowSwitcher {
+                Text(shortcuts.switcherActionsEnabled
+                     ? "Command-Tab can replace the macOS switcher here. Hold the shortcut's modifier to browse, then release it to switch."
+                     : "Switch on “Window switcher” in Everyday to replace Command-Tab with window previews.")
                     .font(.rowSubtitle)
                     .foregroundStyle(Theme.secondary)
                     .fixedSize(horizontal: false, vertical: true)

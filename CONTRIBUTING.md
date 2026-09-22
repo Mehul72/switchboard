@@ -67,6 +67,25 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   Control-Option-Left and Control-drags reach apps again.
 - Compare System readings with Activity Monitor. Close the panel and reopen it
   to check that monitoring resumes.
+- Enable Window switcher and open two windows of the same app plus one of
+  another app. Hold Command-Tab, reverse with Shift, use Left/Right and Return,
+  cancel with Escape or an outside click, and choose a card with the mouse.
+  Verify the exact selected window gains keyboard focus. Repeat with Option-`
+  for just the current app, a quick press/release, minimized and hidden windows,
+  a closed window, and an unresponsive app. From a desktop, switch to a
+  full-screen app and a window on another Space, then Command-Tab back from
+  full screen: the previous app comes next. Hover cards, press Q on a disposable
+  app (one with unsaved changes too), hold Q, and try Finder. With previews on,
+  full-screen, other-Space, minimized and hidden windows show real previews,
+  and reopening at once shows them without flicker. Close every window of an
+  app without quitting it: it appears under Apps without windows, Tab reaches
+  it after the windows, choosing it brings it forward, and Q quits it. Grant/revoke Screen
+  Recording and Accessibility, check icon fallbacks, two displays, light/dark
+  appearance, VoiceOver, many windows and a short display. Remap both directions,
+  record a currently registered binding, disable the feature during a session,
+  restore settings, and relaunch to confirm persistence and shortcut cleanup.
+  The Dock switcher must stay hidden while Switchboard owns Command-Tab and
+  return after disabling the feature, quitting, or force quitting Switchboard.
 
 Record failures in an issue with the macOS version, hardware, and reproduction
 steps. Automated tests do not replace permission, hardware, or accessibility

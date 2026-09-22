@@ -1,3 +1,4 @@
+import Carbon
 import Combine
 import Foundation
 import OSLog
@@ -10,6 +11,7 @@ final class GlobalShortcuts: ObservableObject {
     /// Window bindings take common Control-Option combinations from every
     /// app, so they are only registered while window snapping is switched on.
     @Published private(set) var windowActionsEnabled = false
+    @Published private(set) var switcherActionsEnabled = false
     var onAction: ((ShortcutAction) -> Void)?
 
     private struct Press {
@@ -26,6 +28,7 @@ final class GlobalShortcuts: ObservableObject {
     init(defaults: UserDefaults = .standard, registrar: HotKeyRegistering) {
         self.defaults = defaults
         self.registrar = registrar
+        migrateCommandTabDefaults()
         for action in ShortcutAction.allCases {
             let key = Self.preferenceKey(for: action)
             guard let stored = defaults.object(forKey: key) else {
@@ -37,7 +40,7 @@ final class GlobalShortcuts: ObservableObject {
                     throw CocoaError(.coderReadCorrupt)
                 }
                 let binding = try JSONDecoder().decode(GlobalShortcut?.self, from: data)
-                if let message = binding?.validationError {
+                if let message = binding?.validationError(for: action) {
                     errors[action] = message
                 } else {
                     bindings[action] = binding
@@ -52,6 +55,25 @@ final class GlobalShortcuts: ObservableObject {
 
     static func preferenceKey(for action: ShortcutAction) -> String {
         "GlobalShortcut.\(action.rawValue)"
+    }
+
+    private func migrateCommandTabDefaults() {
+        let marker = "WindowSwitcherCommandTabDefaultsMigrated"
+        guard !defaults.bool(forKey: marker) else { return }
+        for action in [ShortcutAction.switchWindow, .switchWindowBack] {
+            let key = Self.preferenceKey(for: action)
+            guard let data = defaults.data(forKey: key) else { continue }
+            do {
+                let saved = try JSONDecoder().decode(GlobalShortcut?.self, from: data)
+                let old = GlobalShortcut(keyCode: UInt32(kVK_Tab),
+                                         modifiers: UInt32(optionKey | (action == .switchWindowBack ? shiftKey : 0)))
+                guard saved == old else { continue }
+                defaults.set(try JSONEncoder().encode(action.defaultShortcut), forKey: key)
+            } catch {
+                logger.info("Could not migrate \(action.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        defaults.set(true, forKey: marker)
     }
 
     func beginRecording(_ action: ShortcutAction) {
@@ -73,7 +95,7 @@ final class GlobalShortcuts: ObservableObject {
     @discardableResult
     func set(_ shortcut: GlobalShortcut?, for action: ShortcutAction) -> Bool {
         if let shortcut {
-            if let error = shortcut.validationError {
+            if let error = shortcut.validationError(for: action) {
                 errors[action] = error
                 return false
             }
@@ -107,7 +129,18 @@ final class GlobalShortcuts: ObservableObject {
             activateBindings()
             return
         }
-        for action in ShortcutAction.allCases where action.group == .windows {
+        deactivateBindings(in: .windows)
+    }
+
+    func setSwitcherActionsEnabled(_ enabled: Bool) {
+        guard enabled != switcherActionsEnabled else { return }
+        switcherActionsEnabled = enabled
+        if enabled { activateBindings() }
+        else { deactivateBindings(in: .windowSwitcher) }
+    }
+
+    private func deactivateBindings(in group: ShortcutAction.Group) {
+        for action in ShortcutAction.allCases where action.group == group {
             // Unreadable saved bindings keep their message; registration
             // failures no longer apply once nothing is being registered.
             if bindings[action] != nil { errors[action] = nil }
@@ -126,8 +159,16 @@ final class GlobalShortcuts: ObservableObject {
         activateBindings()
     }
 
+    func isRegistered(_ shortcut: GlobalShortcut) -> Bool {
+        registrations.keys.contains { isLive($0) && bindings[$0] == shortcut }
+    }
+
     private func isLive(_ action: ShortcutAction) -> Bool {
-        action.group == .switchboard || windowActionsEnabled
+        switch action.group {
+        case .switchboard: return true
+        case .windows: return windowActionsEnabled
+        case .windowSwitcher: return switcherActionsEnabled
+        }
     }
 
     /// Registers the replacement before releasing the old binding, so a
@@ -172,8 +213,14 @@ final class GlobalShortcuts: ObservableObject {
     }
 
     private func receive(id: UInt32, pressed: Bool) {
-        guard let action = registrations.first(where: { $0.value == id })?.key else { return }
+        guard let action = registrations.first(where: { $0.value == id })?.key, isLive(action) else { return }
         if pressed {
+            // The switcher opens while the modifier is held. Recording still
+            // uses the release path so these keys cannot open a panel mid-edit.
+            if action.group == .windowSwitcher, recordingAction == nil {
+                onAction?(action)
+                return
+            }
             if presses[id] == nil { presses[id] = Press(recordingAction: recordingAction) }
             return
         }

@@ -119,6 +119,7 @@ final class GlobalShortcutsTests: XCTestCase {
     func testEveryActionDispatchesToItsOwnHandler() {
         let shortcuts = makeShortcuts()
         shortcuts.setWindowActionsEnabled(true)
+        shortcuts.setSwitcherActionsEnabled(true)
         var actions: [ShortcutAction] = []
         shortcuts.onAction = { actions.append($0) }
         for action in ShortcutAction.allCases {
@@ -141,9 +142,9 @@ final class GlobalShortcutsTests: XCTestCase {
         let shortcuts = makeShortcuts()
         XCTAssertEqual(registrar.bindings.count, 4)
         shortcuts.setWindowActionsEnabled(true)
-        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count)
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.filter { $0.group != .windowSwitcher }.count)
         shortcuts.setWindowActionsEnabled(true)
-        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count)
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.filter { $0.group != .windowSwitcher }.count)
         XCTAssertTrue(shortcuts.errors.isEmpty)
 
         shortcuts.setWindowActionsEnabled(false)
@@ -190,7 +191,7 @@ final class GlobalShortcutsTests: XCTestCase {
         let shortcuts = makeShortcuts()
         shortcuts.setWindowActionsEnabled(true)
         XCTAssertNotNil(shortcuts.errors[.snapStepLeft])
-        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count - 1)
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.filter { $0.group != .windowSwitcher }.count - 1)
         shortcuts.setWindowActionsEnabled(false)
         XCTAssertTrue(shortcuts.errors.isEmpty)
     }
@@ -201,6 +202,146 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertEqual(GlobalShortcut(keyCode: UInt32(kVK_Delete), modifiers: modifiers).label, "⌃⌥Delete")
         XCTAssertEqual(GlobalShortcut(keyCode: UInt32(kVK_Return), modifiers: modifiers).spokenLabel,
                        "Control Option Return")
+    }
+
+    func testSwitcherIsOptInAndIndependentOfSnapping() {
+        let shortcuts = makeShortcuts()
+        XCTAssertFalse(shortcuts.switcherActionsEnabled)
+        shortcuts.setSwitcherActionsEnabled(true)
+        shortcuts.setSwitcherActionsEnabled(true)
+        XCTAssertEqual(registrar.bindings.count, 8)
+        shortcuts.setWindowActionsEnabled(true)
+        XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count)
+        shortcuts.setSwitcherActionsEnabled(false)
+        XCTAssertTrue(registrar.bindings.values.contains(ShortcutAction.snapMaximize.defaultShortcut))
+        XCTAssertFalse(registrar.bindings.values.contains(ShortcutAction.switchWindow.defaultShortcut))
+        shortcuts.retryUnavailable()
+        XCTAssertFalse(registrar.bindings.values.contains(ShortcutAction.switchWindow.defaultShortcut))
+    }
+
+    func testSwitcherDefaultsUseCommandTabAndOptionForSameApp() {
+        let shortcuts = makeShortcuts()
+        XCTAssertEqual(shortcuts.bindings[.switchWindow],
+                       GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(cmdKey)))
+        XCTAssertEqual(shortcuts.bindings[.switchWindowBack],
+                       GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(cmdKey | shiftKey)))
+        XCTAssertEqual(shortcuts.bindings[.switchAppWindow]?.modifiers, UInt32(optionKey))
+    }
+
+    func testSavedOptionTabDefaultsMigrateToCommandTab() throws {
+        for action in [ShortcutAction.switchWindow, .switchWindowBack] {
+            let modifiers = optionKey | (action == .switchWindowBack ? shiftKey : 0)
+            let old = GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(modifiers))
+            defaults.set(try JSONEncoder().encode(old), forKey: GlobalShortcuts.preferenceKey(for: action))
+        }
+        let shortcuts = makeShortcuts()
+        let relaunched = makeShortcuts()
+        for action in [ShortcutAction.switchWindow, .switchWindowBack] {
+            XCTAssertEqual(shortcuts.bindings[action], action.defaultShortcut)
+            XCTAssertEqual(relaunched.bindings[action], action.defaultShortcut)
+        }
+    }
+
+    func testMigrationPreservesCustomAndDisabledBindings() throws {
+        let custom = GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(controlKey))
+        defaults.set(try JSONEncoder().encode(custom),
+                     forKey: GlobalShortcuts.preferenceKey(for: .switchWindow))
+        defaults.set(try JSONEncoder().encode(Optional<GlobalShortcut>.none),
+                     forKey: GlobalShortcuts.preferenceKey(for: .switchWindowBack))
+        let shortcuts = makeShortcuts()
+        XCTAssertEqual(shortcuts.bindings[.switchWindow], custom)
+        XCTAssertNil(shortcuts.bindings[.switchWindowBack])
+        XCTAssertTrue(shortcuts.errors.isEmpty)
+    }
+
+    func testChoosingOptionTabAfterMigrationSurvivesRelaunch() {
+        let shortcuts = makeShortcuts()
+        let optionTab = GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(optionKey))
+        XCTAssertTrue(shortcuts.set(optionTab, for: .switchWindow))
+        XCTAssertEqual(makeShortcuts().bindings[.switchWindow], optionTab)
+    }
+
+    func testCommandTabCanOnlyBeAssignedToSwitcherActions() throws {
+        let shortcuts = makeShortcuts()
+        for action in [ShortcutAction.switchWindow, .switchWindowBack] {
+            let binding = action.defaultShortcut
+            XCTAssertTrue(binding.isCommandTab)
+            XCTAssertNil(binding.validationError(for: action))
+            XCTAssertNotNil(binding.validationError(for: .togglePanel))
+            XCTAssertTrue(shortcuts.set(nil, for: action))
+            XCTAssertFalse(shortcuts.set(binding, for: .togglePanel))
+        }
+        defaults.set(try JSONEncoder().encode(ShortcutAction.switchWindow.defaultShortcut),
+                     forKey: GlobalShortcuts.preferenceKey(for: .togglePanel))
+        let relaunched = makeShortcuts()
+        XCTAssertNil(relaunched.bindings[.togglePanel])
+        XCTAssertNotNil(relaunched.errors[.togglePanel])
+        XCTAssertFalse(GlobalShortcut(keyCode: UInt32(kVK_Tab),
+                                      modifiers: UInt32(cmdKey | optionKey)).isCommandTab)
+    }
+
+    func testSwitcherFiresOnPressIncludingRepeatButNeverOnRelease() {
+        let shortcuts = makeShortcuts()
+        shortcuts.setSwitcherActionsEnabled(true)
+        var actions: [ShortcutAction] = []
+        shortcuts.onAction = { actions.append($0) }
+        let key = id(for: .switchWindow)
+        registrar.onEvent?(key, true)
+        XCTAssertEqual(actions, [.switchWindow])
+        registrar.onEvent?(key, true)
+        registrar.onEvent?(key, false)
+        XCTAssertEqual(actions, [.switchWindow, .switchWindow])
+        shortcuts.setSwitcherActionsEnabled(false)
+        registrar.onEvent?(key, true)
+        XCTAssertEqual(actions.count, 2)
+    }
+
+    func testSwitcherShortcutCanBeRecordedWithoutOpeningTheSwitcher() {
+        let shortcuts = makeShortcuts()
+        shortcuts.setSwitcherActionsEnabled(true)
+        var actions: [ShortcutAction] = []
+        shortcuts.onAction = { actions.append($0) }
+        shortcuts.beginRecording(.switchWindow)
+        registrar.onEvent?(id(for: .switchWindow), true)
+        registrar.onEvent?(id(for: .switchWindow), false)
+        XCTAssertNil(shortcuts.recordingAction)
+        XCTAssertTrue(actions.isEmpty)
+        XCTAssertEqual(shortcuts.bindings[.switchWindow], ShortcutAction.switchWindow.defaultShortcut)
+    }
+
+    func testUnavailableSwitcherBindingDoesNotDisableOtherActions() {
+        registrar.rejected.insert(ShortcutAction.switchWindow.defaultShortcut)
+        let shortcuts = makeShortcuts()
+        shortcuts.setSwitcherActionsEnabled(true)
+        XCTAssertNotNil(shortcuts.errors[.switchWindow])
+        XCTAssertTrue(registrar.bindings.values.contains(ShortcutAction.switchAppWindow.defaultShortcut))
+        XCTAssertTrue(registrar.bindings.values.contains(ShortcutAction.clipboard.defaultShortcut))
+        shortcuts.setSwitcherActionsEnabled(false)
+        XCTAssertNil(shortcuts.errors[.switchWindow])
+    }
+
+    func testSwitcherBindingPersistsWhenEditedWhileOff() {
+        let shortcuts = makeShortcuts()
+        let replacement = GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(controlKey))
+        XCTAssertTrue(shortcuts.set(replacement, for: .switchWindow))
+        XCTAssertEqual(registrar.bindings.count, 4)
+        let freshRegistrar = TestHotKeyRegistrar()
+        let relaunched = GlobalShortcuts(defaults: defaults, registrar: freshRegistrar)
+        relaunched.setSwitcherActionsEnabled(true)
+        XCTAssertEqual(relaunched.bindings[.switchWindow], replacement)
+        XCTAssertTrue(freshRegistrar.bindings.values.contains(replacement))
+    }
+
+    func testInputRoutingOnlyPassesLiveSuccessfullyRegisteredBindings() {
+        registrar.rejected.insert(ShortcutAction.switchWindowBack.defaultShortcut)
+        let shortcuts = makeShortcuts()
+        XCTAssertFalse(shortcuts.isRegistered(ShortcutAction.switchWindow.defaultShortcut))
+        shortcuts.setSwitcherActionsEnabled(true)
+        XCTAssertTrue(shortcuts.isRegistered(ShortcutAction.switchWindow.defaultShortcut))
+        XCTAssertFalse(shortcuts.isRegistered(ShortcutAction.switchWindowBack.defaultShortcut))
+        XCTAssertTrue(shortcuts.isRegistered(ShortcutAction.clipboard.defaultShortcut))
+        shortcuts.setSwitcherActionsEnabled(false)
+        XCTAssertFalse(shortcuts.isRegistered(ShortcutAction.switchWindow.defaultShortcut))
     }
 
     func testDisabledAndReplacedBindingsCannotDispatchQueuedEvents() {
@@ -295,6 +436,58 @@ private final class TestHotKeyRegistrar: HotKeyRegistering {
 
 @MainActor
 final class NativeHotKeyTests: XCTestCase {
+    func testCommandTabDispatchesThroughItsHookAndStopsAfterRemoval() throws {
+        let hook = TestHotKeyRegistrar()
+        let registrar = HotKeyRegistrar(commandTab: hook)
+        try registrar.register(ShortcutAction.switchWindow.defaultShortcut, id: 801)
+        try registrar.register(ShortcutAction.switchWindowBack.defaultShortcut, id: 802)
+        var received: [UInt32] = []
+        registrar.onEvent = { id, pressed in if pressed { received.append(id) } }
+        hook.onEvent?(801, true)
+        hook.onEvent?(802, true)
+        XCTAssertEqual(received, [801, 802])
+        try registrar.unregister(id: 801)
+        hook.onEvent?(801, true)
+        XCTAssertEqual(received, [801, 802])
+        XCTAssertEqual(hook.bindings.count, 1)
+        try registrar.unregister(id: 802)
+        XCTAssertTrue(hook.bindings.isEmpty)
+    }
+
+    func testFailedCommandTabRegistrationCannotDispatch() {
+        let hook = TestHotKeyRegistrar()
+        hook.rejected.insert(ShortcutAction.switchWindow.defaultShortcut)
+        let registrar = HotKeyRegistrar(commandTab: hook)
+        XCTAssertThrowsError(try registrar.register(ShortcutAction.switchWindow.defaultShortcut, id: 803))
+        registrar.onEvent = { _, _ in XCTFail("A failed registration dispatched an action") }
+        hook.onEvent?(803, true)
+        XCTAssertTrue(hook.bindings.isEmpty)
+    }
+
+    func testDuplicateCommandTabIDDoesNotReplaceItsBinding() throws {
+        let hook = TestHotKeyRegistrar()
+        let registrar = HotKeyRegistrar(commandTab: hook)
+        try registrar.register(ShortcutAction.switchWindow.defaultShortcut, id: 804)
+        XCTAssertThrowsError(try registrar.register(ShortcutAction.switchWindowBack.defaultShortcut, id: 804))
+        XCTAssertEqual(hook.bindings[804], ShortcutAction.switchWindow.defaultShortcut)
+        try registrar.unregister(id: 804)
+    }
+
+    func testFailedCommandTabRemovalRetainsOwnershipUntilRetry() throws {
+        let hook = TestHotKeyRegistrar()
+        let registrar = HotKeyRegistrar(commandTab: hook)
+        try registrar.register(ShortcutAction.switchWindow.defaultShortcut, id: 805)
+        hook.failedRemoval = 805
+        XCTAssertThrowsError(try registrar.unregister(id: 805))
+        var received = false
+        registrar.onEvent = { _, _ in received = true }
+        hook.onEvent?(805, true)
+        XCTAssertTrue(received)
+        hook.failedRemoval = nil
+        try registrar.unregister(id: 805)
+        XCTAssertTrue(hook.bindings.isEmpty)
+    }
+
     func testNativeRegistrationDispatchAndCleanup() throws {
         let registrar = HotKeyRegistrar()
         let binding = GlobalShortcut(keyCode: 40, modifiers: UInt32(cmdKey | controlKey | optionKey | shiftKey))

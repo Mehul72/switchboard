@@ -3,17 +3,19 @@ import Carbon
 
 enum ShortcutAction: String, CaseIterable, Identifiable {
     case togglePanel, clipboard, captureText, toggleAwake
+    case switchWindow, switchWindowBack, switchAppWindow, switchAppWindowBack
     case snapStepLeft, snapStepRight, snapStepUp, snapStepDown
     case snapTopLeft, snapTopRight, snapBottomLeft, snapBottomRight
     case snapLeftThird, snapCenterThird, snapRightThird, snapLeftTwoThirds, snapRightTwoThirds
     case snapMaximize, snapCenter, snapNextDisplay, snapPreviousDisplay, snapRestore
 
     enum Group: CaseIterable {
-        case switchboard, windows
+        case switchboard, windowSwitcher, windows
 
         var title: String {
             switch self {
             case .switchboard: return "Switchboard"
+            case .windowSwitcher: return "Window switcher"
             case .windows: return "Windows"
             }
         }
@@ -21,11 +23,25 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var group: Group { windowCommand == nil ? .switchboard : .windows }
+    var group: Group {
+        if switcherMode != nil { return .windowSwitcher }
+        return windowCommand == nil ? .switchboard : .windows
+    }
+
+    var switcherMode: (sameApp: Bool, backwards: Bool)? {
+        switch self {
+        case .switchWindow: return (false, false)
+        case .switchWindowBack: return (false, true)
+        case .switchAppWindow: return (true, false)
+        case .switchAppWindowBack: return (true, true)
+        default: return nil
+        }
+    }
 
     var windowCommand: WindowCommand? {
         switch self {
-        case .togglePanel, .clipboard, .captureText, .toggleAwake: return nil
+        case .togglePanel, .clipboard, .captureText, .toggleAwake,
+             .switchWindow, .switchWindowBack, .switchAppWindow, .switchAppWindowBack: return nil
         case .snapStepLeft: return .step(.left)
         case .snapStepRight: return .step(.right)
         case .snapStepUp: return .step(.up)
@@ -53,6 +69,10 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
         case .clipboard: return "Open clipboard history"
         case .captureText: return "Copy text from the screen"
         case .toggleAwake: return "Toggle keep-awake"
+        case .switchWindow: return "Switch to next window"
+        case .switchWindowBack: return "Switch to previous window"
+        case .switchAppWindow: return "Next window of current app"
+        case .switchAppWindowBack: return "Previous window of current app"
         case .snapStepLeft: return "Step left through layouts"
         case .snapStepRight: return "Step right through layouts"
         case .snapStepUp: return "Step up through layouts"
@@ -82,6 +102,8 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
         case .clipboard: return "Go straight to your recent clips."
         case .captureText: return "Select an area to recognise and copy its text."
         case .toggleAwake: return "Keep awake for one hour, or stop an active session."
+        case .switchWindow: return "Keep the modifier held to browse previews; release it to switch."
+        case .switchAppWindow: return "Browse only windows belonging to the frontmost app."
         case .snapStepLeft: return "Full screen, then left half, then left third. From a third, move between thirds."
         case .snapStepRight: return "Full screen, then right half, then right third. From a third, move between thirds."
         case .snapStepUp: return "Full screen from any layout. From full screen, the top half."
@@ -102,6 +124,10 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
         case .clipboard: binding = (kVK_ANSI_V, panel)
         case .captureText: binding = (kVK_ANSI_T, panel)
         case .toggleAwake: binding = (kVK_ANSI_A, panel)
+        case .switchWindow: binding = (kVK_Tab, cmdKey)
+        case .switchWindowBack: binding = (kVK_Tab, cmdKey | shiftKey)
+        case .switchAppWindow: binding = (kVK_ANSI_Grave, optionKey)
+        case .switchAppWindowBack: binding = (kVK_ANSI_Grave, optionKey | shiftKey)
         case .snapStepLeft: binding = (kVK_LeftArrow, snap)
         case .snapStepRight: binding = (kVK_RightArrow, snap)
         case .snapStepUp: binding = (kVK_UpArrow, snap)
@@ -132,6 +158,17 @@ struct GlobalShortcut: Codable, Equatable, Hashable {
 
     static let modifierMask = UInt32(cmdKey | controlKey | optionKey | shiftKey)
 
+    var isCommandTab: Bool {
+        keyCode == UInt32(kVK_Tab) && modifiers & ~UInt32(shiftKey) == UInt32(cmdKey)
+    }
+
+    func validationError(for action: ShortcutAction) -> String? {
+        if isCommandTab, action.group != .windowSwitcher {
+            return "Command-Tab is reserved for window switching. Choose another combination."
+        }
+        return validationError
+    }
+
     init(keyCode: UInt32, modifiers: UInt32) {
         self.keyCode = keyCode
         self.modifiers = modifiers
@@ -153,7 +190,7 @@ struct GlobalShortcut: Codable, Equatable, Hashable {
 
     var validationError: String? {
         guard Self.keyNames[keyCode] != nil else {
-            return "Use a letter, number, punctuation, arrow, Return, Delete, Space, or F1 to F12."
+            return "Use a letter, number, punctuation, arrow, Tab, Return, Delete, Space, or F1 to F12."
         }
         guard modifiers & ~Self.modifierMask == 0 else {
             return "Use only Control, Option, Shift, and Command as modifiers."
@@ -162,7 +199,7 @@ struct GlobalShortcut: Codable, Equatable, Hashable {
             return "Include Control, Option, or Command."
         }
         // Command plus one key is copy, paste, save and the like in every app.
-        guard modifiers != UInt32(cmdKey) else {
+        guard modifiers != UInt32(cmdKey) || isCommandTab else {
             return "Add another modifier to Command, or use Control or Option."
         }
         return nil
@@ -212,7 +249,7 @@ struct GlobalShortcut: Codable, Equatable, Hashable {
         18: "1", 19: "2", 20: "3", 21: "4", 22: "6", 23: "5", 24: "=", 25: "9", 26: "7",
         27: "-", 28: "8", 29: "0", 30: "]", 31: "O", 32: "U", 33: "[", 34: "I", 35: "P",
         37: "L", 38: "J", 39: "'", 40: "K", 41: ";", 42: "\\", 43: ",", 44: "/", 45: "N",
-        36: "Return", 46: "M", 47: ".", 49: "Space", 50: "\u{0060}", 51: "Delete",
+        36: "Return", 46: "M", 47: ".", 48: "Tab", 49: "Space", 50: "\u{0060}", 51: "Delete",
         96: "F5", 97: "F6", 98: "F7", 99: "F3", 100: "F8", 101: "F9",
         103: "F11", 109: "F10", 111: "F12", 118: "F4", 120: "F2", 122: "F1",
         123: "Left", 124: "Right", 125: "Down", 126: "Up"

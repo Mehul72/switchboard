@@ -41,4 +41,21 @@ final class PrefValueTests: XCTestCase {
     func testStringDoesNotMatchANumber() {
         XCTAssertFalse(PrefValue.string("1").matches(NSNumber(value: 1)))
     }
+
+    func testScrollBarsStayVisibleForThisProcessOnly() {
+        let defaults = UserDefaults.standard
+        let original = defaults.volatileDomain(forName: UserDefaults.argumentDomain)
+        defer { defaults.setVolatileDomain(original, forName: UserDefaults.argumentDomain) }
+        defaults.setVolatileDomain(original.merging(["SwitchboardTestArgument": "kept"]) { $1 },
+                                   forName: UserDefaults.argumentDomain)
+        let userSetting = PreferenceStore.effectiveValue(domain: "NSGlobalDomain", key: "AppleShowScrollBars") as? String
+
+        PreferenceStore.keepScrollBarsVisible(in: defaults)
+
+        XCTAssertEqual(defaults.string(forKey: "AppleShowScrollBars"), "Always")
+        XCTAssertEqual(defaults.string(forKey: "SwitchboardTestArgument"), "kept")
+        // The Show scroll bars tweak still reads the user's own setting.
+        XCTAssertEqual(PreferenceStore.effectiveValue(domain: "NSGlobalDomain", key: "AppleShowScrollBars") as? String,
+                       userSetting)
+    }
 }

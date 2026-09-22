@@ -43,6 +43,8 @@ final class TweakStore: ObservableObject {
     /// allowed under Accessibility.
     @Published private(set) var isWindowSnappingActive = false
     var onWindowSnappingChange: ((Bool) -> Void)?
+    @Published private(set) var isWindowSwitchingActive = false
+    var onWindowSwitchingChange: ((Bool) -> Void)?
 
     private let ledger = UndoLedger()
     private let awake = AwakeController()
@@ -54,6 +56,7 @@ final class TweakStore: ObservableObject {
     private let history = ClipboardHistory()
     private static let translateKey = "TranslateCapturedText"
     private static let windowSnappingKey = "WindowSnappingEnabled"
+    private static let windowSwitchingKey = "WindowSwitchingEnabled"
     /// Master switch for the capture translation feature. While false the
     /// toggle is absent from the catalog and captures are never translated,
     /// even if the preference was switched on earlier.
@@ -122,6 +125,7 @@ final class TweakStore: ObservableObject {
         customStates["everyday.mouse-scroll"] = scroll.isActive
         customStates["everyday.quit-on-close"] = quitOnClose.isActive
         syncWindowSnapping()
+        syncWindowSwitching()
         syncClipboardImageConversion()
         refreshAudioApps()
     }
@@ -281,7 +285,8 @@ final class TweakStore: ObservableObject {
     var hasUndoRecord: Bool { !ledger.isEmpty }
     var canRestoreOriginalSettings: Bool {
         hasUndoRecord || awake.isActive || scroll.isActive || quitOnClose.isActive
-            || isWindowSnappingActive || appAudio.isControllingAnything
+            || isWindowSnappingActive || UserDefaults.standard.bool(forKey: Self.windowSwitchingKey)
+            || appAudio.isControllingAnything
     }
 
     func tweaks(in category: Category) -> [Tweak] {
@@ -302,6 +307,8 @@ final class TweakStore: ObservableObject {
             return customStates[tweak.id] ?? false
         case .windowSnapping:
             return isWindowSnappingActive
+        case .windowSwitching:
+            return isWindowSwitchingActive
         case .regionOCR:
             return false
         case .translateCaptures:
@@ -342,6 +349,8 @@ final class TweakStore: ObservableObject {
             setQuitOnClose(on, for: tweak)
         case .windowSnapping:
             setWindowSnapping(on)
+        case .windowSwitching:
+            setWindowSwitching(on)
         case .regionOCR:
             break
         case .translateCaptures:
@@ -416,6 +425,28 @@ final class TweakStore: ObservableObject {
         guard active != isWindowSnappingActive else { return }
         isWindowSnappingActive = active
         onWindowSnappingChange?(active)
+    }
+
+    private func setWindowSwitching(_ on: Bool) {
+        if on, !WindowSnapper.hasPermission {
+            WindowSnapper.requestPermission()
+            syncWindowSwitching()
+            notice = StoreNotice(kind: .information,
+                                 message: "Allow Switchboard under Accessibility, then switch this on again. Screen Recording is optional for previews.")
+            return
+        }
+        UserDefaults.standard.set(on, forKey: Self.windowSwitchingKey)
+        notice = StoreNotice(kind: .success, message: on
+                             ? "Hold Command and press Tab to switch windows, or Option-` for this app's windows. Enable Previews in the switcher for thumbnails."
+                             : "Window switching is off. The macOS Command-Tab switcher is available again.")
+        syncWindowSwitching()
+    }
+
+    private func syncWindowSwitching() {
+        let active = UserDefaults.standard.bool(forKey: Self.windowSwitchingKey) && WindowSnapper.hasPermission
+        guard active != isWindowSwitchingActive else { return }
+        isWindowSwitchingActive = active
+        onWindowSwitchingChange?(active)
     }
 
     /// The scroll tap is a system-wide input hook, so the first attempt usually
@@ -639,6 +670,7 @@ final class TweakStore: ObservableObject {
         let scrollRestored = scroll.setActive(false)
         let quitRestored = quitOnClose.setActive(false)
         UserDefaults.standard.set(false, forKey: Self.windowSnappingKey)
+        UserDefaults.standard.set(false, forKey: Self.windowSwitchingKey)
         appAudio.releaseAll()
         audioVolumes.removeAll()
         audioRoutes.removeAll()

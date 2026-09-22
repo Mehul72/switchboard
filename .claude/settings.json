@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codegraph touch \"$CLAUDE_FILE_PATHS\" >/dev/null 2>&1 &"
+          }
+        ]
+      }
+    ]
+  }
+}
