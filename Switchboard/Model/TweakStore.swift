@@ -108,7 +108,7 @@ final class TweakStore: ObservableObject {
         var latest: [String: Any] = [:]
         for tweak in catalog {
             guard let preference = tweak.preference else { continue }
-            if let value = PreferenceStore.effectiveValue(domain: preference.domain, key: preference.key) {
+            if let value = PreferenceStore.effectiveValue(domain: preference.domain, keys: preference.keys) {
                 latest[tweak.id] = value
             }
         }
@@ -587,18 +587,21 @@ final class TweakStore: ObservableObject {
     }
 
     private func write(_ value: PrefValue?, to tweak: Tweak, preference: PreferenceSpec) {
-        ledger.capture(domain: preference.domain, key: preference.key)
+        for key in preference.keys {
+            ledger.capture(domain: preference.domain, key: key)
+        }
         let synchronized = PreferenceStore.write(value,
                                                   domain: preference.domain,
-                                                  key: preference.key)
+                                                  keys: preference.keys)
         reread(tweak, preference: preference)
 
         let accepted: Bool
         if let value {
             accepted = value.matches(values[tweak.id])
         } else {
-            accepted = PreferenceStore.storedValue(domain: preference.domain,
-                                                    key: preference.key) == nil
+            accepted = preference.keys.allSatisfy {
+                PreferenceStore.storedValue(domain: preference.domain, key: $0) == nil
+            }
         }
 
         guard synchronized && accepted else {
@@ -621,7 +624,7 @@ final class TweakStore: ObservableObject {
     }
 
     private func reread(_ tweak: Tweak, preference: PreferenceSpec) {
-        if let current = PreferenceStore.effectiveValue(domain: preference.domain, key: preference.key) {
+        if let current = PreferenceStore.effectiveValue(domain: preference.domain, keys: preference.keys) {
             values[tweak.id] = current
         } else {
             values.removeValue(forKey: tweak.id)

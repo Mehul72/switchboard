@@ -98,17 +98,24 @@ enum TweakCatalog {
     // Screenshot settings are read by the capture subsystem at the moment a
     // screenshot is taken, so they need no restart -- the legacy
     // "killall SystemUIServer" step does nothing for them.
+    //
+    // Newer macOS keeps the destination per mode. It copies "target" and
+    // "location" into the "-screenshot" keys the first time it needs them and
+    // ignores the old keys after that, so writing only the old keys works once
+    // and then silently stops. The old keys stay for releases before the split.
     static let capture: [Tweak] = [
         Tweak(id: "capture.location", title: "Save screenshots to",
               category: .capture, symbol: "folder",
-              domain: "com.apple.screencapture", key: "location",
+              domain: "com.apple.screencapture", key: "location-screenshot",
+              legacyKeys: ["location"],
               onValue: .string(NSHomeDirectory() + "/Desktop"),
               control: .folder,
               successMessage: "Saved. Your next screenshot lands there."),
         Tweak(id: "capture.clipboard", title: "Copy screenshots to clipboard",
               subtitle: "No file is saved; encoding still applies",
               category: .capture, symbol: "doc.on.clipboard",
-              domain: "com.apple.screencapture", key: "target",
+              domain: "com.apple.screencapture", key: "target-screenshot",
+              legacyKeys: ["target"],
               onValue: .string("clipboard"), offValue: .string("file"),
               successMessage: "Saved. Your next screenshot goes to the clipboard, ready to paste."),
         Tweak(id: "capture.format", title: "Screenshot format",

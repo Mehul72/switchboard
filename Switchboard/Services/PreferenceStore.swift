@@ -17,6 +17,15 @@ enum PreferenceStore {
         return CFPreferencesCopyAppValue(key as CFString, appID(for: domain))
     }
 
+    /// Order matters: the first key holding a value wins, the way the system
+    /// prefers a current key over the legacy one it replaced.
+    static func effectiveValue(domain: String, keys: [String]) -> Any? {
+        for key in keys {
+            if let value = effectiveValue(domain: domain, key: key) { return value }
+        }
+        return nil
+    }
+
     static func storedValue(domain: String, key: String) -> Any? {
         CFPreferencesCopyValue(key as CFString,
                                appID(for: domain),
@@ -35,6 +44,12 @@ enum PreferenceStore {
         return CFPreferencesSynchronize(id,
                                         kCFPreferencesCurrentUser,
                                         kCFPreferencesAnyHost)
+    }
+
+    @discardableResult
+    static func write(_ value: PrefValue?, domain: String, keys: [String]) -> Bool {
+        let saved = keys.map { write(value, domain: domain, key: $0) }
+        return saved.allSatisfy { $0 }
     }
 
     @discardableResult

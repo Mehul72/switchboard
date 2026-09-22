@@ -81,9 +81,15 @@ enum Control {
 struct PreferenceSpec {
     let domain: String
     let key: String
+    /// Names the same setting had on older macOS releases. They are written
+    /// alongside `key` so every supported release follows the change, and
+    /// read only when `key` has no value yet.
+    let legacyKeys: [String]
     let onValue: PrefValue
     let offValue: PrefValue?
     let restart: RestartTarget?
+
+    var keys: [String] { [key] + legacyKeys }
 }
 
 enum TweakBehavior {
@@ -114,6 +120,7 @@ struct Tweak: Identifiable {
          symbol: String,
          domain: String,
          key: String,
+         legacyKeys: [String] = [],
          onValue: PrefValue,
          offValue: PrefValue? = nil,
          restart: RestartTarget? = nil,
@@ -128,6 +135,7 @@ struct Tweak: Identifiable {
         self.successMessage = successMessage
         self.behavior = .preference(PreferenceSpec(domain: domain,
                                                    key: key,
+                                                   legacyKeys: legacyKeys,
                                                    onValue: onValue,
                                                    offValue: offValue,
                                                    restart: restart))

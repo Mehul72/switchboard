@@ -43,6 +43,9 @@
 		A20000000000000000000011 /* Tweak.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BACE0936C396083BBBE9867 /* Tweak.swift */; };
 		A20000000000000000000012 /* QuitOnClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* QuitOnClose.swift */; };
 		A20000000000000000000014 /* CloseWatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* CloseWatchTests.swift */; };
+		A20000000000000000000015 /* PreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */; };
+		A20000000000000000000016 /* TweakCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E077C2A969EEAFE301C60E /* TweakCatalog.swift */; };
+		A20000000000000000000018 /* CaptureDestinationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* CaptureDestinationTests.swift */; };
 		A30000000000000000000001 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		A30000000000000000000002 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
@@ -122,6 +125,7 @@
 		A2000000000000000000000B /* LineCountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineCountTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* PrefValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefValueTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000013 /* CloseWatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloseWatchTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* CaptureDestinationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureDestinationTests.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B4000000000000000000001E /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		B4000000000000000000001F /* SystemMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorView.swift; sourceTree = "<group>"; };
@@ -202,6 +206,7 @@
 				A2000000000000000000000B /* LineCountTests.swift */,
 				A2000000000000000000000C /* PrefValueTests.swift */,
 				A20000000000000000000013 /* CloseWatchTests.swift */,
+				A20000000000000000000017 /* CaptureDestinationTests.swift */,
 			);
 			path = SwitchboardTests;
 			sourceTree = "<group>";
@@ -397,6 +402,9 @@
 				A10000000000000000000036 /* AppAudio.swift in Sources */,
 				B50000000000000000000031 /* AudioRoutingTests.swift in Sources */,
 				A20000000000000000000014 /* CloseWatchTests.swift in Sources */,
+				A20000000000000000000015 /* PreferenceStore.swift in Sources */,
+				A20000000000000000000016 /* TweakCatalog.swift in Sources */,
+				A20000000000000000000018 /* CaptureDestinationTests.swift in Sources */,
 				F92000000000000000000001 /* WelcomeGate.swift in Sources */,
 				F92000000000000000000002 /* WelcomeGateTests.swift in Sources */,
 			);
@@ -472,7 +480,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.8;
+				MARKETING_VERSION = 1.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -515,7 +523,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 30;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -579,7 +587,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.8;
+				MARKETING_VERSION = 1.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -622,7 +630,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 30;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;
