@@ -10,6 +10,11 @@ final class MenuBarPopover: NSPopover {
     private var closeObserver: NSObjectProtocol?
     private var workspaceObservers: [NSObjectProtocol] = []
     private var appearanceObserver: NSKeyValueObservation?
+    /// A click that reached the panel before activation, plus the button events after it.
+    private var clickAwaitingActivation: [NSEvent] = []
+    private var activationObserver: NSObjectProtocol?
+    private var activationFallback: DispatchWorkItem?
+    private var replayedClickTimestamp: TimeInterval?
 
     override init() {
         super.init()
@@ -47,10 +52,25 @@ final class MenuBarPopover: NSPopover {
             // Explicit dismissal must bypass the delegate's temporary Finder/Dock restart protection.
             self?.close()
         }
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: clicks) { [weak self] event in
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: clicks.union([.leftMouseUp, .leftMouseDragged])) { [weak self] event in
             guard let self, self.isShown else { return event }
-            if self.contains(event) { return event }
-            self.close()
+            if !self.clickAwaitingActivation.isEmpty {
+                self.clickAwaitingActivation.append(event)
+                return nil
+            }
+            guard clicks.contains(NSEvent.EventTypeMask(type: event.type)) else { return event }
+            guard self.contains(event) else {
+                self.close()
+                return event
+            }
+            // The panel opens without activating the app, so the first click activates it,
+            // and a menu opened by that click is dismissed when activation lands.
+            // NSApp.isActive already reads true here; the running application reports the real state.
+            if event.type == .leftMouseDown, event.timestamp != self.replayedClickTimestamp,
+               !NSRunningApplication.current.isActive {
+                self.holdUntilActive(event)
+                return nil
+            }
             return event
         }
         if globalMonitor == nil || localMonitor == nil {
@@ -70,6 +90,38 @@ final class MenuBarPopover: NSPopover {
         })
     }
 
+    private func holdUntilActive(_ click: NSEvent) {
+        clickAwaitingActivation = [click]
+        activationObserver = NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
+                                                                    object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.replayHeldClick() }
+        }
+        // Activation can be refused; a late click beats one that never arrives.
+        let fallback = DispatchWorkItem { [weak self] in
+            self?.logger.notice("App did not activate in time; replaying the held click anyway")
+            self?.replayHeldClick()
+        }
+        activationFallback = fallback
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: fallback)
+    }
+
+    private func replayHeldClick() {
+        let events = clickAwaitingActivation
+        discardHeldClick()
+        guard isShown, let click = events.first else { return }
+        replayedClickTimestamp = click.timestamp
+        // A mouse-up can already be queued behind the held click, so the replay goes in front of it.
+        for event in events.reversed() { NSApp.postEvent(event, atStart: true) }
+    }
+
+    private func discardHeldClick() {
+        clickAwaitingActivation.removeAll()
+        if let activationObserver { NotificationCenter.default.removeObserver(activationObserver) }
+        activationObserver = nil
+        activationFallback?.cancel()
+        activationFallback = nil
+    }
+
     private func contains(_ event: NSEvent) -> Bool {
         if let anchor, event.window === anchor.window,
            anchor.bounds.contains(anchor.convert(event.locationInWindow, from: nil)) {
@@ -87,6 +139,7 @@ final class MenuBarPopover: NSPopover {
     }
 
     private func stopMonitoring() {
+        discardHeldClick()
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
         globalMonitor = nil
@@ -99,6 +152,7 @@ final class MenuBarPopover: NSPopover {
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
         if let closeObserver { NotificationCenter.default.removeObserver(closeObserver) }
+        if let activationObserver { NotificationCenter.default.removeObserver(activationObserver) }
         for observer in workspaceObservers { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
     }
 }
