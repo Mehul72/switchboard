@@ -2,7 +2,7 @@
 
 [Download Switchboard](https://github.com/Mehul72/switchboard/releases/latest) · [Back to the README](../README.md)
 
-Jump to [window snapping](#window-snapping), [window switching](#window-switcher),
+Jump to [file shelf and disks](#file-shelf-and-disks), [window snapping](#window-snapping), [window switching](#window-switcher),
 [shortcuts](#customising-shortcuts), [permissions](#permissions), or [audio](#audio).
 
 ## Installation and first launch
@@ -30,6 +30,11 @@ Most changes apply immediately. Settings that need Finder or the Dock to restart
 show a restart button, so you can apply several changes together. Some global
 settings take effect when affected apps reopen.
 
+The **appearance button** beside the settings gear switches Switchboard between
+**Match System** (the default), **Light**, and **Dark**. It applies to every
+Switchboard window, including the shelf, window switcher, shortcut settings,
+and welcome screen, and leaves the macOS setting unchanged.
+
 The settings gear contains **Keyboard Shortcuts**, **Launch at Login**,
 **Restore Original Settings**, and **Quit Switchboard**. Restore Original
 Settings puts system preferences back to the values they had before Switchboard
@@ -37,13 +42,14 @@ changed them. Shortcut bindings are managed separately.
 
 ## Global shortcuts
 
-These shortcuts work from any app while Switchboard is running. The four
+These shortcuts work from any app while Switchboard is running. The five
 actions below run once when you release the shortcut key.
 
 | Action | Default shortcut |
 | --- | --- |
 | Show or hide Switchboard | Control-Option-Command-S |
 | Open clipboard history | Control-Option-Command-V |
+| Open file shelf and disks | Control-Option-Command-F |
 | Copy text from the screen | Control-Option-Command-T |
 | Toggle keep-awake | Control-Option-Command-A |
 
@@ -51,6 +57,58 @@ Keep-awake starts a one-hour session when off and stops any active session,
 then opens the panel so you can see the new state.
 Text capture opens the region selector directly, then shows the result in the
 panel. Other shortcuts are paused while a capture is in progress.
+
+## File shelf and disks
+
+Start dragging files or folders from Finder or any other app, then either
+**shake the pointer** quickly from side to side or **press Shift** once. The shelf
+opens beside the pointer; move onto **Drop to keep** and release. Shift already
+held when the drag began, or pressed with other keys, does not count. You can
+collect up to
+40 items from different folders; adding the same file again does not duplicate it.
+The number beside the menu bar icon shows how many items are on the shelf.
+
+To open the shelf without dragging, press **Control-Option-Command-F**, or click
+the **tray icon** beside the settings gear in the main panel. Change the shortcut
+in **settings gear > Keyboard Shortcuts**. Press it again or press **Escape** to
+close the shelf. The **+** button (or Command-O) opens a file picker.
+
+Drag a file's thumbnail out of the shelf into Finder, an email, or another
+app that accepts files. The shelf offers a copy, leaving the original in place,
+and keeps the reference for reuse. Hover over an item and click **…**, or
+right-click it, for **Open**, **Copy File**, **Show in Finder**, and **Remove from
+Shelf**. Copy File is also a keyboard-accessible way to transfer a file: paste it
+into the destination app. **Remove from Shelf** and **Clear** remove references,
+never the original files.
+
+The shelf stays in memory and clears when Switchboard quits. References follow
+renamed files when macOS can resolve them. Deleted files and files on disconnected
+drives are marked unavailable when the shelf refreshes. Reconnect the drive or
+add the file again. Browser links, copied text, and attachments that have not yet
+been saved as files are not accepted.
+
+**Connected** lists external local volumes and mounted disk images. Click a
+disk's **Eject** button, or drag its volume icon, shake or press Shift, and release
+over the labelled **Drop to eject** target. Hovering or dropping a disk elsewhere in
+the panel does not eject it. Internal system volumes are excluded. Eject shows
+progress, reports success only after macOS completes it, and shows an error if
+the disk is busy or no longer available. There is no force-eject action.
+You can also click a disk, or a shelved disk image that is open, and press
+**Command-Delete** to eject it. On any other shelf item, Command-Delete removes it
+from the shelf and leaves the original file in place.
+
+Command-Delete also ejects disks selected in **Finder**, on the desktop or in a
+Finder window. It acts only when everything selected is an ejectable disk; files,
+including a downloaded .dmg file, still go to the Trash as usual. This needs
+Accessibility access for Switchboard. If an eject fails, the shelf opens to show
+why.
+Hidden system mounts, such as Xcode Simulator runtimes, are not listed.
+
+A downloaded **.dmg file** can be held on the shelf. While dragging it, **Drop to
+open** opens the image; if its mounted volume is already known, **Drop to eject**
+appears instead. Mounted volumes also appear under Connected, and a shelved DMG's
+**…** menu includes their eject actions. Ejecting an image leaves the downloaded
+DMG file in place. Use **Refresh disks** if the list needs updating.
 
 ## Window snapping
 

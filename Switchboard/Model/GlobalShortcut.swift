@@ -2,7 +2,7 @@ import AppKit
 import Carbon
 
 enum ShortcutAction: String, CaseIterable, Identifiable {
-    case togglePanel, clipboard, captureText, toggleAwake
+    case togglePanel, clipboard, captureText, toggleAwake, fileShelf
     case switchWindow, switchWindowBack, switchAppWindow, switchAppWindowBack
     case snapStepLeft, snapStepRight, snapStepUp, snapStepDown
     case snapTopLeft, snapTopRight, snapBottomLeft, snapBottomRight
@@ -40,7 +40,7 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
 
     var windowCommand: WindowCommand? {
         switch self {
-        case .togglePanel, .clipboard, .captureText, .toggleAwake,
+        case .togglePanel, .clipboard, .captureText, .toggleAwake, .fileShelf,
              .switchWindow, .switchWindowBack, .switchAppWindow, .switchAppWindowBack: return nil
         case .snapStepLeft: return .step(.left)
         case .snapStepRight: return .step(.right)
@@ -69,6 +69,7 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
         case .clipboard: return "Open clipboard history"
         case .captureText: return "Copy text from the screen"
         case .toggleAwake: return "Toggle keep-awake"
+        case .fileShelf: return "Open file shelf and disks"
         case .switchWindow: return "Switch to next window"
         case .switchWindowBack: return "Switch to previous window"
         case .switchAppWindow: return "Next window of current app"
@@ -102,6 +103,7 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
         case .clipboard: return "Go straight to your recent clips."
         case .captureText: return "Select an area to recognise and copy its text."
         case .toggleAwake: return "Keep awake for one hour, or stop an active session."
+        case .fileShelf: return "Hold files between apps and eject connected disks."
         case .switchWindow: return "Keep the modifier held to browse previews; release it to switch."
         case .switchAppWindow: return "Browse only windows belonging to the frontmost app."
         case .snapStepLeft: return "Full screen, then left half, then left third. From a third, move between thirds."
@@ -124,6 +126,7 @@ enum ShortcutAction: String, CaseIterable, Identifiable {
         case .clipboard: binding = (kVK_ANSI_V, panel)
         case .captureText: binding = (kVK_ANSI_T, panel)
         case .toggleAwake: binding = (kVK_ANSI_A, panel)
+        case .fileShelf: binding = (kVK_ANSI_F, panel)
         case .switchWindow: binding = (kVK_Tab, cmdKey)
         case .switchWindowBack: binding = (kVK_Tab, cmdKey | shiftKey)
         case .switchAppWindow: binding = (kVK_ANSI_Grave, optionKey)

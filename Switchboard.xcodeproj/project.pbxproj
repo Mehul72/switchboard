@@ -8,18 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		063B50456E3C47AD1182E762 /* UndoLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DAD93FDFB9505014881B70 /* UndoLedger.swift */; };
+		071FF3160D5769198CC1B27A /* FileShelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A9D617F4E9FE4EACBEE412 /* FileShelf.swift */; };
+		095147448DB843AE2F8FF730 /* ShelfVolumes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F783063896B1B35F6CE941 /* ShelfVolumes.swift */; };
 		15F083EC0B9DB0EE44D9585C /* Tweak.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BACE0936C396083BBBE9867 /* Tweak.swift */; };
 		1793CCE3A2BB273424433034 /* PreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */; };
+		1B39199D3950D5EF43BCE8C2 /* FileShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AD0817D2F999BB2EF7D089 /* FileShelfView.swift */; };
 		1C173F15B732BB0F0B2BB6A5 /* WindowSwitching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */; };
 		23C39A08D796B4517CBEB9A6 /* TweakStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D18FDF62CAF03392D61CAF /* TweakStore.swift */; };
 		28E4DDC1EE8BD894B772EDA7 /* CategoryNav.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EA744DB07D578E6A2066FC /* CategoryNav.swift */; };
 		2ACE5320E3A5CF28D5A5A15E /* RestartCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */; };
 		301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */; };
+		30738B87B38045413881585B /* FileShelfController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945EB3495FA8EB31F4954CA5 /* FileShelfController.swift */; };
+		446EC7E98717E151F6CAD068 /* ShelfDragging.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6146AA95C26666D53CD23F /* ShelfDragging.swift */; };
 		46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */; };
 		4D63E359B5595FFF4E6D6937 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
 		4DBC964A5A2EC8E943B7BC86 /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
+		4E6CC24F9885CBD1899F49EF /* FileShelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A9D617F4E9FE4EACBEE412 /* FileShelf.swift */; };
+		59BEF650C8EBB23794866FBE /* ShelfDraggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF806F864D4BB3F772B79F9E /* ShelfDraggingTests.swift */; };
 		5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
+		64C17C1261236471DF0A58B0 /* ShelfVolumesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EB4F80D0563FEF8E24B5E5 /* ShelfVolumesTests.swift */; };
 		7714C916CD8F3D6033084CE3 /* SwitcherInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */; };
 		7D0FEB6CB392306F524D3BFB /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */; };
 		9129C38BF6DE472138BAE216 /* SwitcherInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */; };
@@ -52,6 +60,7 @@
 		A20000000000000000000015 /* PreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */; };
 		A20000000000000000000016 /* TweakCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E077C2A969EEAFE301C60E /* TweakCatalog.swift */; };
 		A20000000000000000000018 /* CaptureDestinationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* CaptureDestinationTests.swift */; };
+		A2B80659F316C411687373CA /* FileShelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66D3C54646847EFE9C4E0D /* FileShelfTests.swift */; };
 		A30000000000000000000001 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		A30000000000000000000002 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
@@ -72,6 +81,7 @@
 		CAD2D36222E9A4E67D18FB2B /* TweakCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E077C2A969EEAFE301C60E /* TweakCatalog.swift */; };
 		CB7FE7587EEF473CCE0BF50A /* WindowSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */; };
 		CD5993B1D118DDAB76607221 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */; };
+		D2544E96542B5DE2B6054E28 /* ShelfVolumes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F783063896B1B35F6CE941 /* ShelfVolumes.swift */; };
 		D641C2D0E147B6A06BC29C68 /* SwitcherPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F353935AA0655F9FC461E885 /* SwitcherPreviews.swift */; };
 		D71000000000000000000001 /* GlobalShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000001 /* GlobalShortcut.swift */; };
 		D71000000000000000000002 /* GlobalShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000002 /* GlobalShortcuts.swift */; };
@@ -84,8 +94,10 @@
 		D72000000000000000000005 /* ShortcutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70000000000000000000005 /* ShortcutSettingsView.swift */; };
 		D72000000000000000000006 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF49656E31E00F535E0CB517 /* Theme.swift */; };
 		D7A1F96EDB96214533303D76 /* WindowSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */; };
+		D7CF2FCD1C7E65CA29DF2930 /* FileShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AD0817D2F999BB2EF7D089 /* FileShelfView.swift */; };
 		D9457089A30998F96907BDB2 /* SwitcherWindows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78E765882650F906DC78EB3 /* SwitcherWindows.swift */; };
 		DBACD04104557CF48B39CBE2 /* WindowSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */; };
+		E4F045A9DCDAF126D143C40F /* ShelfDragging.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6146AA95C26666D53CD23F /* ShelfDragging.swift */; };
 		E81000000000000000000001 /* WindowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000001 /* WindowLayout.swift */; };
 		E81000000000000000000003 /* WindowSnapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000003 /* WindowSnapper.swift */; };
 		E81000000000000000000004 /* WindowDragGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000004 /* WindowDragGrid.swift */; };
@@ -97,6 +109,19 @@
 		F91000000000000000000003 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000003 /* WelcomeView.swift */; };
 		F92000000000000000000001 /* WelcomeGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000001 /* WelcomeGate.swift */; };
 		F92000000000000000000002 /* WelcomeGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000002 /* WelcomeGateTests.swift */; };
+		FB1CFB8E807C6C24D5F7154D /* FileShelfController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945EB3495FA8EB31F4954CA5 /* FileShelfController.swift */; };
+		65DCFC243300923229E99D13 /* ShelfDragGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD9EC9EA3DE392DE53601FD /* ShelfDragGesture.swift */; };
+		8E0A4164D40D1046A917E856 /* ShelfDragGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD9EC9EA3DE392DE53601FD /* ShelfDragGesture.swift */; };
+		0F73B7034F8F7F4E344C04E8 /* ShelfDragGestureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17953C0A887CE337CE87F85 /* ShelfDragGestureTests.swift */; };
+		270DF7AA58B784294D54D7AD /* FinderEjectShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44050171C3D7E071F91ABF54 /* FinderEjectShortcut.swift */; };
+		171C52AF7C3F09217A2AE7E6 /* FinderEjectShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44050171C3D7E071F91ABF54 /* FinderEjectShortcut.swift */; };
+		C8AD220004C80C9B6620EFDD /* FinderEjectShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA6B30F1F1CE4AE3C001268 /* FinderEjectShortcutTests.swift */; };
+		83B6328A549B6EABE77CD9A3 /* AppearanceSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D61A8A6408688682525794 /* AppearanceSetting.swift */; };
+		4FBF6CB0B3C8B69B5417B401 /* AppearanceSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D61A8A6408688682525794 /* AppearanceSetting.swift */; };
+		C00A282E0FCFAF11EAB284E1 /* AppearanceSettingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346E7E2458199CA2F0A2E56E /* AppearanceSettingTests.swift */; };
+		EA0000000000000000000001 /* MenuBarPopoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0000000000000000000002 /* MenuBarPopoverTests.swift */; };
+		EA0000000000000000000003 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0000000000000000000005 /* MenuBarPopover.swift */; };
+		EA0000000000000000000004 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0000000000000000000005 /* MenuBarPopover.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,6 +137,7 @@
 /* Begin PBXFileReference section */
 		07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandTabHotKeys.swift; sourceTree = "<group>"; };
 		1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchboardApp.swift; sourceTree = "<group>"; };
+		24AD0817D2F999BB2EF7D089 /* FileShelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelfView.swift; sourceTree = "<group>"; };
 		2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcher.swift; sourceTree = "<group>"; };
 		30E077C2A969EEAFE301C60E /* TweakCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakCatalog.swift; sourceTree = "<group>"; };
 		351B9788911C1DDE92BDB476 /* ApplyBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplyBar.swift; sourceTree = "<group>"; };
@@ -121,11 +147,13 @@
 		4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitching.swift; sourceTree = "<group>"; };
 		61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherInput.swift; sourceTree = "<group>"; };
 		7587F57B35741679DAF0A5F0 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+		81A9D617F4E9FE4EACBEE412 /* FileShelf.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelf.swift; sourceTree = "<group>"; };
 		88D18FDF62CAF03392D61CAF /* TweakStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakStore.swift; sourceTree = "<group>"; };
 		88DAD93FDFB9505014881B70 /* UndoLedger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoLedger.swift; sourceTree = "<group>"; };
 		8BACE0936C396083BBBE9867 /* Tweak.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tweak.swift; sourceTree = "<group>"; };
 		8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIcon.swift; sourceTree = "<group>"; };
 		91EA732BBFDE52F306868A9C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		945EB3495FA8EB31F4954CA5 /* FileShelfController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelfController.swift; sourceTree = "<group>"; };
 		A10000000000000000000001 /* UtilityServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityServices.swift; sourceTree = "<group>"; };
 		A10000000000000000000003 /* ScrollDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollDirection.swift; sourceTree = "<group>"; };
 		A10000000000000000000005 /* ClipboardImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardImageConverter.swift; sourceTree = "<group>"; };
@@ -146,6 +174,7 @@
 		A20000000000000000000013 /* CloseWatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloseWatchTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* CaptureDestinationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureDestinationTests.swift; sourceTree = "<group>"; };
 		A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcherView.swift; sourceTree = "<group>"; };
+		AD66D3C54646847EFE9C4E0D /* FileShelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelfTests.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B4000000000000000000001E /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		B4000000000000000000001F /* SystemMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorView.swift; sourceTree = "<group>"; };
@@ -155,6 +184,7 @@
 		B40000000000000000000040 /* AwakeStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeStatusTests.swift; sourceTree = "<group>"; };
 		B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartCoordinator.swift; sourceTree = "<group>"; };
 		B8968C09FA53E19B8133E9C3 /* PreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceStore.swift; sourceTree = "<group>"; };
+		BA6146AA95C26666D53CD23F /* ShelfDragging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfDragging.swift; sourceTree = "<group>"; };
 		BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectBackground.swift; sourceTree = "<group>"; };
 		BF49656E31E00F535E0CB517 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C60000000000000000000004 /* OutputDeviceVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputDeviceVolume.swift; sourceTree = "<group>"; };
@@ -162,11 +192,13 @@
 		C78E765882650F906DC78EB3 /* SwitcherWindows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherWindows.swift; sourceTree = "<group>"; };
 		D23BFDEAA6A9E9E172BFCB28 /* WindowSwitchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitchingTests.swift; sourceTree = "<group>"; };
 		D5D4F3632CB611A2FE4CC39F /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
+		D6F783063896B1B35F6CE941 /* ShelfVolumes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfVolumes.swift; sourceTree = "<group>"; };
 		D70000000000000000000001 /* GlobalShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcut.swift; sourceTree = "<group>"; };
 		D70000000000000000000002 /* GlobalShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcuts.swift; sourceTree = "<group>"; };
 		D70000000000000000000003 /* HotKeyRegistrar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRegistrar.swift; sourceTree = "<group>"; };
 		D70000000000000000000004 /* GlobalShortcutsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutsTests.swift; sourceTree = "<group>"; };
 		D70000000000000000000005 /* ShortcutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutSettingsView.swift; sourceTree = "<group>"; };
+		E6EB4F80D0563FEF8E24B5E5 /* ShelfVolumesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfVolumesTests.swift; sourceTree = "<group>"; };
 		E80000000000000000000001 /* WindowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayout.swift; sourceTree = "<group>"; };
 		E80000000000000000000002 /* WindowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutTests.swift; sourceTree = "<group>"; };
 		E80000000000000000000003 /* WindowSnapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSnapper.swift; sourceTree = "<group>"; };
@@ -176,6 +208,15 @@
 		F90000000000000000000001 /* WelcomeGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGate.swift; sourceTree = "<group>"; };
 		F90000000000000000000002 /* WelcomeGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGateTests.swift; sourceTree = "<group>"; };
 		F90000000000000000000003 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		FF806F864D4BB3F772B79F9E /* ShelfDraggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfDraggingTests.swift; sourceTree = "<group>"; };
+		4DD9EC9EA3DE392DE53601FD /* ShelfDragGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfDragGesture.swift; sourceTree = "<group>"; };
+		E17953C0A887CE337CE87F85 /* ShelfDragGestureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfDragGestureTests.swift; sourceTree = "<group>"; };
+		44050171C3D7E071F91ABF54 /* FinderEjectShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderEjectShortcut.swift; sourceTree = "<group>"; };
+		DCA6B30F1F1CE4AE3C001268 /* FinderEjectShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderEjectShortcutTests.swift; sourceTree = "<group>"; };
+		17D61A8A6408688682525794 /* AppearanceSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSetting.swift; sourceTree = "<group>"; };
+		346E7E2458199CA2F0A2E56E /* AppearanceSettingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingTests.swift; sourceTree = "<group>"; };
+		EA0000000000000000000002 /* MenuBarPopoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverTests.swift; sourceTree = "<group>"; };
+		EA0000000000000000000005 /* MenuBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopover.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -209,6 +250,8 @@
 		6EB4769FEB1BD3D5E972E12D /* App */ = {
 			isa = PBXGroup;
 			children = (
+				945EB3495FA8EB31F4954CA5 /* FileShelfController.swift */,
+				EA0000000000000000000005 /* MenuBarPopover.swift */,
 				7587F57B35741679DAF0A5F0 /* StatusItemController.swift */,
 				1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */,
 			);
@@ -218,6 +261,13 @@
 		A20000000000000000000001 /* SwitchboardTests */ = {
 			isa = PBXGroup;
 			children = (
+				EA0000000000000000000002 /* MenuBarPopoverTests.swift */,
+				346E7E2458199CA2F0A2E56E /* AppearanceSettingTests.swift */,
+				DCA6B30F1F1CE4AE3C001268 /* FinderEjectShortcutTests.swift */,
+				E17953C0A887CE337CE87F85 /* ShelfDragGestureTests.swift */,
+				FF806F864D4BB3F772B79F9E /* ShelfDraggingTests.swift */,
+				E6EB4F80D0563FEF8E24B5E5 /* ShelfVolumesTests.swift */,
+				AD66D3C54646847EFE9C4E0D /* FileShelfTests.swift */,
 				D23BFDEAA6A9E9E172BFCB28 /* WindowSwitchingTests.swift */,
 				D70000000000000000000004 /* GlobalShortcutsTests.swift */,
 				E80000000000000000000002 /* WindowLayoutTests.swift */,
@@ -248,6 +298,7 @@
 		A49570240DADA4DBFD79C923 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				24AD0817D2F999BB2EF7D089 /* FileShelfView.swift */,
 				A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */,
 				D70000000000000000000005 /* ShortcutSettingsView.swift */,
 				B4000000000000000000001F /* SystemMonitorView.swift */,
@@ -276,6 +327,11 @@
 		EF2BE610A650242C0C4EFB43 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				17D61A8A6408688682525794 /* AppearanceSetting.swift */,
+				44050171C3D7E071F91ABF54 /* FinderEjectShortcut.swift */,
+				4DD9EC9EA3DE392DE53601FD /* ShelfDragGesture.swift */,
+				D6F783063896B1B35F6CE941 /* ShelfVolumes.swift */,
+				81A9D617F4E9FE4EACBEE412 /* FileShelf.swift */,
 				07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */,
 				2B989E2F1D26D9317D537CD4 /* WindowSwitcher.swift */,
 				F353935AA0655F9FC461E885 /* SwitcherPreviews.swift */,
@@ -309,6 +365,7 @@
 		F3B09B6852F966541DBBC8F2 /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				BA6146AA95C26666D53CD23F /* ShelfDragging.swift */,
 				8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */,
 				BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */,
 			);
@@ -405,6 +462,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA0000000000000000000004 /* MenuBarPopover.swift in Sources */,
+				EA0000000000000000000001 /* MenuBarPopoverTests.swift in Sources */,
+				C00A282E0FCFAF11EAB284E1 /* AppearanceSettingTests.swift in Sources */,
+				4FBF6CB0B3C8B69B5417B401 /* AppearanceSetting.swift in Sources */,
+				C8AD220004C80C9B6620EFDD /* FinderEjectShortcutTests.swift in Sources */,
+				171C52AF7C3F09217A2AE7E6 /* FinderEjectShortcut.swift in Sources */,
+				0F73B7034F8F7F4E344C04E8 /* ShelfDragGestureTests.swift in Sources */,
+				8E0A4164D40D1046A917E856 /* ShelfDragGesture.swift in Sources */,
+				59BEF650C8EBB23794866FBE /* ShelfDraggingTests.swift in Sources */,
+				446EC7E98717E151F6CAD068 /* ShelfDragging.swift in Sources */,
+				1B39199D3950D5EF43BCE8C2 /* FileShelfView.swift in Sources */,
+				FB1CFB8E807C6C24D5F7154D /* FileShelfController.swift in Sources */,
+				64C17C1261236471DF0A58B0 /* ShelfVolumesTests.swift in Sources */,
+				A2B80659F316C411687373CA /* FileShelfTests.swift in Sources */,
+				095147448DB843AE2F8FF730 /* ShelfVolumes.swift in Sources */,
+				071FF3160D5769198CC1B27A /* FileShelf.swift in Sources */,
 				5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */,
 				CB7FE7587EEF473CCE0BF50A /* WindowSwitcherView.swift in Sources */,
 				C4B7E6C9171095961F80CAAF /* WindowSwitcher.swift in Sources */,
@@ -453,6 +526,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				83B6328A549B6EABE77CD9A3 /* AppearanceSetting.swift in Sources */,
+				270DF7AA58B784294D54D7AD /* FinderEjectShortcut.swift in Sources */,
+				65DCFC243300923229E99D13 /* ShelfDragGesture.swift in Sources */,
+				E4F045A9DCDAF126D143C40F /* ShelfDragging.swift in Sources */,
+				D7CF2FCD1C7E65CA29DF2930 /* FileShelfView.swift in Sources */,
+				30738B87B38045413881585B /* FileShelfController.swift in Sources */,
+				D2544E96542B5DE2B6054E28 /* ShelfVolumes.swift in Sources */,
+				4E6CC24F9885CBD1899F49EF /* FileShelf.swift in Sources */,
 				4DBC964A5A2EC8E943B7BC86 /* CommandTabHotKeys.swift in Sources */,
 				DBACD04104557CF48B39CBE2 /* WindowSwitcherView.swift in Sources */,
 				D7A1F96EDB96214533303D76 /* WindowSwitcher.swift in Sources */,
@@ -477,6 +558,7 @@
 				6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */,
 				1793CCE3A2BB273424433034 /* PreferenceStore.swift in Sources */,
 				2ACE5320E3A5CF28D5A5A15E /* RestartCoordinator.swift in Sources */,
+				EA0000000000000000000003 /* MenuBarPopover.swift in Sources */,
 				A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */,
 				46A3C5B36A736A812A201FBA /* SwitchboardApp.swift in Sources */,
 				A10000000000000000000002 /* UtilityServices.swift in Sources */,
@@ -526,7 +608,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -569,7 +651,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 46;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -633,7 +715,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -676,7 +758,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 46;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

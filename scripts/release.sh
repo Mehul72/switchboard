@@ -113,15 +113,7 @@ step "Building the disk image"
 # A drag to Applications matters: run from Downloads, macOS translocates the app
 # to a read only path and every permission grant silently breaks.
 DMG="$BUILD_DIR/$APP_NAME-$MARKETING.dmg"
-# Keep the /Applications link outside the workspace so extension scanners
-# cannot follow it into installed apps and the macOS SDKs.
-(
-  DMG_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/switchboard-dmg.XXXXXX")
-  trap 'rm -rf "$DMG_ROOT"' EXIT
-  cp -R "$APP" "$DMG_ROOT/"
-  ln -s /Applications "$DMG_ROOT/Applications"
-  hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG" >/dev/null
-)
+./scripts/build-dmg.sh "$APP" "$DMG"
 codesign --sign "Developer ID Application" --timestamp "$DMG"
 
 step "Notarising the disk image"

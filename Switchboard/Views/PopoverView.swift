@@ -8,6 +8,8 @@ struct PopoverView: View {
     let applyRestarts: () -> Void
     let showShortcuts: () -> Void
     let height: CGFloat
+    var showShelf: () -> Void = {}
+    @ObservedObject var appearance: AppearanceSetting
 
     @State private var launchAtLoginState = LaunchAtLogin.state
     // Bound straight to the store, SwiftUI's text-field writeback buffer
@@ -91,11 +93,44 @@ struct PopoverView: View {
                 .font(.popoverTitle)
                 .foregroundStyle(Theme.primary)
             Spacer()
+            Button(action: showShelf) {
+                Image(systemName: "tray.2")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.secondary)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.borderless)
+            .help("Open file shelf and disks")
+            .accessibilityLabel("Open file shelf and disks")
+            appearanceMenu
             settingsMenu
         }
         .padding(.horizontal, Theme.edgeInset)
         .padding(.top, 4)
         .frame(height: 44)
+    }
+
+    private var appearanceMenu: some View {
+        Menu {
+            Picker("Appearance", selection: $appearance.choice) {
+                ForEach(AppearanceChoice.allCases) { choice in
+                    Label(choice.title, systemImage: choice.symbol).tag(choice)
+                }
+            }
+            .pickerStyle(.inline)
+            .labelsHidden()
+        } label: {
+            Image(systemName: appearance.choice.symbol)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.secondary)
+                .frame(width: 28, height: 28)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Appearance: \(appearance.choice.title)")
+        .accessibilityLabel("Appearance")
+        .accessibilityValue(appearance.choice.title)
     }
 
     private var settingsMenu: some View {

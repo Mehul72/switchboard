@@ -6,10 +6,14 @@ import SwiftUI
 final class StatusItemController: NSObject, NSPopoverDelegate {
     private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "welcome")
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    private let popover = NSPopover()
+    private let popover = MenuBarPopover()
     private let store = TweakStore()
     private let monitor = SystemMonitor()
     private let shortcuts = GlobalShortcuts(registrar: HotKeyRegistrar())
+    private let fileShelf = FileShelfController()
+    private let appearance = AppearanceSetting()
+    private let shelfDragWatcher = ShelfDragWatcher()
+    private let finderEject = FinderEjectShortcut()
     private let snapper = WindowSnapper()
     private let switcher = WindowSwitcher()
     private lazy var dragGrid = WindowDragGrid(snapper: snapper)
@@ -27,7 +31,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     override init() {
         super.init()
         shortcuts.onAction = { [weak self] action in self?.performShortcut(action) }
-        switcher.onBegin = { [weak self] in self?.popover.performClose(nil) }
+        switcher.onBegin = { [weak self] in self?.popover.close() }
         switcher.isRegisteredShortcut = { [weak self] shortcut in self?.shortcuts.isRegistered(shortcut) ?? false }
         switcher.onError = { [weak self] message in
             self?.store.notice = StoreNotice(kind: .error, message: message)
@@ -65,6 +69,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         item.button?.setAccessibilityLabel("Switchboard")
         item.button?.target = self
         item.button?.action = #selector(togglePopover)
+        item.button?.sendAction(on: .leftMouseDown)
+        configureShelfDrop()
 
         popover.behavior = .transient
         popover.animates = true
@@ -78,7 +84,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             // The crosshair is already up, so the panel has to go at once --
             // the usual fade leaves it sitting over the thing being selected.
             self.popover.animates = false
-            self.popover.performClose(nil)
+            self.popover.close()
             self.popover.animates = true
         }
         store.onScreenSelectionEnded = { [weak self] in
@@ -121,8 +127,12 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     @objc private func togglePopover() {
         guard !store.isCapturingText else { return }
+        if fileShelf.isVisible {
+            fileShelf.close()
+            return
+        }
         if popover.isShown {
-            popover.performClose(nil)
+            popover.close()
             return
         }
         showPopover()
@@ -130,6 +140,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private func showPopover(category: Category? = nil) {
         guard !store.isCapturingText, let button = item.button else { return }
+        fileShelf.close()
         switcher.cancel()
         if let category { store.category = category }
         store.search = ""
@@ -151,12 +162,14 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         let size = NSSize(width: Theme.popoverWidth, height: height)
         let controller = NSHostingController(
             rootView: PopoverView(store: store, monitor: monitor,
-                                  dismiss: { [weak self] in self?.popover.performClose(nil) },
+                                  dismiss: { [weak self] in self?.popover.close() },
                                   applyRestarts: { [weak self] in
                                       self?.applyPendingRestartsKeepingPopoverOpen()
                                   },
                                   showShortcuts: { [weak self] in self?.showShortcutSettings() },
-                                  height: height)
+                                  height: height,
+                                  showShelf: { [weak self] in self?.showFileShelf() },
+                                  appearance: appearance)
         )
 
         // Dynamic SwiftUI resizing after presentation can move a status-item
@@ -186,6 +199,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             togglePopover()
         case .clipboard:
             showPopover(category: .clipboard)
+        case .fileShelf:
+            if fileShelf.isVisible { fileShelf.close() } else { showFileShelf() }
         case .captureText:
             guard let tweak = store.catalog.first(where: { $0.id == "everyday.region-ocr" }) else { return }
             captureWasStartedByShortcut = true
@@ -226,11 +241,50 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private func showShortcutSettings() {
         switcher.cancel()
-        popover.performClose(nil)
+        fileShelf.close()
+        popover.close()
         if shortcutSettings == nil {
             shortcutSettings = ShortcutSettingsController(shortcuts: shortcuts)
         }
         shortcutSettings?.open()
+    }
+
+    private func configureShelfDrop() {
+        shelfDragWatcher.onTrigger = { [weak self] files, pointer in
+            guard let self, !self.store.isCapturingText else { return }
+            self.switcher.cancel()
+            self.popover.close()
+            self.fileShelf.show(beside: pointer, incoming: files)
+        }
+        shelfDragWatcher.onDragEnded = { [weak self] in self?.fileShelf.dragEndedElsewhere() }
+        shelfDragWatcher.start()
+        // Finder's Command-Delete needs the disk list before the shelf is ever opened;
+        // mount notifications keep it current after this.
+        fileShelf.volumes.refresh()
+        finderEject.ejectable = { [weak self] in self?.fileShelf.volumes.volumes ?? [] }
+        finderEject.onEject = { [weak self] targets in
+            guard let self else { return }
+            for volume in targets {
+                self.fileShelf.volumes.eject(volume, failed: { [weak self] in self?.showFileShelf() })
+            }
+        }
+        finderEject.start()
+        fileShelf.shelf.onCountChange = { [weak self] count in
+            guard let self, let button = self.item.button else { return }
+            self.item.length = count == 0 ? NSStatusItem.squareLength : NSStatusItem.variableLength
+            button.imagePosition = .imageLeading
+            button.title = count == 0 ? "" : " \(count)"
+            button.font = .monospacedDigitSystemFont(ofSize: 11, weight: .medium)
+            button.setAccessibilityLabel(count == 0 ? "Switchboard" : "Switchboard, \(count) items on shelf")
+            button.toolTip = count == 0 ? "Switchboard" : "Switchboard · \(count) items on shelf"
+        }
+    }
+
+    private func showFileShelf() {
+        guard !store.isCapturingText, let button = item.button else { return }
+        switcher.cancel()
+        popover.close()
+        fileShelf.show(relativeTo: button)
     }
 
     private func applyPendingRestartsKeepingPopoverOpen() {
@@ -254,6 +308,18 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     func popoverShouldClose(_ popover: NSPopover) -> Bool {
         !restartProtection
+    }
+
+    func popoverDidShow(_ notification: Notification) {
+        item.button?.highlight(popover.isShown)
+    }
+
+    func popoverWillClose(_ notification: Notification) {
+        item.button?.highlight(false)
+        restartProtectionRelease?.cancel()
+        restartProtectionRelease = nil
+        restartProtection = false
+        restartProtectionGeneration += 1
     }
 
     func popoverDidClose(_ notification: Notification) {

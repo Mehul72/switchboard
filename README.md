@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>A little more control over your Mac.</strong><br>
-  Everyday settings, per-app audio, clipboard history, and window tools.<br>
+  Everyday settings, per-app audio, clipboard history, a file shelf, and window tools.<br>
   All in your menu bar.
 </p>
 
@@ -33,6 +33,7 @@
 | **Make macOS yours** | Keep your Mac awake, change mouse scrolling without affecting the trackpad, and adjust Finder, Dock, and screenshot settings. |
 | **Turn down just one app** | Set a volume and output device for each app. Keep music quiet and calls clear. |
 | **Find what you copied** | Bring back your last 20 text and image clips. Copy text straight from a region of your screen. |
+| **Hold files between apps** | While dragging files, shake the pointer or press Shift to open a shelf beside it. Drop them in, then drag them out wherever you need them. Eject external drives and opened disk images from the same panel. |
 | **Put windows in place** | Snap to halves, quarters, or thirds with shortcuts, or hold Control while dragging to use a grid. Move windows between displays. |
 | **Switch windows, not just apps** | Use Command-Tab to choose individual windows, including multiple windows of the same app. Enable previews to see them before switching. |
 | **See how your Mac is doing** | Check CPU, GPU, memory, network, disk, and battery readings without opening another app. Sensor availability varies by Mac. |
@@ -59,6 +60,7 @@ These defaults work from any app while Switchboard is running. Change them in **
 | --- | --- |
 | Show or hide Switchboard | ⌃⌥⌘S |
 | Open clipboard history | ⌃⌥⌘V |
+| Open file shelf and disks | ⌃⌥⌘F |
 | Copy text from the screen | ⌃⌥⌘T |
 | Toggle keep-awake | ⌃⌥⌘A |
 
@@ -79,6 +81,9 @@ Switchboard asks for access when you first use a feature that needs it.
 Manage access in **System Settings > Privacy & Security**. If a feature stays off after you grant access, enable it again. Screen Recording may require relaunching Switchboard.
 
 Clipboard history and window thumbnails stay in memory. Clipboard history clears when you quit, and content marked private by password managers is skipped. Switchboard does not send clipboard content or usage data to a server.
+
+The file shelf holds up to 40 references in memory and clears when you quit.
+Removing an item from the shelf leaves its original file in place.
 
 To undo system preference changes, choose **settings gear > Restore Original Settings**. For audio, use **Reset app audio** in the Audio tab.
 

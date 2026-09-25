@@ -26,6 +26,21 @@ After changing theme colors, check text contrast:
 ./scripts/check-appearance.sh
 ```
 
+Render the file shelf with example content in light, dark, empty, disk-drag and
+short-window states:
+
+```sh
+./scripts/check-shelf.sh
+```
+
+Inspect the PNGs in `build/shelf-preview`. They use disposable example files and
+mock disk actions; the rendering check never ejects a real disk.
+
+To verify native image discovery and eject, run `./scripts/check-shelf.sh --disk`.
+It creates temporary 20 MB HFS+ and APFS disk images, mounts each without opening
+a Finder window, ejects it through the production service, verifies the image is
+fully detached and its source file remains, and removes its fixtures. Existing disks are not ejected.
+
 The appearance check covers light and dark surfaces over white and black
 backgrounds. It reports increased-contrast modes as skipped when macOS does not
 expose them in the current accessibility settings.
@@ -51,7 +66,22 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
 - Copy text and images, expand and remove history entries, and clear history.
   Check that private clipboard content stays excluded and that JPEG/HEIC
   screenshots can be pasted into apps that accept files.
-- From another app, test the four Switchboard shortcuts, including holding a key.
+- Drag disposable files from Finder and shake, then repeat with a Shift press.
+  The shelf must open beside the pointer, not under it. Check that a straight
+  drag, a window drag, text selection, Shift held from the start, and Shift with
+  Command do not open it. Drop into the shelf. Drag
+  them into Finder and an attachment field; originals must remain in place. Check
+  duplicates, the 40-item limit, renaming and deleting originals, Clear, the item
+  menus, Command-O, Escape, outside-click dismissal, and the menu bar count.
+  Mount a disposable DMG and verify its source file offers Open before mounting
+  and Eject afterward. Hover and cancel without ejecting, then drop explicitly
+  onto Eject and confirm the mounted volume disappears while the DMG remains.
+  In Finder, select the mounted volume on the desktop and press Command-Delete;
+  it must eject. Select a file, and a file plus a disk, and press Command-Delete;
+  both must go to the Trash as normal, with no eject.
+  Test an external drive, a busy disk, an unplug during eject, keyboard navigation,
+  VoiceOver, full-screen Spaces, and a short display. Never force-eject a busy disk.
+- From another app, test the five Switchboard shortcuts, including holding a key.
   Repeat with that app in a full-screen Space and its menu bar hidden. The panel
   must stay open on that Space, accept typing in search, and close with Escape,
   an outside click, or the panel shortcut. Open clipboard history while the
@@ -131,6 +161,28 @@ The script increments the build number, archives the app, signs it, notarizes
 both the app and DMG, and staples their tickets. It replaces `build/` and writes
 `build/Switchboard-<version>.dmg`. Upload that DMG to the corresponding GitHub
 release.
+
+The DMG has a dark installer background, fixed icon positions, and an Applications
+drop target. Packaging needs a logged-in macOS desktop and permission for the
+terminal to automate Finder. The release fails if Finder cannot save the layout.
+
+To preview the installer around an existing app without rebuilding or notarizing:
+
+```sh
+./scripts/build-dmg.sh build/export/Switchboard.app build/Switchboard-preview.dmg
+open build/Switchboard-preview.dmg
+```
+
+Choose a new output filename on subsequent runs. The packager refuses to replace
+an existing file. Preview DMGs are unsigned; use `release.sh` for distribution.
+The app bundle's existing signature is preserved.
+
+Edit `scripts/render-dmg-artwork.swift` for the artwork and
+`scripts/style-dmg.applescript` for Finder layout. Both use an 800 by 540 point
+canvas, with 108 point icons at `(220, 336)` and `(580, 336)`. The packager renders
+standard and Retina artwork into a TIFF, embeds it in the DMG, and verifies the
+compressed image. Check a remounted image: the icons and readable filenames must
+line up with the background, and Applications must still point to `/Applications`.
 
 ## Add a setting
 

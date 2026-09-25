@@ -22,11 +22,11 @@ final class GlobalShortcutsTests: XCTestCase {
         super.tearDown()
     }
 
-    func testFirstLaunchRegistersOnlyTheFourSwitchboardDefaults() {
+    func testFirstLaunchRegistersOnlySwitchboardDefaults() {
         let shortcuts = makeShortcuts()
         XCTAssertEqual(shortcuts.bindings.count, ShortcutAction.allCases.count)
         XCTAssertFalse(shortcuts.windowActionsEnabled)
-        XCTAssertEqual(Set(registrar.bindings.values).count, 4)
+        XCTAssertEqual(Set(registrar.bindings.values).count, 5)
         XCTAssertTrue(shortcuts.errors.isEmpty)
     }
 
@@ -49,7 +49,7 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertEqual(shortcuts.bindings[.togglePanel], ShortcutAction.togglePanel.defaultShortcut)
         XCTAssertNotNil(shortcuts.errors[.togglePanel])
         XCTAssertNil(defaults.object(forKey: GlobalShortcuts.preferenceKey(for: .togglePanel)))
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
     }
 
     func testRegistrationFailurePreservesPreviousBindingAndStorage() {
@@ -67,7 +67,7 @@ final class GlobalShortcutsTests: XCTestCase {
         registrar.failedRemoval = id(for: .togglePanel)
         XCTAssertFalse(shortcuts.set(GlobalShortcut(keyCode: 40, modifiers: UInt32(cmdKey | optionKey)),
                                      for: .togglePanel))
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
         XCTAssertEqual(shortcuts.bindings[.togglePanel], ShortcutAction.togglePanel.defaultShortcut)
         XCTAssertNil(defaults.object(forKey: GlobalShortcuts.preferenceKey(for: .togglePanel)))
     }
@@ -80,14 +80,14 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertNil(shortcuts.bindings[.togglePanel])
         XCTAssertNil(shortcuts.bindings[.clipboard])
         XCTAssertEqual(shortcuts.errors.count, 2)
-        XCTAssertEqual(registrar.bindings.count, 2)
+        XCTAssertEqual(registrar.bindings.count, 3)
     }
 
     func testDuplicateSavedBindingsOnlyActivateOneAction() throws {
         let data = try JSONEncoder().encode(ShortcutAction.togglePanel.defaultShortcut)
         defaults.set(data, forKey: GlobalShortcuts.preferenceKey(for: .clipboard))
         let shortcuts = makeShortcuts()
-        XCTAssertEqual(registrar.bindings.count, 3)
+        XCTAssertEqual(registrar.bindings.count, 4)
         XCTAssertNotNil(shortcuts.errors[.clipboard])
     }
 
@@ -97,10 +97,10 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertNotNil(shortcuts.errors[.togglePanel])
         registrar.rejected.removeAll()
         shortcuts.retryUnavailable()
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
         XCTAssertTrue(shortcuts.errors.isEmpty)
         shortcuts.retryUnavailable()
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
     }
 
     func testHeldKeyFiresOnceOnRelease() {
@@ -140,7 +140,7 @@ final class GlobalShortcutsTests: XCTestCase {
 
     func testWindowBindingsRegisterOnlyWhileSnappingIsOn() {
         let shortcuts = makeShortcuts()
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
         shortcuts.setWindowActionsEnabled(true)
         XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.filter { $0.group != .windowSwitcher }.count)
         shortcuts.setWindowActionsEnabled(true)
@@ -151,7 +151,7 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertEqual(Set(registrar.bindings.values),
                        Set(ShortcutAction.allCases.filter { $0.group == .switchboard }.map(\.defaultShortcut)))
         shortcuts.retryUnavailable()
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
     }
 
     func testDisablingSnappingDropsAHeldWindowShortcut() {
@@ -209,7 +209,7 @@ final class GlobalShortcutsTests: XCTestCase {
         XCTAssertFalse(shortcuts.switcherActionsEnabled)
         shortcuts.setSwitcherActionsEnabled(true)
         shortcuts.setSwitcherActionsEnabled(true)
-        XCTAssertEqual(registrar.bindings.count, 8)
+        XCTAssertEqual(registrar.bindings.count, 9)
         shortcuts.setWindowActionsEnabled(true)
         XCTAssertEqual(registrar.bindings.count, ShortcutAction.allCases.count)
         shortcuts.setSwitcherActionsEnabled(false)
@@ -324,7 +324,7 @@ final class GlobalShortcutsTests: XCTestCase {
         let shortcuts = makeShortcuts()
         let replacement = GlobalShortcut(keyCode: UInt32(kVK_Tab), modifiers: UInt32(controlKey))
         XCTAssertTrue(shortcuts.set(replacement, for: .switchWindow))
-        XCTAssertEqual(registrar.bindings.count, 4)
+        XCTAssertEqual(registrar.bindings.count, 5)
         let freshRegistrar = TestHotKeyRegistrar()
         let relaunched = GlobalShortcuts(defaults: defaults, registrar: freshRegistrar)
         relaunched.setSwitcherActionsEnabled(true)
