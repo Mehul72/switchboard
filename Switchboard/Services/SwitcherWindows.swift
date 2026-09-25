@@ -374,9 +374,19 @@ final class SwitcherWindows: SwitcherWindowProviding {
                 }
                 self.queue.async {
                     let result = AXUIElementPerformAction(window, kAXRaiseAction as CFString)
-                    if result != .success { Self.logger.error("Window raise failed: \(result.rawValue)") }
+                    // System Settings on macOS 27 lists AXRaise but answers it with
+                    // attributeUnsupported, after activation already brought its window
+                    // forward. The active app's main window is the focused one.
+                    let focused = result == .success || Self.value(window, kAXMainAttribute) as? Bool == true
+                    if result != .success {
+                        if focused {
+                            Self.logger.info("Window raise returned \(result.rawValue) but the window is main")
+                        } else {
+                            Self.logger.error("Window raise failed: \(result.rawValue)")
+                        }
+                    }
                     DispatchQueue.main.async {
-                        completion(result == .success ? .success(()) : .failure(SwitcherWindowError.focusFailed(result.rawValue)))
+                        completion(focused ? .success(()) : .failure(SwitcherWindowError.focusFailed(result.rawValue)))
                     }
                 }
             }

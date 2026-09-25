@@ -19,23 +19,29 @@ final class MenuBarPopoverTests: XCTestCase {
         try withRunningApplication {
             let original = NSApp.appearance
             defer { NSApp.appearance = original }
-            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-            defer { NSStatusBar.system.removeStatusItem(item) }
-            let button = try self.visibleButton(item)
+            let (anchorWindow, button) = try self.makeAnchor()
+            defer { anchorWindow.close() }
             let popover = self.makePopover()
             defer { popover.close() }
-            NSApp.appearance = NSAppearance(named: .aqua)
+            // Like the menu bar, the anchor keeps its own appearance, so each step
+            // fails if the popover follows its anchor instead of the app.
+            let setAppearance = { (name: NSAppearance.Name?) in
+                NSApp.appearance = name.flatMap { NSAppearance(named: $0) }
+                let appIsDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                anchorWindow.appearance = NSAppearance(named: appIsDark ? .aqua : .darkAqua)
+            }
+            setAppearance(.aqua)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             for (name, expected) in [(NSAppearance.Name.aqua, 0xF3F5F8), (.darkAqua, 0x202226),
                                      (.aqua, 0xF3F5F8), (.darkAqua, 0x202226)] {
-                NSApp.appearance = NSAppearance(named: name)
+                setAppearance(name)
                 try self.assertCanvas(popover, expected: expected)
             }
-            NSApp.appearance = nil
+            setAppearance(nil)
             let systemIsDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
             try self.assertCanvas(popover, expected: systemIsDark ? 0x202226 : 0xF3F5F8)
             popover.close()
-            NSApp.appearance = NSAppearance(named: .aqua)
+            setAppearance(.aqua)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             try self.assertCanvas(popover, expected: 0xF3F5F8)
         }
@@ -43,9 +49,8 @@ final class MenuBarPopoverTests: XCTestCase {
 
     func testOutsideClicksDismissEvenWhenAutomaticClosingIsProtected() throws {
         try withRunningApplication {
-            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-            defer { NSStatusBar.system.removeStatusItem(item) }
-            let button = try self.visibleButton(item)
+            let (anchorWindow, button) = try self.makeAnchor()
+            defer { anchorWindow.close() }
             let popover = self.makePopover()
             let protection = ProtectedPopoverDelegate()
             popover.delegate = protection
@@ -72,9 +77,8 @@ final class MenuBarPopoverTests: XCTestCase {
 
     func testClicksWithinPopoverAnchorAndChildWindowsStayOpen() throws {
         try withRunningApplication {
-            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-            defer { NSStatusBar.system.removeStatusItem(item) }
-            let button = try self.visibleButton(item)
+            let (anchorWindow, button) = try self.makeAnchor()
+            defer { anchorWindow.close() }
             let popover = self.makePopover()
             defer { popover.close() }
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -85,7 +89,7 @@ final class MenuBarPopoverTests: XCTestCase {
             let point = button.convert(NSPoint(x: button.bounds.midX, y: button.bounds.midY), to: nil)
             NSApp.postEvent(try self.click(.leftMouseUp, in: anchor, at: point), atStart: true)
             NSApp.sendEvent(try self.click(.leftMouseDown, in: anchor, at: point))
-            XCTAssertTrue(popover.isShown, "The status button's action must handle its own toggle")
+            XCTAssertTrue(popover.isShown, "The anchor button's action must handle its own toggle")
             let child = NSPanel(contentRect: NSRect(x: 100, y: 300, width: 120, height: 80),
                                 styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             child.isReleasedWhenClosed = false
@@ -96,15 +100,23 @@ final class MenuBarPopoverTests: XCTestCase {
         }
     }
 
-    private func visibleButton(_ item: NSStatusItem) throws -> NSStatusBarButton {
-        let button = try XCTUnwrap(item.button)
-        button.title = "T"
+    /// Never a real status item: a popover opened from one asks macOS 27 to hold the
+    /// menu bar open, and removing the item a moment later left the menu bar stuck
+    /// over full-screen apps until MenuBarAgent restarted.
+    private func makeAnchor() throws -> (NSWindow, NSButton) {
+        let window = NSWindow(contentRect: NSRect(x: 200, y: 600, width: 60, height: 24),
+                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        let button = NSButton(title: "T", target: nil, action: nil)
+        button.frame = NSRect(x: 0, y: 0, width: 60, height: 24)
+        window.contentView?.addSubview(button)
+        window.orderFrontRegardless()
         let deadline = Date().addingTimeInterval(2)
-        while (button.window?.isVisible != true || button.visibleRect.isEmpty), Date() < deadline {
+        while (!window.isVisible || button.visibleRect.isEmpty), Date() < deadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
-        XCTAssertTrue(button.window?.isVisible == true && !button.visibleRect.isEmpty, "The status item must be laid out before showing its popover")
-        return button
+        XCTAssertTrue(window.isVisible && !button.visibleRect.isEmpty, "The anchor must be laid out before showing its popover")
+        return (window, button)
     }
 
     private func canvasHex(_ popover: NSPopover) throws -> Int {
