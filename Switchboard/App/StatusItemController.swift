@@ -12,6 +12,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let shortcuts = GlobalShortcuts(registrar: HotKeyRegistrar())
     private let fileShelf = FileShelfController()
     private let appearance = AppearanceSetting()
+    private let updates = UpdateChecker()
     private let shelfDragWatcher = ShelfDragWatcher()
     private let finderEject = FinderEjectShortcut()
     private let snapper = WindowSnapper()
@@ -75,6 +76,9 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.animates = true
         popover.delegate = self
+
+        updates.onReport = { [weak self] report in self?.showUpdateReport(report) }
+        updates.start()
 
         store.onScreenSelectionBegan = { [weak self] in
             guard let self else { return }
@@ -169,7 +173,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                                   showShortcuts: { [weak self] in self?.showShortcutSettings() },
                                   height: height,
                                   showShelf: { [weak self] in self?.showFileShelf() },
-                                  appearance: appearance)
+                                  appearance: appearance, updates: updates)
         )
 
         // Dynamic SwiftUI resizing after presentation can move a status-item
@@ -212,6 +216,20 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         default:
             guard let command = action.windowCommand else { return }
             snapFocusedWindow(command)
+        }
+    }
+
+    private func showUpdateReport(_ report: UpdateChecker.Report) {
+        switch report {
+        case .upToDate(let installed):
+            store.notice = StoreNotice(kind: .success, message: "Switchboard \(installed) is up to date.")
+        case .available(let latest, let installed):
+            store.notice = StoreNotice(kind: .information,
+                                       message: "Switchboard \(latest) is available. You have \(installed).",
+                                       link: NoticeLink(title: "Open the release page", url: UpdateChecker.releasePage))
+        case .failed:
+            store.notice = StoreNotice(kind: .error,
+                                       message: "Couldn't check for updates. Check your internet connection and try again.")
         }
     }
 

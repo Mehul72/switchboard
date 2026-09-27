@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Render current SwiftUI views with isolated sample state, then compose README media."""
+"""Render current SwiftUI views with isolated sample state, then export documentation images."""
 from pathlib import Path
 import plistlib
 import shutil
 import subprocess
 import tempfile
 
-from compose import main as compose_media
+from compose import main as export_media
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / 'build/docs'
@@ -77,7 +77,7 @@ def main():
              '-module-cache-path', BUILD / 'module-cache', *sources, generated,
              ROOT / 'scripts/docs/Render.swift', ROOT / 'scripts/docs/Windows.swift', ROOT / 'scripts/docs/Features.swift', '-o', executable])
         run([executable], timeout=60)
-    compose_media()
+    export_media()
 
 
 if __name__ == '__main__':

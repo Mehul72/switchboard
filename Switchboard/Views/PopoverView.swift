@@ -10,6 +10,7 @@ struct PopoverView: View {
     let height: CGFloat
     var showShelf: () -> Void = {}
     @ObservedObject var appearance: AppearanceSetting
+    @ObservedObject var updates: UpdateChecker
 
     @State private var launchAtLoginState = LaunchAtLogin.state
     // Bound straight to the store, SwiftUI's text-field writeback buffer
@@ -33,7 +34,7 @@ struct PopoverView: View {
                 CategoryNav(selection: $selectedCategory, includesTweakCategories: !compactHeight)
             }
             if !compactHeight, let notice = store.notice {
-                NoticeView(notice: notice)
+                NoticeView(notice: notice, openLink: openInBrowser)
                     .padding(.horizontal, Theme.edgeInset)
                     .padding(.bottom, 10)
             }
@@ -147,6 +148,15 @@ struct PopoverView: View {
                 }
             }
             Divider()
+            if let latest = updates.availableVersion {
+                Button("Update to \(latest.description)…") { openInBrowser(UpdateChecker.releasePage) }
+            }
+            Button("Check for Updates…") {
+                store.notice = StoreNotice(kind: .information, message: "Checking for updates…")
+                updates.check(userInitiated: true)
+            }
+            Toggle("Check for Updates Automatically", isOn: $updates.checksAutomatically)
+            Divider()
             Button("Restore Original Settings") { store.restoreDefaults() }
                 .disabled(!store.canRestoreOriginalSettings)
             Divider()
@@ -221,7 +231,7 @@ struct PopoverView: View {
                         if searchText.isEmpty, [.everyday, .files, .capture, .dock].contains(selectedCategory) {
                             TweakCategoryNav(selection: $selectedCategory)
                         }
-                        if let notice = store.notice { NoticeView(notice: notice) }
+                        if let notice = store.notice { NoticeView(notice: notice, openLink: openInBrowser) }
                     }
                     ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard && $0 != .system }, id: \.self) { category in
                         settingGroup(category)
@@ -388,6 +398,12 @@ struct PopoverView: View {
         }
     }
 
+    private func openInBrowser(_ url: URL) {
+        if NSWorkspace.shared.open(url) { return }
+        store.notice = StoreNotice(kind: .error,
+                                   message: "Your browser could not be opened. Visit \(url.absoluteString) instead.")
+    }
+
     private func recoverLaunchAtLogin() {
         LaunchAtLogin.recoverFromUnavailableCopy { result in
             switch result {
@@ -419,6 +435,7 @@ struct PopoverView: View {
 
 private struct NoticeView: View {
     let notice: StoreNotice
+    let openLink: (URL) -> Void
 
     private var symbol: String {
         switch notice.kind {
@@ -439,10 +456,23 @@ private struct NoticeView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: symbol).foregroundStyle(colour)
-            Text(notice.message)
-                .font(.rowSubtitle)
-                .foregroundStyle(Theme.primary)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(notice.message)
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let link = notice.link {
+                    Button {
+                        openLink(link.url)
+                    } label: {
+                        Text(link.title)
+                            .frame(minHeight: 28)
+                    }
+                    .buttonStyle(.borderless)
+                    .font(.rowSubtitle)
+                    .foregroundStyle(Theme.accent)
+                }
+            }
             Spacer(minLength: 0)
         }
         .padding(12)

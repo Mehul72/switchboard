@@ -1,87 +1,252 @@
 # Switchboard user guide
 
-[Download Switchboard](https://github.com/Mehul72/switchboard/releases/latest) · [Back to the README](../README.md)
+[Download](https://github.com/Mehul72/switchboard/releases/latest) · [README](../README.md)
 
-## Find your way
+Switchboard runs in the menu bar. Click its icon to open the panel, or press **Control-Option-Command-S**. This guide covers setup and the tools you'll find there.
 
-[First launch](#installation-and-first-launch) · [Everyday tools](#everyday-tools) · [Audio](#audio) · [Clipboard](#screenshots-and-clipboard) · [Shelf](#file-shelf-and-disks) · [Windows](#window-snapping) · [Switcher](#window-switcher) · [System](#system-monitor) · [Troubleshooting](#troubleshooting)
+- [Installation](#installation-and-first-launch)
+- [Settings and everyday tools](#finding-and-changing-settings)
+- [Audio](#audio)
+- [Clipboard](#screenshots-and-clipboard)
+- [File shelf and disks](#file-shelf-and-disks)
+- [Window snapping](#window-snapping)
+- [Window switcher](#window-switcher)
+- [Shortcuts](#global-shortcuts)
+- [Permissions](#permissions)
+- [System monitor](#system-monitor)
+- [Troubleshooting](#troubleshooting)
+- [Updates](#update-switchboard) and [uninstalling](#restore-settings-or-uninstall)
 
 ## Installation and first launch
 
-You need **macOS 14.2 or later**. Check your version in **Apple menu > About This Mac**.
+You need macOS 14.2 or later. Check **Apple menu > About This Mac** if you're unsure.
 
-1. Open the [latest release](https://github.com/Mehul72/switchboard/releases/latest). Under **Assets**, download `Switchboard-<version>.dmg`. The source-code ZIP and TAR files are for developers.
-2. Open the DMG. Drag **Switchboard** onto **Applications**, and wait for the copy to finish.
-3. Open **Finder > Applications > Switchboard**. If macOS asks whether to open the downloaded app, choose **Open**.
-4. In the welcome window, choose **Open Switchboard**. Afterward, open the panel from its menu bar icon or **Control-Option-Command-S**. Switchboard has no Dock icon.
-5. Eject the installer in Finder. Keep the installed app in Applications so permissions and Launch at Login refer to that copy.
+1. Open the [latest release](https://github.com/Mehul72/switchboard/releases/latest) and expand **Assets**. Download `Switchboard-<version>.dmg`. The source-code archives are for building the app yourself.
+2. Open the DMG and drag **Switchboard** into **Applications**. Wait for the copy to finish.
+3. Open Switchboard from Applications. If macOS asks whether to open the downloaded app, choose **Open**.
+4. Choose **Open Switchboard** in the welcome window.
+5. Eject the installer in Finder.
 
-The welcome window appears once per installed copy. Replacing the app with an update or reinstalling it shows the welcome again; ordinary relaunches do not.
+There's no Dock icon. From now on, use the menu bar icon or **Control-Option-Command-S**. Keep the app in Applications so permissions and Launch at Login refer to that copy.
 
-### Your first five minutes
+The welcome window appears once per installed copy. You'll see it again after replacing the app with an update or reinstalling it.
 
-**Start with the clipboard.** Copy `Hello, Switchboard`, then copy another sentence. Open **Clipboard** in the panel. Click **Copy** on the first item, return to a text editor, and paste with **Command-V**. No extra permission is needed.
+### Try the clipboard
 
-**Find a setting.** Press **Command-F** in the panel and type `awake`. The search spans all sections. Press **Escape** to clear the search and return to browsing.
+Copy a sentence, then copy something else. Open **Clipboard** in Switchboard and click **Copy** beside the first sentence. Return to your text editor and paste with **Command-V**.
 
-**Pick your appearance.** The appearance button between the tray and gear offers **Match System**, **Light**, and **Dark**. It changes Switchboard's windows without changing macOS.
+That's all you need to do to retrieve an earlier clip. It doesn't need extra permissions. History only includes things copied while Switchboard is running, and it clears when you quit.
 
-**Make it available tomorrow.** Choose **settings gear > Launch at Login**. If the menu changes to **Approve Launch at Login…**, open it and allow Switchboard in macOS Login Items.
-
-You can now use the panel without enabling every tool. Window snapping and the window switcher are off until you choose to turn them on.
-
-<details>
-<summary>See the current panel in light and dark</summary>
-
-<img src="images/everyday-light.png" width="420" alt="Current Everyday panel in light appearance, with search, section tabs, shelf, appearance, and settings controls.">
-<img src="images/everyday-dark.png" width="420" alt="The same Everyday panel in dark appearance.">
-
-Native views rendered with sample state. The guide's images are illustrations of the current source; an older installed release may differ.
-
-</details>
+To have Switchboard open when you sign in, choose **settings gear > Launch at Login**. If it says **Approve Launch at Login…**, choose that and allow Switchboard in macOS Login Items.
 
 ## Finding and changing settings
 
-Search across all settings with **Command-F**. **Escape** clears the search;
-press it again to close the panel. Tweaks are grouped into Everyday, Files,
-Capture, and Dock. Your last category is remembered when you return to Tweaks.
+Press **Command-F** in the panel to search all settings. Try `awake`, for example. **Escape** clears the search; press it again to close the panel.
 
-Most changes apply immediately. Settings that need Finder or the Dock to restart
-show a restart button, so you can apply several changes together. Some global
-settings take effect when affected apps reopen.
+Tweaks has four categories: Everyday, Files, Capture, and Dock. It remembers the category you last opened. Most changes apply immediately. If a change needs Finder or the Dock to restart, a restart button appears. You can make several changes before using it. Some settings take effect when you reopen the affected apps.
 
-The **appearance button** beside the settings gear switches Switchboard between
-**Match System** (the default), **Light**, and **Dark**. It applies to every
-Switchboard window, including the shelf, window switcher, shortcut settings,
-and welcome screen, and leaves the macOS setting unchanged.
+The appearance button beside the settings gear offers **Match System**, **Light**, and **Dark**. This changes Switchboard's windows without changing the rest of macOS.
 
-The settings gear contains **Keyboard Shortcuts**, **Launch at Login**,
-**Restore Original Settings**, and **Quit Switchboard**. Restore Original
-Settings puts system preferences back to the values they had before Switchboard
-changed them. Shortcut bindings are managed separately.
+<img src="images/everyday-dark.png" width="440" alt="The Everyday tab in dark appearance. The appearance button and settings gear are at the top right.">
+
+The images in this guide are native app views rendered with sample content. Window previews and the desktop are examples, and system readings are made up. They show the current source; an older release may differ.
+
+Use **settings gear > Restore Original Settings** to put system preferences back to their values before Switchboard changed them. Shortcut bindings are managed separately.
 
 ## Everyday tools
 
-![Illustrated text selection from a sample image and the actual recognised result in native Clipboard history.](images/screen-text.gif)
+Open **Tweaks > Everyday**, or search for a tool by name.
 
-[Still image](images/screen-text.png). The text shown was recognised from the example image by the app's OCR.
+### Keep the Mac awake
 
-Open **Tweaks > Everyday**, or search for the tool by name with **Command-F**.
+Choose a duration beside **Keep Mac awake**. The row shows how much time remains. Normal idle sleep resumes when the timer ends or you turn it off.
 
-| Task | What to do | What to expect |
-| --- | --- | --- |
-| Keep a task visible without the Mac going idle | Choose a duration beside **Keep Mac awake**. | The row shows the remaining session time. Normal idle sleep resumes when it ends or you turn it off. |
-| Copy text you cannot select | Click **Select Area** beside **Copy text from the screen**, allow Screen Recording if asked, then drag across the text. | Recognised text is copied to the clipboard and available in history. Escape cancels the selection. |
-| Use traditional scrolling with a mouse | Enable **Traditional mouse scrolling** and grant Accessibility access. | Mouse scrolling changes; the trackpad keeps natural scrolling. |
-| Quit an app with its last window | Enable **Red button quits the app** and grant Accessibility access. | Closing its last window requests a normal quit; an app may still ask to save changes. |
-| Remove formatting from copied text | Click **Make Plain** beside **Strip clipboard formatting**. | Paste again to use plain text without its original fonts, colours, or links. |
+### Copy text from the screen
 
-The **Files**, **Capture**, and **Dock** categories contain Finder, screenshot, and Dock preferences. Read each setting's description before changing it. If a restart button appears, use it when you are ready to apply those changes.
+Click **Select Area** beside **Copy text from the screen**, or press **Control-Option-Command-T**. Allow Screen Recording if asked, then drag around the words you want. Release the mouse to recognise the text, or press **Escape** to cancel.
+
+Paste with **Command-V**. The result also appears in Clipboard history. Check it before using it: blurry images and small text can produce mistakes.
+
+<details>
+<summary>Example image and the recognised text</summary>
+
+<img src="images/text-source.png" width="440" alt="Example image containing the words Team meeting, Tuesday, 10:30, and Bring the draft budget.">
+
+<img src="images/text-result.png" width="440" alt="The text recognised from the example image, shown in Clipboard history with a Copy button.">
+
+</details>
+
+### Mouse scrolling and closing apps
+
+**Traditional mouse scrolling** changes the mouse's scroll direction while leaving natural scrolling on for the trackpad.
+
+**Red button quits the app** asks an app to quit when you close its last window. The app may still ask you to save your work.
+
+Both need Accessibility access.
+
+### Paste without formatting
+
+Click **Make Plain** beside **Strip clipboard formatting**, then paste again. This removes the copied text's fonts, colours, and links.
+
+Finder, screenshot, and Dock preferences are in the **Files**, **Capture**, and **Dock** categories.
+
+## Audio
+
+1. Start playback in the app you want to control.
+2. Open **Audio** in Switchboard.
+3. Move that app's volume slider. Allow **System Audio Recording** when asked, then retry if needed.
+4. To send its audio to another device, choose one from its **Output** menu.
+
+<img src="images/audio-dark.png" width="440" alt="Audio controls with Music at 35% on headphones, Safari at 70%, and FaceTime at 100% on the system default output.">
+
+Each app has its own volume and output. The apps and devices shown here are examples.
+
+An app appears after it opens an audio stream. If it's missing, start playback and check again.
+
+macOS shows a purple recording indicator while per-app volume or routing is active. Switchboard uses audio taps for these controls, and they work while the app is running.
+
+**Reset app audio** returns apps to full volume on the system default output and releases the taps. Output choices are remembered per app; if a chosen device disconnects, playback falls back to the default output.
+
+**Output devices** has a separate set of sliders for each device's overall volume. Those affect every app using the device and don't need recording access. Device volume stays where you set it when you reset app audio or quit Switchboard.
+
+## Screenshots and clipboard
+
+Open **Clipboard**, or press **Control-Option-Command-V**, to find something you copied earlier. Click **Copy** beside it, return to your app, and paste with **Command-V**. Switchboard doesn't paste into another app automatically.
+
+<img src="images/clipboard-light.png" width="440" alt="Clipboard history with example text entries and a Copy button beside each one.">
+
+History holds up to 20 text and image clips. That includes at most eight images, up to 8 MB each. Expand long entries with **Show more** or **Show all … lines**. The trash button removes one entry; **Clear all** clears the list.
+
+History stays in memory and disappears when you quit. Content marked private by a password manager is skipped. Switchboard doesn't send clipboard content or usage data to a server.
+
+If you set clipboard screenshots to JPEG or HEIC, Switchboard converts new captures while it's running. It puts both the image and a matching file on the clipboard. Some apps still convert pasted images to PNG.
+
+## File shelf and disks
+
+The shelf holds files while you move between folders or apps. It keeps references to the originals, so it isn't a backup and doesn't move your files.
+
+### Add and use files
+
+1. Start dragging a file or folder from Finder or another app.
+2. Press **Shift** once, or shake the pointer quickly from side to side.
+3. Drop it onto **Drop to keep**.
+4. When you're ready, drag its thumbnail from the shelf into Finder, an email, or another app that accepts files.
+
+Press Shift after the drag starts, without other keys. Holding it before you start dragging won't open the shelf.
+
+<img src="images/file-shelf.png" width="400" alt="The shelf holding an image, a text file, and a folder, with an external disk listed below.">
+
+You can also open the shelf with **Control-Option-Command-F** or the tray button beside the settings gear. The **+** button, or **Command-O**, opens a file picker. Press the shelf shortcut again or **Escape** to close it.
+
+The shelf holds up to 40 items. Adding the same file twice doesn't duplicate it. The count beside the menu bar icon tells you how many items you have.
+
+Right-click an item, or use its **…** menu, to **Open**, **Copy File**, **Show in Finder**, or **Remove from Shelf**. Copy File lets you paste into a destination without dragging. Removing an item or choosing **Clear** leaves the original file alone. Dragging an item out offers a copy and keeps it on the shelf for reuse.
+
+Everything on the shelf clears when Switchboard quits. Renamed files stay available when macOS can still locate them. Deleted files and files on disconnected drives are marked unavailable after a refresh. Reconnect the drive or add the file again.
+
+The shelf accepts files and folders. Save browser attachments as files first; links and copied text can't be added.
+
+### Eject a disk
+
+External local drives and mounted disk images appear under **Disks**. Click **Eject** beside a disk, or drag its volume icon, reveal the shelf, and release over **Drop to eject**. Hovering over the target won't eject anything.
+
+Wait for the success message. If the disk is busy, close the files or apps using it and try again. Switchboard doesn't force-eject disks. Internal system volumes and hidden system mounts, such as Xcode Simulator runtimes, aren't listed.
+
+You can select a disk on the shelf and press **Command-Delete** to eject it. For an ordinary shelf item, that shortcut removes the reference and leaves the file in place.
+
+With Accessibility access, **Command-Delete** also ejects disks selected in Finder. This applies only when everything selected is an ejectable disk. Files, including downloaded DMGs, still go to the Trash as usual. If ejecting fails, the shelf opens with the error.
+
+### Disk images
+
+A downloaded `.dmg` file can go on the shelf too. Drag it onto **Drop to open** to mount it. Once Switchboard knows its mounted volume, the target changes to **Drop to eject**, and its **…** menu includes eject actions.
+
+Ejecting leaves the downloaded DMG file in place. Use **Refresh disks** if the list is out of date.
+
+## Window snapping
+
+Turn on **Tweaks > Everyday > Snap windows** and allow Accessibility access. It's off by default because its shortcuts use combinations other apps may need.
+
+### Snap with the keyboard
+
+Focus a window, then press **Control-Option-Left** to put it on the left half of the screen. **Control-Option-Return** maximises it; **Control-Option-Delete** restores its previous size and position.
+
+The arrow shortcuts move between layouts, so the result depends on where the window is now:
+
+| Key, with Control-Option held | Result |
+| --- | --- |
+| Up | Maximise. From maximised, move to the top half. |
+| Left or Right | From maximised, move to that half, then that third. From a third, move between the three columns. From the left half, Right returns to maximised; from the right half, Left does the same. |
+| Down | Extend a top-row layout to full height, then move to the bottom half of that width. From maximised, move to the bottom half. |
+
+Left and Right keep the current row. For example, maximise a window, then press Up and Left to reach the top-left quarter. Left again gives the top-left third. At the edge of the layout map, the Mac beeps.
+
+A window that hasn't been snapped starts at the left half, right half, maximised, or bottom half, depending on the arrow you press.
+
+These shortcuts go straight to a layout:
+
+| Layout or action | Default shortcut |
+| --- | --- |
+| Top-left / top-right quarter | Control-Option-U / I |
+| Bottom-left / bottom-right quarter | Control-Option-J / K |
+| Left / centre / right third | Control-Option-D / F / G |
+| Left / right two thirds | Control-Option-E / T |
+| Maximise | Control-Option-Return |
+| Centre | Control-Option-C |
+| Restore previous size | Control-Option-Delete |
+| Next / previous display | Control-Option-Command-Right / Left |
+
+### Snap by dragging
+
+Start dragging a window by its title bar, then hold **Control**. A grid appears with six columns and two rows. Move across cells to choose the area, then release the mouse to snap. Three columns make a half; two make a third.
+
+![The drag grid with three columns and both rows selected, covering the left half of an example desktop.](images/window-grid.png)
+
+The selection starts in the cell under the pointer when you press Control. Release Control before the mouse to cancel snapping and drop the window normally. Without Control, macOS handles the drag as usual.
+
+### Window limits
+
+Maximise fills the available screen without entering macOS full screen. Moving to another display keeps the window's relative size and position. Restore returns to the position before the first snap; moving the window by hand starts a new sequence.
+
+Fixed-size windows keep their size and move to the matching edge. Full-screen windows and Switchboard's own windows can't be snapped; the Mac beeps instead. Turning Snap windows off releases its shortcuts for other apps.
+
+## Window switcher
+
+Turn on **Tweaks > Everyday > Window switcher** and allow Accessibility access. This replaces macOS Command-Tab with a list of individual windows. Two windows from the same app get separate cards.
+
+![The window switcher showing one Workspace window and two Notes windows, with the second Notes window selected.](images/window-switcher.png)
+
+Example windows with previews enabled.
+
+| Action | Default shortcut |
+| --- | --- |
+| Next window | Command-Tab |
+| Previous window | Command-Shift-Tab |
+| Next window in the current app | Option-` |
+| Previous window in the current app | Option-Shift-` |
+
+Hold **Command** and press **Tab** to cycle. Release Command to switch. For the current-app shortcuts, hold and release **Option** instead.
+
+While the panel is open, you can also use Tab, Shift-Tab, or the Left and Right arrows. **Return** confirms; **Escape** or an outside click cancels. Hover over a card to select it, or click to switch. The panel opens on the display containing your pointer and scrolls if needed.
+
+Press **Q** to quit the selected app. It may ask about unsaved work. Holding Q quits only that app, and Finder is never quit.
+
+### Previews and missing windows
+
+Choose **Enable Previews** to allow Screen Recording. Without it, you can still switch using app icons and window titles. macOS may ask you to relaunch Switchboard after granting access.
+
+Preview thumbnails stay in memory, never on disk. They refresh when older than two seconds. The cache clears when the Mac sleeps, another user takes over, the feature is disabled, or Switchboard detects that Screen Recording access was removed. If macOS can't capture a window, its card keeps the app icon.
+
+Selecting a minimized window restores it; selecting a hidden app reveals it. Windows on another Space, including full-screen windows, take you to that Space. Recently used windows come first, so Command-Tab returns to the window you just left.
+
+Switchboard can only list windows that macOS exposes through Accessibility. If a window is missing, visit its Space once and try again. This can happen with windows restored to full screen at login. Switchboard's own windows are excluded.
+
+Running apps with no open windows appear under **Apps without windows**. Selecting one brings the app forward without creating a window. The current-app shortcuts list windows only.
+
+Change any of the four bindings in **settings gear > Keyboard Shortcuts**. With a custom binding, hold its Control, Option, or Command modifiers and release any one to switch; Shift changes direction. Disabling the feature or quitting Switchboard brings back native Command-Tab.
 
 ## Global shortcuts
 
-These shortcuts work from any app while Switchboard is running. The five
-actions below run once when you release the shortcut key.
+These work from any app while Switchboard is running. Each action runs when you release the shortcut key.
 
 | Action | Default shortcut |
 | --- | --- |
@@ -91,330 +256,87 @@ actions below run once when you release the shortcut key.
 | Copy text from the screen | Control-Option-Command-T |
 | Toggle keep-awake | Control-Option-Command-A |
 
-Keep-awake starts a one-hour session when off and stops any active session,
-then opens the panel so you can see the new state.
-Text capture opens the region selector directly, then shows the result in the
-panel. Other shortcuts are paused while a capture is in progress.
+The keep-awake shortcut starts a one-hour session or stops the current one, then opens the panel. Text capture opens the region selector and shows the result afterward. Other shortcuts pause while a capture is in progress.
 
-## File shelf and disks
+### Customising shortcuts
 
-![Native shelf walkthrough: reveal Drop to keep, hold an image, then add a text file and a folder.](images/file-shelf.gif)
+Open **settings gear > Keyboard Shortcuts**, click a binding, and press the new combination. It must include Control or Option, or Command with another modifier. Window switcher actions also accept Command-Tab.
 
-[Still image](images/file-shelf-workflow.png).
+You can use letters, numbers, punctuation, arrows, Tab, Return, Delete, Space, or F1 to F12. Bindings follow physical key positions; their labels follow your keyboard layout.
 
-Start dragging files or folders from Finder or any other app, then either
-**shake the pointer** quickly from side to side or **press Shift** once. The shelf
-opens beside the pointer; move onto **Drop to keep** and release. Shift already
-held when the drag began, or pressed with other keys, does not count. You can
-collect up to
-40 items from different folders; adding the same file again does not duplicate it.
-The number beside the menu bar icon shows how many items are on the shelf.
+While recording, **Escape** cancels, **Delete** disables the shortcut, and **Tab** leaves recording. Each row's menu also has **Restore Default** and **Disable Shortcut**. Changes take effect immediately and survive relaunch.
 
-To open the shelf without dragging, press **Control-Option-Command-F**, or click
-the **tray icon** beside the settings gear in the main panel. Change the shortcut
-in **settings gear > Keyboard Shortcuts**. Press it again or press **Escape** to
-close the shelf. The **+** button (or Command-O) opens a file picker.
+A global shortcut takes that combination away from other apps. For example, Option with a letter may stop you typing an accented character, and Control-A may stop working as a text editing command.
 
-Drag a file's thumbnail out of the shelf into Finder, an email, or another
-app that accepts files. The shelf offers a copy, leaving the original in place,
-and keeps the reference for reuse. Hover over an item and click **…**, or
-right-click it, for **Open**, **Copy File**, **Show in Finder**, and **Remove from
-Shelf**. Copy File is also a keyboard-accessible way to transfer a file: paste it
-into the destination app. **Remove from Shelf** and **Clear** remove references,
-never the original files.
-
-The shelf stays in memory and clears when Switchboard quits. References follow
-renamed files when macOS can resolve them. Deleted files and files on disconnected
-drives are marked unavailable when the shelf refreshes. Reconnect the drive or
-add the file again. Browser links, copied text, and attachments that have not yet
-been saved as files are not accepted.
-
-![Sample disk eject sequence: a connected drive, its Drop to eject target, then the drive gone from the list with an ejected confirmation.](images/disk-eject.gif)
-
-[Still image](images/disk-eject.png). Example disk states; no real disk was ejected for this walkthrough.
-
-**Disks** lists external local volumes and mounted disk images. Click a
-disk's **Eject** button, or drag its volume icon, shake or press Shift, and release
-over the labelled **Drop to eject** target. Hovering or dropping a disk elsewhere in
-the panel does not eject it. Internal system volumes are excluded. Eject shows
-progress, reports success only after macOS completes it, and shows an error if
-the disk is busy or no longer available. There is no force-eject action.
-You can also click a disk, or a shelved disk image that is open, and press
-**Command-Delete** to eject it. On any other shelf item, Command-Delete removes it
-from the shelf and leaves the original file in place.
-
-Command-Delete also ejects disks selected in **Finder**, on the desktop or in a
-Finder window. It acts only when everything selected is an ejectable disk; files,
-including a downloaded .dmg file, still go to the Trash as usual. This needs
-Accessibility access for Switchboard. If an eject fails, the shelf opens to show
-why.
-Hidden system mounts, such as Xcode Simulator runtimes, are not listed.
-
-A downloaded **.dmg file** can be held on the shelf. While dragging it, **Drop to
-open** opens the image; if its mounted volume is already known, **Drop to eject**
-appears instead. Mounted volumes also appear under Disks, and a shelved DMG's
-**…** menu includes their eject actions. Ejecting an image leaves the downloaded
-DMG file in place. Use **Refresh disks** if the list needs updating.
-
-## Window snapping
-
-![Six-step snapping walkthrough with default shortcuts for halves, thirds, quarters, maximising, and restoring a sample window.](images/window-snapping.gif)
-
-[View the still image](images/window-snapping.png). The example window's positions are calculated by Switchboard's layout code.
-
-Switch on **Snap windows** in Everyday. It needs Accessibility access and is
-off by default, because its shortcuts take common Control-Option combinations
-away from other apps. While it is off, window shortcuts are not registered, but
-you can still change their bindings.
-
-**Arrow keys.** Control-Option-arrows move a window around a map of layouts:
-
-- **Up** maximises from any layout. From maximised, Up gives the
-  top half.
-- Left from maximised gives the left half, then the left third. Right from
-  the left half goes back to maximised. From any third, Left and Right move
-  between the left, centre, and right thirds.
-- Left and Right keep a window's row, so maximise, Up, Left gives the
-  top-left quarter, and Left again the top-left third.
-- **Down** joins a top-row layout back to full height, then gives the bottom
-  half of that width. Maximised plus Down is the bottom half of the screen.
-- A window that is on no layout starts at the left half, right half, maximised
-  (Up), or bottom half (Down). At the edge of the map the Mac beeps.
-
-![Control-drag walkthrough using the native grid over an example workspace.](images/window-grid.gif)
-
-[View the still image](images/window-grid.png).
-
-**Dragging.** Start dragging a window by its title bar, then hold **Control**.
-A grid of six columns and two rows appears. The cell under the pointer when you
-press Control is where the layout starts; move across cells to extend it, then
-release the mouse. Three columns make a half and two make a third. Release
-Control before the mouse to drop the window normally. Option is not used
-because macOS uses it for its own tiling during a drag.
-
-**Other shortcuts** jump straight to a layout:
-
-| Action | Default shortcut |
-| --- | --- |
-| Top-left, top-right, bottom-left, bottom-right quarter | Control-Option-U, I, J, K |
-| Left, centre, or right third | Control-Option-D, F, G |
-| Left or right two thirds | Control-Option-E, T |
-| Maximise | Control-Option-Return |
-| Centre | Control-Option-C |
-| Restore previous size | Control-Option-Delete |
-| Move to next or previous display | Control-Option-Command-Right or Left |
-
-Shortcuts act on the focused window of the frontmost app. Maximise fills the
-screen without entering full screen. Moving to another display keeps the
-window's relative position and size. Restore returns a window to where it was
-before its first snap or drag; moving the window by hand starts a new run. Windows that
-cannot be resized keep their size and move against the matching screen edge.
-Full-screen windows and Switchboard's own windows are not moved; the Mac beeps
-instead.
-
-## Window switcher
-
-![Native window switcher stepping between sample windows, then filtering to two windows of the same app.](images/window-switcher.gif)
-
-[View the still image](images/window-switcher.png). Native switcher view with example window content; no personal desktop content is captured.
-
-Switch on **Window switcher** in Everyday and allow **Accessibility** access.
-The feature is off by default. When enabled, it replaces the macOS Command-Tab
-switcher with individual windows, so two Finder windows or two browser windows
-get separate cards.
-
-| Action | Default shortcut |
-| --- | --- |
-| Next window across apps | Command-Tab |
-| Previous window across apps | Command-Shift-Tab |
-| Next window of the current app | Option-` |
-| Previous window of the current app | Option-Shift-` |
-
-Keep Command held and press Tab again to cycle. Release Command to focus the
-selected window. For the current-app shortcuts, hold and release Option instead.
-While the preview panel is open, Tab, Shift-Tab,
-Left and Right move the selection; Return confirms and Escape cancels. Moving
-the pointer over a card selects it, and clicking a card switches to it.
-Cancelling leaves your original window focused. The panel appears on the
-display containing the pointer and scrolls when there are more windows than fit.
-
-Apps that are still running with all their windows closed appear after the
-window cards under **Apps without windows**, most recently used first, with an
-icon and no preview. Choosing one brings the app forward without opening a
-window, like the macOS switcher. The current-app shortcuts list windows only.
-
-Press **Q** while the panel is open to quit the selected card's app, as with
-the macOS switcher. The app may still ask about unsaved changes. Its cards
-disappear once it quits and the switcher stays open. Holding Q quits only one
-app, and Finder is never quit.
-
-Choose **Enable Previews** in the switcher to allow **Screen Recording**.
-Without it, the same controls work with app icons and window titles. Previews
-cover windows on other Spaces, full-screen apps, minimized windows and hidden
-apps. Each card is captured when the open panel first shows it, selected card
-first, so a quick press and release captures nothing. Small thumbnails stay in
-memory so the next opening shows them at once, and are refreshed when older
-than two seconds. They are never written to disk. Thumbnails of closed windows
-are dropped the next time the switcher opens, and all of them are discarded
-when the Mac sleeps, another user takes over the screen, the feature is
-switched off, or the switcher finds Screen Recording turned off. A window macOS
-will not capture keeps its app icon. macOS may require relaunching Switchboard
-after granting access.
-
-Minimized windows are restored when selected, and hidden apps are revealed.
-Windows on other Spaces, including full-screen apps, are listed, and choosing
-one moves to its Space. Cards follow the order you last used each window, on
-any Space, so Command-Tab goes back to the window you came from. Windows not
-used since Switchboard started follow, in stacking order and by when their app
-was last active. Only windows exposed by macOS Accessibility are
-listed, and Switchboard's own windows are excluded. While the switcher is on,
-Switchboard notes each Space's windows as you visit it, so a second full-screen
-window of the same app stays listed. A window that has not been shown since
-Switchboard started, such as one macOS restored into full screen at login, can
-be missing unless it is its app's main window; showing its Space once fixes that.
-
-All four bindings can be changed in **settings gear > Keyboard Shortcuts**.
-With a custom shortcut, hold its Control, Option or Command modifiers and
-release any one to switch. Shift only affects direction. Turning the feature
-off releases its shortcuts and closes any open switcher. Native Command-Tab
-returns when the feature is disabled or Switchboard quits. Existing saved
-Option-Tab defaults migrate to Command-Tab once; custom and disabled bindings stay as set.
-
-## Customising shortcuts
-
-Open **settings gear > Keyboard Shortcuts** to customise a binding. Click its
-shortcut button and press a combination containing Control or Option, or
-Command with another modifier. Window switcher actions also accept Command-Tab.
-Use letters, numbers, punctuation, arrows,
-Tab, Return, Delete, Space, or F1 to F12. A global shortcut takes the combination
-away from every app: Option plus a letter stops typing characters such as å, and Control plus a
-letter can replace text editing keys such as Control-A. Bindings follow physical key positions; labels reflect the keyboard layout.
-Press **Escape** to cancel, **Delete** to disable, or **Tab** to leave recording.
-Each row's options menu also provides **Restore Default** and **Disable Shortcut**.
-Changes take effect immediately and survive relaunch.
-
-Conflicting shortcuts show an error and keep the previous binding. macOS or
-another app may consume a combination before the recorder receives it; choose
-another if that happens. If a saved shortcut is unavailable at launch, close
-the app using it and choose **Retry Unavailable Shortcuts**, or record another.
-
-Global shortcut registration needs no additional permission. Screen text
-capture still needs Screen Recording access, and window snapping needs
-Accessibility. The window switcher also needs Accessibility, with optional
-Screen Recording for previews.
+Conflicts show an error and keep the old binding. If another app or macOS intercepts a combination, choose a different one. For a binding that's unavailable at launch, close the app using it and choose **Retry Unavailable Shortcuts**, or record another combination.
 
 ## Permissions
 
-macOS asks for access when you first use a feature that needs it.
+macOS asks for access when you use a feature that needs it. Grant only the permissions for the tools you want to use.
 
 | Feature | Permission |
 | --- | --- |
-| Traditional mouse scrolling, red-button quit, window snapping and switching, Command-Delete to eject disks in Finder | Accessibility |
+| Traditional mouse scrolling, red-button quit, window snapping and switching, Command-Delete disk eject in Finder | Accessibility |
 | Copy text from the screen | Screen Recording |
-| Window previews (optional) | Screen Recording |
-| Per-app audio controls | System Audio Recording |
+| Window previews, if enabled | Screen Recording |
+| Per-app audio | System Audio Recording |
 
-If a toggle stays off while you grant access, enable it again afterward.
-Permissions are managed in **System Settings > Privacy & Security**. Launch at
-Login may also need approval under **General > Login Items**.
+Manage these in **System Settings > Privacy & Security**. If a toggle stayed off while you granted access, turn it on again. Screen Recording may need a quit and relaunch.
 
-## Audio
-
-![Independent app volume, headphone routing, and resetting app audio, shown with sample app streams.](images/app-audio.gif)
-
-[Still image](images/app-audio.png).
-
-1. Play something in the app you want to control.
-2. Open Switchboard and select **Audio**.
-3. Move that app's volume slider. Allow **System Audio Recording** when asked, then retry the adjustment if needed.
-4. To route it elsewhere, choose a connected device from the app's **Output** menu.
-
-<details>
-<summary>See per-app volume and output controls</summary>
-
-<img src="images/audio-dark.png" width="440" alt="Audio panel with example Music, Safari, and FaceTime streams, each with a separate volume and output selector.">
-
-Sample apps and output devices; your list depends on what's running and connected.
-
-</details>
-
-Apps appear after opening an audio stream. Lowering an app's volume or choosing
-another output uses a Core Audio tap, so macOS shows a purple recording indicator
-while that control is active. These controls work while Switchboard is running.
-
-**Reset app audio** returns apps to full volume on the system default output and
-releases their taps. A chosen output is remembered per app; if it disconnects,
-playback falls back to the default output.
-
-Expand **Output devices** to control a device's overall volume. These sliders
-affect every app using that device and do not need recording access. Device
-volume changes remain in place when app audio is reset or Switchboard quits.
-
-## Screenshots and clipboard
-
-Switchboard remembers up to **20 recent text and image clips** copied while it is running. Open **Clipboard** or press **Control-Option-Command-V**, find an item, and click **Copy**. Return to your destination app and paste with **Command-V**. Copying an item back does not paste it into another app automatically.
-
-Expand longer entries with **Show more** or **Show all … lines**. The trash button removes an entry; **Clear all** clears history. Images are limited to eight entries, up to 8 MB each.
-
-<details>
-<summary>See clipboard history</summary>
-
-<img src="images/clipboard-light.png" width="440" alt="Clipboard panel showing three sample text clips and Copy buttons.">
-
-</details>
-
-When clipboard screenshots are set to JPEG or HEIC, Switchboard converts new
-captures while it runs. The clipboard includes the chosen format and a matching
-file. Some receiving apps still convert image data to PNG when pasting.
-
-Clipboard history stays in memory and is cleared when Switchboard quits.
-Content marked private by a password manager is skipped. Switchboard does not
-send clipboard content or usage data to a server.
+Registering shortcuts doesn't need extra permission, but the feature they trigger still might. Launch at Login may need approval in **System Settings > General > Login Items**.
 
 ## System monitor
 
-Open **System** to see CPU, GPU, memory, swap, network traffic, disk space, and battery readings. Monitoring resumes when the section is shown. A reading marked unavailable means macOS or your hardware did not supply it; it is not a zero reading.
+Open **System** for CPU, GPU, memory, swap, network traffic, disk space, and battery readings. Monitoring resumes when you open the section.
 
 <details>
-<summary>See the system monitor</summary>
+<summary>System panel with example readings</summary>
 
-<img src="images/system-dark.png" width="440" alt="System panel with sample CPU and GPU charts, memory, network, and power readings.">
-
-These readings are sample data, not a performance benchmark.
+<img src="images/system-dark.png" width="440" alt="System panel with sample CPU and GPU charts, memory use, network traffic, and power readings.">
 
 </details>
 
+An unavailable reading means macOS or your hardware didn't supply it. It doesn't mean zero.
+
 ## Troubleshooting
 
-| What you see | What to try |
+| Problem | What to try |
 | --- | --- |
-| No app window after launch | Look in the top menu bar or press Control-Option-Command-S. If nothing happens, open the installed app from Applications. |
-| The download page has no DMG | Expand **Assets** on the release page. You want the `.dmg`, not **Source code**. If none is attached, check the [release list](https://github.com/Mehul72/switchboard/releases) or [build from source](../CONTRIBUTING.md#build). |
-| macOS refuses to open the downloaded app | Confirm it came from this repository's release page and that your macOS version meets the requirement. Download the DMG again. If it is still blocked, report the exact message and release version; do not disable macOS security protections. |
-| A feature stays off after allowing access | In **System Settings > Privacy & Security**, confirm Switchboard is allowed, then enable the feature again. Screen Recording may need a quit and relaunch. |
-| Audio shows no apps | Start playback in the target app and reopen Audio. An app must open an audio stream to appear. |
-| A purple recording indicator appears | Per-app volume or routing is active. **Audio > Reset app audio** releases the taps. [More about audio](#audio). |
-| A shortcut does nothing | Open **settings gear > Keyboard Shortcuts**. Check for disabled or unavailable bindings. Use **Retry Unavailable Shortcuts** if shown, or choose another combination. |
-| Command-Tab still uses the macOS switcher | Enable **Tweaks > Everyday > Window switcher** and allow Accessibility. |
-| A window will not snap | Focus a resizable, non-full-screen window and check that Snap windows is on. Some apps expose fixed-size windows. |
-| A window is missing from the switcher | Visit its Space once and try again. Only windows exposed by macOS Accessibility can be listed. |
-| The shelf does not open with Shift | Begin dragging an actual file or folder first, then press Shift alone. Holding Shift before the drag does not trigger it. Use the tray button or Control-Option-Command-F as an alternative. |
-| A shelved file is unavailable | Reconnect its drive, check whether it was moved or deleted, or add the file again. The shelf stores references, not backup copies. |
-| A disk cannot eject | Close files and apps using it, then retry. Switchboard reports busy disks and does not force-eject them. |
-| Launch at Login needs approval | Choose **Approve Launch at Login…** from the gear and allow it under **System Settings > General > Login Items**. Run the Applications copy. |
+| Can't find the app after opening it | Look in the menu bar or press Control-Option-Command-S. If nothing happens, open Switchboard from Applications. |
+| No DMG on the download page | Expand **Assets**. If no DMG is attached, check the [release list](https://github.com/Mehul72/switchboard/releases) or [build from source](../CONTRIBUTING.md#build). |
+| macOS won't open the app | Check that you downloaded it from this repository and have macOS 14.2 or later. Download it again. If it's still blocked, report the exact message and release version. Don't disable macOS security protections. |
+| A feature stays off after granting access | Check **System Settings > Privacy & Security**, then enable the feature again. Screen Recording may need a relaunch. |
+| Audio is empty | Start playback in the app, then reopen Audio. |
+| Purple recording indicator | Per-app audio is active. **Audio > Reset app audio** releases those controls. |
+| A shortcut does nothing | Check **Keyboard Shortcuts** for disabled or unavailable bindings. Retry unavailable shortcuts or choose another combination. |
+| Command-Tab still shows the macOS switcher | Enable **Tweaks > Everyday > Window switcher** and allow Accessibility. |
+| A window won't snap | Enable Snap windows, then focus a resizable window outside full screen. Some apps have fixed-size windows. |
+| A window is missing from the switcher | Visit its Space once and try again. |
+| Shift doesn't open the shelf | Start dragging a file or folder, then press Shift alone. Or use the tray button or Control-Option-Command-F. |
+| A shelf item is unavailable | Reconnect its drive, check whether the file moved or was deleted, or add it again. |
+| Clipboard or shelf is empty after relaunching | Both clear when Switchboard quits. Original files remain in their folders. |
+| A disk won't eject | Close files and apps using it, then retry. Busy disks aren't force-ejected. |
+| Launch at Login needs approval | Choose **Approve Launch at Login…** from the gear and allow Switchboard in **System Settings > General > Login Items**. Use the Applications copy. |
+| Checking for updates fails | Check your internet connection, then try again. GitHub limits how often one network can ask, so a repeated failure can clear on its own within an hour. |
 
-Still stuck? [Report a bug](https://github.com/Mehul72/switchboard/issues/new?template=bug_report.yml) with the Switchboard release version, macOS version, steps, and what happened. A screenshot of the error helps.
+If that doesn't help, [report a bug](https://github.com/Mehul72/switchboard/issues/new?template=bug_report.yml). Include your Switchboard version, macOS version, steps to reproduce it, and the exact error if there is one.
 
 ## Update Switchboard
 
-Quit Switchboard from the settings gear. Download the new DMG from [Releases](https://github.com/Mehul72/switchboard/releases), open it, and drag the new app into Applications, replacing the old copy. Launch from Applications again. Your in-memory clipboard and shelf start empty; the welcome window appears for the new copy.
+Switchboard checks GitHub for a newer release once a day. The first time it finds one, a notice in the panel links to the release page. To check now, choose **settings gear > Check for Updates…**. While a newer version is known, the gear menu also offers **Update to** followed by the version number, which opens the release page.
+
+The check reads only the latest release number from GitHub. Nothing is downloaded or installed for you. To stop the daily check, turn off **settings gear > Check for Updates Automatically**; checking by hand still works.
+
+To install an update, quit Switchboard from the settings gear. Download the new DMG from [Releases](https://github.com/Mehul72/switchboard/releases), then drag the new app into Applications and replace the old copy. Open it from Applications again.
+
+The welcome window appears for the new copy. Clipboard history and the shelf start empty.
 
 ## Restore settings or uninstall
 
-1. If you want to undo system preference changes, choose **settings gear > Restore Original Settings** before removing the app. This uses the values saved before Switchboard changed them. Apply any requested Finder or Dock restart.
-2. In **Audio**, choose **Reset app audio** to return apps to full volume on the system default output. Overall output-device volume is separate; adjust it yourself if needed.
+1. To undo system preference changes, choose **settings gear > Restore Original Settings** before removing the app. Apply any requested Finder or Dock restart.
+2. Choose **Audio > Reset app audio** to return apps to full volume on the system default output. Overall device volume is separate; adjust it if needed.
 3. If enabled, choose **Disable Launch at Login** from the settings gear.
-4. Choose **Quit Switchboard**. Its clipboard history, shelf references, and thumbnail cache disappear. Original files remain, and native Command-Tab returns.
-5. To uninstall, move **Applications > Switchboard** to the Trash.
+4. Choose **Quit Switchboard**.
+5. Move **Applications > Switchboard** to the Trash.
 
-Quitting alone does not reverse persistent Finder, Dock, screenshot, or device-volume changes. Shortcut customisations are managed separately in **Keyboard Shortcuts**.
+Quitting clears clipboard history, shelf references, and window previews. It restores native Command-Tab, but it doesn't undo persistent Finder, Dock, screenshot, or device-volume changes. Original files stay in place. Shortcut customisations are managed separately in **Keyboard Shortcuts**.

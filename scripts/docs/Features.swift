@@ -30,8 +30,8 @@ extension DocumentationRenderer {
                           dark: false, output: output)
         let image = try Data(contentsOf: output.appendingPathComponent("text-source.png"))
         let recognised = try await Task.detached { try TextCapture.recognise(image).get() }.value
-        guard recognised.contains("Small tools."), recognised.contains("More flow."),
-              recognised.contains("Make room for your next idea.") else {
+        guard recognised.contains("Team meeting"), recognised.contains("Tuesday, 10:30"),
+              recognised.contains("Bring the draft budget.") else {
             throw NSError(domain: "Documentation", code: 1,
                           userInfo: [NSLocalizedDescriptionKey: "Sample text recognition changed: \(recognised)"])
         }
@@ -49,7 +49,7 @@ extension DocumentationRenderer {
                           dark: false, output: directory)
         let artwork = directory.appendingPathComponent("Moodboard.png")
         let notes = directory.appendingPathComponent("Launch notes.txt")
-        try Data("A place for your next idea.".utf8).write(to: notes)
+        try Data("Check the download link before publishing.".utf8).write(to: notes)
         let assets = directory.appendingPathComponent("Design assets")
         try FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
         let drive = ShelfVolume(url: URL(fileURLWithPath: "/Volumes/Studio SSD"), name: "Studio SSD", uuid: "sample-drive")
@@ -112,10 +112,10 @@ private struct SampleArtwork: View {
 private struct CaptureSample: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Small tools.\nMore flow.")
+            Text("Team meeting\nTuesday, 10:30")
                 .font(.system(size: 52, weight: .bold, design: .rounded))
                 .foregroundStyle(Color(red: 0.12, green: 0.23, blue: 0.3))
-            Text("Make room for your next idea.")
+            Text("Bring the draft budget.")
                 .font(.system(size: 24))
                 .foregroundStyle(Color(red: 0.25, green: 0.37, blue: 0.4))
         }

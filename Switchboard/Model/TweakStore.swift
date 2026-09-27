@@ -6,6 +6,12 @@ struct StoreNotice: Identifiable, Equatable {
     let id = UUID()
     let kind: Kind
     let message: String
+    var link: NoticeLink?
+}
+
+struct NoticeLink: Equatable {
+    let title: String
+    let url: URL
 }
 
 final class TweakStore: ObservableObject {

@@ -101,6 +101,12 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   Control-Option-Left and Control-drags reach apps again.
 - Compare System readings with Activity Monitor. Close the panel and reopen it
   to check that monitoring resumes.
+- Choose Check for Updates: it reports the current release. Build with a lower
+  `MARKETING_VERSION` and check again: the notice offers the newer release, its
+  link and the gear's Update item open the release page, and the notice
+  doesn't return after the next panel open. Check with Wi-Fi off: it reports a
+  failure within 20 seconds. Turn off automatic checks and relaunch: the
+  setting sticks.
 - Enable Window switcher and open two windows of the same app plus one of
   another app. Hold Command-Tab, reverse with Shift, use Left/Right and Return,
   cancel with Escape or an outside click, and choose a card with the mouse.
@@ -125,11 +131,11 @@ Record failures in an issue with the macOS version, hardware, and reproduction
 steps. Automated tests do not replace permission, hardware, or accessibility
 checks.
 
-## README screenshots and tour
+## Documentation images
 
-After changing the UI, regenerate the native screenshots and animated tour using
-[the media guide](docs/media.md). It includes the exact command, sample-data
-isolation, and the visual checks to make before shipping.
+After changing the UI, regenerate the app views and README demos using
+[the media guide](docs/media.md). It covers the render command, sample data,
+and checks to make before committing the images.
 
 ## Artwork
 
@@ -167,6 +173,11 @@ The script increments the build number, archives the app, signs it, notarizes
 both the app and DMG, and staples their tickets. It replaces `build/` and writes
 `build/Switchboard-<version>.dmg`. Upload that DMG to the corresponding GitHub
 release.
+
+The in-app update check reads GitHub's latest release, which leaves out drafts
+and prereleases. Tag each release `vX.Y.Z` to match `MARKETING_VERSION`. A tag
+that isn't a plain version number, such as `v1.2.0-beta`, fails the check
+instead of being offered, and people won't hear about that release.
 
 The DMG has a dark installer background, fixed icon positions, and an Applications
 drop target. Packaging needs a logged-in macOS desktop and permission for the

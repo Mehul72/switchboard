@@ -1,12 +1,14 @@
-# Maintaining the repository visuals
+# Updating documentation images
 
 [README](../README.md) · [Contributing](../CONTRIBUTING.md)
 
-The README media combines native app views rendered from this checkout with labelled sample content and illustrated interaction steps. They are not desktop captures or interactive recordings. The general tour is a four-slide, 20-second GIF. Feature GIFs demonstrate window switching, keyboard snapping, Control-drag snapping, per-app audio, file collection, disk ejection, and screen text capture. App names, clipboard entries, files, disks, and system readings are examples.
+The README and user guide use native app views with sample content. Keep the images close to what someone will see in the app. Put instructions in the Markdown beside them, where they stay readable on a phone and accessible to screen readers.
+
+The README is a visual introduction, with a warm background, native panels, and seven short GIF demos. The user guide keeps the plain captures. Each demo has a still-image link, and its main instructions also appear in the Markdown. Window previews and snapping scenes use example windows, not a recording of someone's desktop. App names, clips, files, disks, and system readings are sample data.
 
 ## Regenerate
 
-Use a logged-in macOS desktop with Xcode 16 or later and Python 3.9 or later. From the repository root:
+On a logged-in Mac with Xcode 16 or later and Python 3.9 or later, run this from the repository root:
 
 ```sh
 python3 -m venv build/docs/venv
@@ -14,35 +16,42 @@ build/docs/venv/bin/python -m pip install -r scripts/docs/requirements.txt
 build/docs/venv/bin/python scripts/docs/render.py
 ```
 
-The command builds the app without signing, compiles a separate documentation renderer, captures its native views, and replaces the assets in `docs/images/`. The build log is `build/docs/build.log`; uncomposed captures are in `build/docs/captures/`. A failed build or render exits with an error. Nothing is uploaded.
+The command builds the app without signing, compiles a separate documentation renderer, then creates the overview, GIF demos, and stills in `docs/images/`. Pillow is used only by the documentation composer; the app has no Python dependency. A failed build or render exits with an error. Nothing is uploaded.
 
-The renderer compiles temporary copies of the app sources. In the temporary `TweakStore`, it removes startup and audio-refresh work, makes published state assignable, and derives the audio-active label from sample routes. In `SystemMonitor`, it disables live sampling and makes sample readings assignable. In `WindowSwitcher`, it makes sample window state assignable. It exposes the private `WindowSwitcherView` and `GridCanvas` types only in temporary copies, leaving their rendering code unchanged. Missing source markers fail the render so a renamed method cannot silently defeat isolation.
+The build log is `build/docs/build.log`. All captures, including intermediate example states, are in `build/docs/captures/`.
 
-Window examples use a mock inventory and preview provider that fail if asked to enumerate, capture, focus, or quit real windows. Snapping renders an example document at positions calculated by `WindowLayout` and `SnapGrid`; it never moves a real app window.
+## Files to edit
 
-The screen-text example runs `TextCapture.recognise` against the generated sample image and verifies its expected text. Its result is saved in `build/docs/captures/recognised-text.txt` and displayed in the native clipboard view. The selection rectangle is an illustration, not a capture of the macOS region picker. Nothing is copied to the real clipboard. Audio values are sample state. The eject sequence runs the shelf's own eject handling against a stand-in for macOS that reports success and only removes the sample drive from its list, so the final frame shows the app's real confirmation.
-
-No live clipboard history is recorded, no audio tap is started, and no real disk is ejected. File examples, including a generated sample image, live under `build/docs/captures/Sample files`. Disk actions reach only that stand-in, never macOS. The renderer uses a separate app identity and an isolated appearance preference suite. It does not launch the installed Switchboard app or change its appearance.
-
-## What to edit
-
-| File | Purpose |
+| File | What it controls |
 | --- | --- |
-| [Render.swift](../scripts/docs/Render.swift) | Sample app state, native views, capture dimensions, and appearances. |
-| [Features.swift](../scripts/docs/Features.swift) | Audio and shelf states, the stand-in disk eject, and verified sample image recognition. |
-| [Windows.swift](../scripts/docs/Windows.swift) | Sample documents, native switcher states, layout calculations, and native drag-grid renders. |
-| [compose.py](../scripts/docs/compose.py) | Layout, colours, typography, captions, and GIF slides. Each GIF shares one palette so colours stay stable between frames. |
-| [render.py](../scripts/docs/render.py) | Build, temporary source isolation, and capture orchestration. |
+| [Render.swift](../scripts/docs/Render.swift) | Main panels, sample clips and readings, appearance, capture size |
+| [Features.swift](../scripts/docs/Features.swift) | Audio and shelf examples, sample disk eject, screen-text recognition |
+| [Windows.swift](../scripts/docs/Windows.swift) | Example windows, native switcher and snapping grid |
+| [compose.py](../scripts/docs/compose.py) | Overview layout, demo steps, captions, GIF timing, and native image exports |
+| [render.py](../scripts/docs/render.py) | Build and capture setup |
 
-The app itself has no Python dependency. Pillow is only used to compose documentation artwork.
+To rebuild the presentation from existing captures, run `build/docs/venv/bin/python scripts/docs/compose.py`. Run the full renderer after changing the app or sample content. GIF frames share a palette to keep colours steady between steps. Native captures for the guide are copied unchanged.
 
-## Before shipping a UI change
+Use ordinary example text instead of taglines. Keep captions short and label sample content. Don't describe rendered views as desktop screenshots or recordings.
 
-1. Regenerate the assets from the source you intend to release.
-2. Open the PNGs at full size and at README width. Check text, native controls, clipping, light/dark appearance, and sample-data captions.
-3. View every frame of each GIF. Keep instructions consistent with the static guide. Preserve the still-image links and the collapsed general tour. Feature GIFs are displayed directly in the README.
-4. Check the README and guide links. Update menu names, defaults, permissions, and the first-run instructions against the app.
-5. Preview the README in both GitHub themes and at a narrow width. Local Markdown previews may not match GitHub's sanitised HTML exactly.
-6. Follow the install and clipboard exercise using the release DMG. A source build does not verify signing, notarization, or installation on a clean Mac.
+## How the examples stay separate from your data
 
-The repository captures were refreshed in September 2026. They describe the current source; the download may lag until that source is released.
+The renderer compiles temporary copies of app sources. It removes startup and audio-refresh work from `TweakStore`, disables live sampling in `SystemMonitor`, and makes sample state assignable. It exposes the private switcher and grid views in those temporary copies. Production files are unchanged. Source markers are checked so a renamed method fails the render instead of silently leaving live behaviour enabled.
+
+Window examples use providers that fail if asked to enumerate, capture, focus, or quit real windows. Snapping positions come from `WindowLayout` and `SnapGrid`; no real window is moved.
+
+The text example runs `TextCapture.recognise` against a generated meeting note and checks the result. Recognised text is saved to `build/docs/captures/recognised-text.txt` and shown in the clipboard view. It never reaches your clipboard.
+
+Shelf files live under `build/docs/captures/Sample files`. Disk eject uses a stand-in service that only removes the example drive from its own list. No real disk is ejected, no audio tap is started, and no clipboard history is read.
+
+The renderer has a separate app identity and appearance preference suite. It doesn't launch your installed Switchboard copy or change its appearance.
+
+## Check before committing
+
+1. Regenerate from the source you intend to release.
+2. Open each published image and inspect every GIF frame. Check for clipped text, missing icons, incorrect sample state, and readable captions. Keep the still-image links beside the demos.
+3. Preview the README and guide at desktop and phone widths, in light and dark themes. Images should fit the page, and the instructions should make sense without them.
+4. Check local links and image alt text. Compare control names, defaults, and permissions with the app.
+5. Before a release, follow the install and clipboard instructions using the release DMG. Rendering source views doesn't verify signing, notarization, or a clean install.
+
+Images were refreshed in September 2026. The release download may lag behind the source shown here.

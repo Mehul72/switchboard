@@ -5,196 +5,186 @@
 <h1 align="center">Switchboard</h1>
 
 <p align="center">
-  <strong>A little more control over your Mac.</strong><br>
-  App audio, clipboard history, a file shelf, window tools, and everyday settings.<br>
-  Right where you need them: your menu bar.
+  <strong>A few small fixes for everyday Mac annoyances.</strong><br>
+  Give each app its own volume. Find that thing you copied.<br>
+  Get your windows where you want them, all from the menu bar.
 </p>
 
 <p align="center">
-  <a href="https://github.com/Mehul72/switchboard/releases/latest"><strong>Download for macOS →</strong></a>
+  <a href="https://github.com/Mehul72/switchboard/releases/latest"><strong>Download for macOS</strong></a>
   &nbsp; · &nbsp;
-  <a href="docs/user-guide.md"><strong>Read the guide</strong></a>
+  <a href="#install">Install</a>
+  &nbsp; · &nbsp;
+  <a href="docs/user-guide.md">User guide</a>
 </p>
 
-<p align="center"><sub>macOS 14.2 or later · Native SwiftUI · No account to create</sub></p>
+<p align="center"><sub>macOS 14.2 or later · No account needed · Built with SwiftUI</sub></p>
+
+![Switchboard's Everyday and Audio panels, showing settings in light appearance and per-app volume controls in dark appearance.](docs/images/overview.png)
+
+<p align="center"><sub>Native app views with sample content. The demos below are rendered examples, not desktop recordings.</sub></p>
+
+Switchboard is a little utility that lives at the top of your screen. Open it when you need a setting, or use a shortcut without leaving the app you're in. Start with whichever tool solves something annoying for you.
 
 <p align="center">
-  <a href="#get-started">Get started</a> ·
-  <a href="#take-a-look">Take a look</a> ·
-  <a href="#learn-the-shortcuts">Shortcuts</a> ·
-  <a href="#permissions-and-privacy">Privacy</a> ·
-  <a href="#need-a-hand">Help</a>
+  <a href="#audio">App audio</a> ·
+  <a href="#file-shelf">File shelf</a> ·
+  <a href="#clipboard">Clipboard</a> ·
+  <a href="#screen-text">Screen text</a> ·
+  <a href="#windows">Windows</a>
 </p>
 
-![The current Switchboard interface in light and dark: everyday settings with shelf and appearance buttons, and independent app volume and output controls.](docs/images/overview.png)
+## Audio
 
-<p align="center"><sub>Native app views with sample data. Walkthroughs are rendered examples, not desktop recordings. Click any image for a closer look.</sub></p>
+### Give each app its own volume knob
 
-## Get started
+Music a bit loud during a call? Lower just Music. You can also send an app to your headphones while the others use the default output.
 
-1. **[Download the latest release](https://github.com/Mehul72/switchboard/releases/latest).** Under **Assets**, choose `Switchboard-<version>.dmg`, not the source-code archive.
-2. **Open the DMG and drag Switchboard to Applications.** Then open **Applications > Switchboard**. You can eject the installer afterward.
-3. **Choose Open Switchboard in the welcome window.** After that, click its icon in the menu bar at the top of your screen, or press **Control-Option-Command-S**.
+<p align="center">
+  <img src="docs/images/app-audio.gif" width="540" alt="Audio demo: Music, Safari, and FaceTime start at full volume. Music is lowered to 35%, sent to headphones, then reset to the default output.">
+</p>
 
-**Try this first: bring back something you copied.**
+Open **Audio** while something is playing. Each app gets a volume slider and an output menu. The first adjustment asks for System Audio Recording access.
 
-Copy `Hello, Switchboard` from this page. Copy a second piece of text. Open **Clipboard**, find the first clip, and click its **Copy** button. Return to a text editor and press **Command-V**. Your earlier text is back. No extra permissions needed.
+[Audio guide](docs/user-guide.md#audio) · [Still image](docs/images/app-audio.png)
 
-> Switchboard runs in the menu bar, so you won't find a normal app window or Dock icon. Keep it in Applications. Enable **settings gear > Launch at Login** when you want it ready after signing in.
+## File shelf
 
-[Installation help and your first five minutes →](docs/user-guide.md#installation-and-first-launch)
+### A spare hand for your files
 
-## Take a look
+You're attaching a few files to an email, and they're all in different folders. Start dragging one, press **Shift**, and drop it on the shelf. Add the others as you find them, then drag them into the email.
 
-[App audio](#your-music-your-call-your-mix) · [Screen text](#copy-the-text-you-cant-select) · [Clipboard](#copy-once-come-back-later) · [File shelf](#give-your-files-a-layover) · [Disks](#done-with-that-disk) · [Window switcher](#find-the-window-you-meant) · [Snapping](#make-room-for-your-work) · [System monitor](docs/user-guide.md#system-monitor)
+<p align="center">
+  <img src="docs/images/file-shelf.gif" width="540" alt="File shelf demo: reveal the drop target during a drag, add an image, then collect a text file and a folder alongside it.">
+</p>
+
+Shaking the pointer during a drag opens it too. The shelf holds up to 40 files or folders and leaves the originals where they are. It clears when you quit Switchboard.
+
+[File shelf guide](docs/user-guide.md#file-shelf-and-disks) · [Still image](docs/images/file-shelf-workflow.png)
 
 <details>
-<summary><strong>Play the 20-second visual tour</strong> (animated, sample content)</summary>
+<summary>The shelf can eject disks, too</summary>
 
-![Four-slide guided tour of Tweaks, Audio, Clipboard, and System, with instructions beside each native view.](docs/images/tour.gif)
+External drives and mounted disk images appear below your files. Click **Eject**, or drag a disk onto **Drop to eject**. Wait for the confirmation before unplugging it. If a disk is busy, Switchboard tells you and leaves it mounted.
 
-Prefer still images? Open [Tweaks](docs/images/everyday-light.png), [Audio](docs/images/audio-dark.png), [Clipboard](docs/images/clipboard-light.png), or [System](docs/images/system-dark.png).
+<p align="center">
+  <img src="docs/images/disk-eject.gif" width="540" alt="Disk eject demo: a sample drive appears on the shelf, is dragged onto Drop to eject, then disappears with a confirmation.">
+</p>
+
+[Disk controls](docs/user-guide.md#eject-a-disk) · [Still image](docs/images/disk-eject.png)
 
 </details>
 
-### Your music. Your call. Your mix.
+## Clipboard
 
-![Per-app audio walkthrough: lower Music while other apps stay at full volume, route Music to headphones, then reset every app to the system default.](docs/images/app-audio.gif)
+### The thing you copied before the thing you just copied
 
-**Turn down one app. Send it to a different output.** Keep the rest of your mix as it is. Open **Audio** while an app is playing; your first adjustment asks for System Audio Recording access.
+It's still there. Open Clipboard, find the earlier item, and click **Copy**. Then paste into your app as usual. Text and images both work.
 
-[Still image](docs/images/app-audio.png) · [Audio controls →](docs/user-guide.md#audio)
+<p align="center">
+  <img src="docs/images/clipboard-light.png" width="440" alt="Clipboard history showing a meeting note, a list of weekend jobs, and a link, each with its own Copy button.">
+</p>
 
-### Copy the text you can't select
+Press **Control-Option-Command-V** to open history from anywhere. It keeps your last 20 clips while Switchboard is running, then forgets them when you quit. Content marked private by a password manager is skipped.
 
-![Screen text capture walkthrough: select words in a sample image and get the app's recognised text in native clipboard history, ready to paste.](docs/images/screen-text.gif)
+[Clipboard guide](docs/user-guide.md#screenshots-and-clipboard)
 
-**Control-Option-Command-T → drag around the words → paste with Command-V.** Useful for text in screenshots, slides, and images. Requires Screen Recording; recognition depends on the image's clarity.
+## Screen text
 
-[Still image](docs/images/screen-text.png) · [Screen text capture →](docs/user-guide.md#everyday-tools)
+### Save yourself the retyping
 
-### Copy once. Come back later.
+A date in a screenshot. A paragraph on a slide. Text you can see but can't select. Press **Control-Option-Command-T**, draw a box around it, and paste with **Command-V**.
 
-Text, images, and text captured from your screen are easy to find again. Use **Control-Option-Command-V** to open history from another app, copy the item you need, and paste as usual.
+![Screen text demo: an example meeting note is selected, and its recognised text appears in Clipboard history.](docs/images/screen-text.gif)
 
-![Clipboard history with sample text and the System view with sample resource readings.](docs/images/clipboard-system.png)
+Requires Screen Recording. Check the result before using it; small or blurry text can trip it up.
 
-<sub>Clipboard history stays in memory and clears when you quit. System readings vary by Mac; the numbers shown here are examples.</sub>
+[Screen text guide](docs/user-guide.md#copy-text-from-the-screen) · [Still image](docs/images/screen-text.png)
 
-### Give your files a layover
+## Windows
 
-![Native file shelf walkthrough: reveal Drop to keep during a drag, add an image, then collect a text file and a folder beside it for reuse in another app.](docs/images/file-shelf.gif)
+### Find the window buried behind everything
 
-**Drag a file → press Shift or shake the pointer → drop to keep.** Collect from different folders, then drag a thumbnail into the app you need. The shelf holds up to **40 references** until you quit; originals stay where they are.
+Two browser windows should be two choices. Switchboard's **Window switcher** gives each window its own card. Hold **Command**, tap **Tab** until you reach the one you want, and release.
 
-[Still image](docs/images/file-shelf-workflow.png) · [Shelf controls →](docs/user-guide.md#file-shelf-and-disks)
+![Window switcher demo: cycle through three windows, including two from the same app, then show only the current app's windows.](docs/images/window-switcher.gif)
 
-### Done with that disk?
+Use **Option + `** to browse just the current app. Turn the switcher on in **Tweaks > Everyday** and allow Accessibility. Previews optionally use Screen Recording.
 
-![Native shelf showing a sample external drive, its Drop to eject target, then the drive gone from the list with an ejected confirmation.](docs/images/disk-eject.gif)
+[Window switcher guide](docs/user-guide.md#window-switcher) · [Still image](docs/images/window-switcher-demo.png)
 
-**The same shelf handles external drives and mounted disk images.** Click Eject, or drag a disk onto **Drop to eject**. Hovering does nothing; busy disks report an error instead of being force-ejected.
+### Put a window in its place
 
-[Still image](docs/images/disk-eject.png) · [Disk controls →](docs/user-guide.md#file-shelf-and-disks)
+Half the screen for your editor, a third for your notes, or the whole workspace when you need it. Snap with the keyboard and restore the old size when you're done.
 
-### Find the window you meant
+![Window snapping demo: a window moves to the left half, centre third, top-right quarter, and full workspace, then returns to its original position.](docs/images/window-snapping.gif)
 
-![Animated native window switcher cycling between three example windows, including two from the same app, then showing only the current app's windows.](docs/images/window-switcher.gif)
+Enable **Tweaks > Everyday > Snap windows** and allow Accessibility. Both window tools start off, so you can choose when to give them control of your shortcuts.
 
-**Hold Command and press Tab** to browse individual windows. Release Command to switch. **Option + `** browses just the current app.
+[Layouts and shortcuts](docs/user-guide.md#window-snapping) · [Still image](docs/images/window-snapping.png)
 
-Enable **Tweaks > Everyday > Window switcher** and allow Accessibility. Previews optionally use Screen Recording.
+<details>
+<summary>Prefer dragging? Try the grid.</summary>
 
-[Still image](docs/images/window-switcher.png) · [Switcher controls →](docs/user-guide.md#window-switcher)
+Drag a window by its title bar, then hold **Control**. Move across the grid to choose its size and release the mouse to snap. Release Control first if you change your mind.
 
-### Make room for your work
+![Drag snapping demo: hold Control during a title-bar drag, select the left half of the grid, and release to place the window there.](docs/images/window-grid.gif)
 
-![Animated snapping walkthrough: a sample window moves from its original position to a half, a third, a quarter, maximised, then restored, with the shortcut for each step.](docs/images/window-snapping.gif)
+[Drag controls](docs/user-guide.md#snap-by-dragging) · [Still image](docs/images/window-grid-demo.png)
 
-**Halves, thirds, quarters, or the whole workspace.** Enable **Tweaks > Everyday > Snap windows** and allow Accessibility. Each step above shows its default shortcut.
+</details>
 
-[Still image](docs/images/window-snapping.png) · [All layouts and shortcuts →](docs/user-guide.md#window-snapping)
+## A few other handy things
 
-### Or just drag it into place
+- **Keep your Mac awake** for a set time, without remembering to change it back later.
+- **Reverse mouse scrolling** while keeping natural scrolling on the trackpad.
+- **Paste plain text** without bringing the old fonts and colours along.
+- **Change Finder, screenshot, and Dock settings** from one panel.
+- **Check on your Mac** with CPU, GPU, memory, network, and battery readings in the System tab.
 
-![Native six-column, two-row grid over a sample desktop: hold Control during a title-bar drag, sweep out the left half, then release the mouse to snap.](docs/images/window-grid.gif)
+Press **Command-F** in the panel to search for a setting. The appearance button beside the gear lets you choose light, dark, or the system theme.
 
-**Drag the title bar → hold Control → sweep out a layout → release the mouse.** Let go of Control first to cancel snapping.
+## Install
 
-[Still image](docs/images/window-grid.png) · [Drag controls →](docs/user-guide.md#window-snapping)
+1. [Download the latest release](https://github.com/Mehul72/switchboard/releases/latest). Under **Assets**, choose `Switchboard-<version>.dmg`.
+2. Open the DMG and drag **Switchboard** into **Applications**.
+3. Open it from Applications, then choose **Open Switchboard** in the welcome window.
 
-<sub>Window walkthroughs use the native switcher and grid with example content. Snapped positions come from Switchboard's layout code. These are rendered demonstrations, not desktop recordings. Both window features start off.</sub>
+Look for its icon in the menu bar. There's no Dock icon. You can eject the installer once the app is copied, and enable **settings gear > Launch at Login** when you want it ready after signing in.
 
-## Learn the shortcuts
+For a quick first try, copy two different sentences. Open Clipboard and bring the first one back. No extra permissions needed.
 
-These defaults work from any app while Switchboard is running.
+<details>
+<summary>Five shortcuts worth keeping nearby</summary>
 
-| Action | Keys to press together |
+| Action | Default shortcut |
 | --- | --- |
-| Show or hide Switchboard | **Control + Option + Command + S** |
-| Open clipboard history | **Control + Option + Command + V** |
-| Open file shelf and disks | **Control + Option + Command + F** |
-| Copy text from the screen | **Control + Option + Command + T** |
-| Toggle keep-awake | **Control + Option + Command + A** |
+| Show or hide Switchboard | Control-Option-Command-S |
+| Open clipboard history | Control-Option-Command-V |
+| Open file shelf and disks | Control-Option-Command-F |
+| Copy text from the screen | Control-Option-Command-T |
+| Toggle keep-awake | Control-Option-Command-A |
 
-Inside the panel, **Command-F** searches all settings. **Escape** clears a search; press it again to close the panel. The appearance button beside the gear lets you choose **Light**, **Dark**, or **Match System**.
-
-[Customise shortcuts →](docs/user-guide.md#customising-shortcuts) · [See dark appearance →](docs/images/everyday-dark.png)
-
-## Permissions and privacy
-
-Start with the features you need. Switchboard asks for access when a feature requires it.
-
-| Permission | Used for |
-| --- | --- |
-| **Accessibility** | Window snapping and switching, traditional mouse scrolling, quitting an app when its last window closes, and ejecting selected disks with Command-Delete in Finder. |
-| **Screen Recording** | Copying text from the screen and optional window previews. Switching with icons and titles works without previews. |
-| **System Audio Recording** | Per-app volume and output routing. macOS shows a purple recording indicator while these controls are active. |
-
-Manage permissions in **System Settings > Privacy & Security**. After granting access, try the feature again. Screen Recording may require a relaunch.
-
-Clipboard history, shelf references, and window thumbnails stay in memory. Content marked private by password managers is skipped. Switchboard does not send clipboard content or usage data to a server. Shelf items and clips disappear when you quit; your original files stay put.
-
-To reverse preference changes, use **settings gear > Restore Original Settings**. To release per-app audio controls, use **Audio > Reset app audio**. Output-device volume is separate.
-
-[Permission details →](docs/user-guide.md#permissions) · [Restore settings or uninstall →](docs/user-guide.md#restore-settings-or-uninstall)
-
-## Need a hand?
-
-<details>
-<summary><strong>I opened the app, but can't find it.</strong></summary>
-
-Look in the menu bar at the top of your screen, or press **Control-Option-Command-S**. Switchboard doesn't use a Dock icon. If the shortcut does nothing, open Switchboard from Applications first. See [troubleshooting](docs/user-guide.md#troubleshooting).
+Change bindings in **settings gear > Keyboard Shortcuts**. Inside the panel, **Escape** clears search; press it again to close the panel.
 
 </details>
 
-<details>
-<summary><strong>An app is missing from Audio.</strong></summary>
+## Your data and permissions
 
-Play something in that app, then open Audio again. Apps appear after opening an audio stream. Your first volume or output adjustment asks for System Audio Recording access.
+Clipboard history, shelf references, and window previews stay in memory. Switchboard doesn't send clipboard content or usage data to a server. Quitting clears those items; your original files stay put.
 
-</details>
+Once a day, Switchboard asks GitHub for the latest release number so it can tell you about updates. Turn that off with **settings gear > Check for Updates Automatically**.
 
-<details>
-<summary><strong>Snapping or the window switcher doesn't work.</strong></summary>
+macOS asks for permissions as you use the tools that need them. Window tools need Accessibility, screen text and optional previews need Screen Recording, and per-app audio needs System Audio Recording. You don't have to enable everything.
 
-Enable the feature in **Tweaks > Everyday**, grant Accessibility access, then try again. Snapping acts on the focused window and does not move macOS full-screen windows. Check **Keyboard Shortcuts** for a disabled or conflicting binding.
+Use **settings gear > Restore Original Settings** to undo system preference changes. Audio has a separate **Reset app audio** button.
 
-</details>
+[Permission details](docs/user-guide.md#permissions) · [Restore settings or uninstall](docs/user-guide.md#restore-settings-or-uninstall)
 
-<details>
-<summary><strong>My clipboard history or shelf is empty after relaunching.</strong></summary>
+## Help and contributing
 
-That's expected. Both stay in memory for the current session. The shelf's original files are still in their original folders.
+[User guide](docs/user-guide.md) · [Troubleshooting](docs/user-guide.md#troubleshooting) · [Report a bug](https://github.com/Mehul72/switchboard/issues/new?template=bug_report.yml) · [Request a feature](https://github.com/Mehul72/switchboard/issues/new?template=feature_request.yml)
 
-</details>
+To build it yourself, open `Switchboard.xcodeproj` in Xcode 16 or later, select **Switchboard > My Mac**, choose your signing team if needed, and press **Command-R**. There are no package dependencies in the app.
 
-**[User guide](docs/user-guide.md)** · **[Report a bug](https://github.com/Mehul72/switchboard/issues/new?template=bug_report.yml)** · **[Request a feature](https://github.com/Mehul72/switchboard/issues/new?template=feature_request.yml)** · **[Release notes](https://github.com/Mehul72/switchboard/releases)**
-
----
-
-### Build something with us
-
-Switchboard is written in Swift and SwiftUI, with no package dependencies. To build from source, clone the repository and open `Switchboard.xcodeproj` in **Xcode 16 or later**. Select **Switchboard > My Mac**, choose your signing team if needed, and press **Command-R**.
-
-See **[Contributing](CONTRIBUTING.md)** for tests, signing, and release instructions, or **[maintaining these visuals](docs/media.md)** to refresh the screenshots after a UI change.
+[Contributing](CONTRIBUTING.md) covers tests, signing, and releases. The [media guide](docs/media.md) covers the images and demos.

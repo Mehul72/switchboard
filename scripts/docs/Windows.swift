@@ -100,7 +100,7 @@ private struct ExampleDocument: View {
                 VStack(alignment: .leading, spacing: 18) {
                     Text(title).font(.system(size: 24, weight: .semibold))
                         .foregroundStyle(Color(red: 0.12, green: 0.17, blue: 0.24))
-                    Text(style == 0 ? "Everything for the next idea." : "A little room to think.")
+                    Text(style == 0 ? "Project files" : "Updated Monday")
                         .foregroundStyle(.secondary).font(.system(size: 14))
                     if style == 0 {
                         HStack(spacing: 24) {
@@ -112,8 +112,8 @@ private struct ExampleDocument: View {
                             }
                         }
                     } else {
-                        ForEach(style == 1 ? ["Polish the details", "Check the first launch", "Share the release"] :
-                                    ["Window previews", "A place for your files", "Your Mac, your way"], id: \.self) { item in
+                        ForEach(style == 1 ? ["Check the download link", "Check the first launch", "Upload the disk image"] :
+                                    ["Window previews", "File shelf", "Shortcut fixes"], id: \.self) { item in
                             Label(item, systemImage: style == 1 ? "checkmark.circle" : "circle.fill")
                                 .font(.system(size: 14)).foregroundStyle(Color(red: 0.2, green: 0.35, blue: 0.47))
                         }

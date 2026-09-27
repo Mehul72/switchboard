@@ -29,6 +29,8 @@ struct DocumentationRenderer {
         guard let defaults = UserDefaults(suiteName: suite) else { throw CocoaError(.fileReadUnknown) }
         defer { defaults.removePersistentDomain(forName: suite) }
         let appearance = AppearanceSetting(defaults: defaults)
+        // Never started, so the renderer makes no request to GitHub.
+        let updates = UpdateChecker(defaults: defaults)
         let audio = [("com.apple.Music", "Music", "/System/Applications/Music.app", Float(0.35)),
                      ("com.apple.Safari", "Safari", "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app", Float(0.7)),
                      ("com.apple.FaceTime", "FaceTime", "/System/Applications/FaceTime.app", Float(1))]
@@ -41,8 +43,8 @@ struct DocumentationRenderer {
                                     AudioOutputDevice(uid: "headphones", name: "Studio Headphones")]
         store.systemDefaultOutputUID = "speakers"
         store.audioRoutes = ["com.apple.Music": "headphones"]
-        store.clips = ["A little more control over your Mac.",
-                       "Launch checklist\nUpdate screenshots\nTest the first-run experience\nShip something useful.",
+        store.clips = ["The meeting has moved to 10:30.",
+                       "Weekend jobs\nBack up the laptop\nSort the holiday photos\nBook the bike service",
                        "https://github.com/Mehul72/switchboard"].map {
             ClipEntry(text: $0, imageData: nil, pixelSize: nil, date: Date(), note: nil)
         }
@@ -64,7 +66,8 @@ struct DocumentationRenderer {
             store.category = category
             let captureHeight: CGFloat = category == .system ? 660 : 680
             let view = PopoverView(store: store, monitor: monitor, dismiss: {}, applyRestarts: {},
-                                   showShortcuts: {}, height: captureHeight, appearance: appearance)
+                                   showShortcuts: {}, height: captureHeight, appearance: appearance,
+                                   updates: updates)
                 .preferredColorScheme(dark ? .dark : .light)
             try await capture(view, name: name, size: NSSize(width: 440, height: captureHeight), dark: dark, output: output)
         }

@@ -71,6 +71,9 @@
 		A30000000000000000000001 /* UtilityServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* UtilityServices.swift */; };
 		A30000000000000000000002 /* ClipboardImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* ClipboardImageConverter.swift */; };
 		A9B9C7349F4650C19E6411F2 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7587F57B35741679DAF0A5F0 /* StatusItemController.swift */; };
+		AB0000000000000000000002 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000001 /* UpdateChecker.swift */; };
+		AB0000000000000000000003 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000001 /* UpdateChecker.swift */; };
+		AB0000000000000000000005 /* UpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000004 /* UpdateCheckerTests.swift */; };
 		B3127D0373858B0D5513464D /* SwitcherWindows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78E765882650F906DC78EB3 /* SwitcherWindows.swift */; };
 		B5000000000000000000001E /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001E /* SystemMonitor.swift */; };
 		B5000000000000000000001F /* SystemMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001F /* SystemMonitorView.swift */; };
@@ -178,6 +181,8 @@
 		A20000000000000000000013 /* CloseWatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloseWatchTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* CaptureDestinationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureDestinationTests.swift; sourceTree = "<group>"; };
 		A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcherView.swift; sourceTree = "<group>"; };
+		AB0000000000000000000001 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		AB0000000000000000000004 /* UpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheckerTests.swift; sourceTree = "<group>"; };
 		AD66D3C54646847EFE9C4E0D /* FileShelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelfTests.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B4000000000000000000001E /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
@@ -282,6 +287,7 @@
 				A2000000000000000000000C /* PrefValueTests.swift */,
 				A20000000000000000000013 /* CloseWatchTests.swift */,
 				A20000000000000000000017 /* CaptureDestinationTests.swift */,
+				AB0000000000000000000004 /* UpdateCheckerTests.swift */,
 			);
 			path = SwitchboardTests;
 			sourceTree = "<group>";
@@ -358,6 +364,7 @@
 				A10000000000000000000033 /* AudioRouting.swift */,
 				A10000000000000000000030 /* AudioRender.swift */,
 				A10000000000000000000020 /* WindowServerSpaces.swift */,
+				AB0000000000000000000001 /* UpdateChecker.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -519,6 +526,8 @@
 				A20000000000000000000018 /* CaptureDestinationTests.swift in Sources */,
 				F92000000000000000000001 /* WelcomeGate.swift in Sources */,
 				F92000000000000000000002 /* WelcomeGateTests.swift in Sources */,
+				AB0000000000000000000003 /* UpdateChecker.swift in Sources */,
+				AB0000000000000000000005 /* UpdateCheckerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -582,6 +591,7 @@
 				063B50456E3C47AD1182E762 /* UndoLedger.swift in Sources */,
 				F91000000000000000000001 /* WelcomeGate.swift in Sources */,
 				F91000000000000000000003 /* WelcomeView.swift in Sources */,
+				AB0000000000000000000002 /* UpdateChecker.swift in Sources */,
 				301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -608,7 +618,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.4;
+				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -651,7 +661,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 49;
+				CURRENT_PROJECT_VERSION = 51;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -715,7 +725,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.4;
+				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -758,7 +768,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 49;
+				CURRENT_PROJECT_VERSION = 51;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;
