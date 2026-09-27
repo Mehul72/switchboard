@@ -1,0 +1,46 @@
+name: Report a bug
+description: Something in Switchboard did not work as expected.
+title: "[Bug]: "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Switchboard version
+      description: The release you downloaded, or the commit if you built it yourself.
+      placeholder: "For example: v1.1.4"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac
+      description: Find these in Apple menu > About This Mac.
+      placeholder: "macOS version, Mac model, Apple silicon or Intel"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Start with the section or feature you were using.
+      placeholder: "1. Open…\n2. Click…\n3. See…"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead?
+      description: Include the exact error message. You can attach screenshots here.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else that helps reproduce it?
+      description: Relevant permissions, connected displays or audio devices, and whether restarting helps.

@@ -125,6 +125,12 @@ Record failures in an issue with the macOS version, hardware, and reproduction
 steps. Automated tests do not replace permission, hardware, or accessibility
 checks.
 
+## README screenshots and tour
+
+After changing the UI, regenerate the native screenshots and animated tour using
+[the media guide](docs/media.md). It includes the exact command, sample-data
+isolation, and the visual checks to make before shipping.
+
 ## Artwork
 
 The app icon master is [artwork/app-icon-master.png](artwork/app-icon-master.png).
