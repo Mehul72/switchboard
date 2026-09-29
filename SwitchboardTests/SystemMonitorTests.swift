@@ -66,3 +66,61 @@ final class SystemMonitorTests: XCTestCase {
         monitor.stop()
     }
 }
+
+/// The menu bar readout keeps the monitor running with the panel closed, and
+/// listing every process is too costly to do for a number in the menu bar.
+@MainActor
+final class SystemMonitorDemandTests: XCTestCase {
+    private func waitForReading(_ monitor: SystemMonitor, timeout: TimeInterval = 6,
+                                where condition: (SystemReading) -> Bool) async -> SystemReading? {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if !monitor.history.isEmpty, condition(monitor.reading) { return monitor.reading }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        return nil
+    }
+
+    func testMenuBarAloneSamplesWithoutProcesses() async throws {
+        let monitor = SystemMonitor()
+        defer { monitor.feedsMenuBar = false }
+        monitor.feedsMenuBar = true
+        XCTAssertTrue(monitor.isRunning)
+        let reading = await waitForReading(monitor) { _ in true }
+        XCTAssertNotNil(reading)
+        XCTAssertNil(reading?.processes)
+    }
+
+    func testOpeningThePanelAddsProcessesAndKeepsHistory() async throws {
+        let monitor = SystemMonitor()
+        defer {
+            monitor.stop()
+            monitor.feedsMenuBar = false
+        }
+        monitor.feedsMenuBar = true
+        _ = await waitForReading(monitor) { _ in true }
+        monitor.start()
+        XCTAssertFalse(monitor.history.isEmpty, "opening the panel must not throw away menu bar history")
+        let withProcesses = await waitForReading(monitor) { $0.processes != nil }
+        let processes = try XCTUnwrap(withProcesses?.processes)
+        XCTAssertFalse(processes.byMemory.isEmpty)
+        monitor.stop()
+        XCTAssertTrue(monitor.isRunning, "the menu bar still needs readings")
+        let afterClose = await waitForReading(monitor) { $0.processes == nil }
+        XCTAssertNotNil(afterClose)
+        monitor.feedsMenuBar = false
+        XCTAssertFalse(monitor.isRunning)
+    }
+
+    func testClosingThePanelLeavesTheMenuBarRunning() {
+        let monitor = SystemMonitor()
+        monitor.start()
+        monitor.feedsMenuBar = true
+        monitor.stop()
+        XCTAssertTrue(monitor.isRunning)
+        monitor.feedsMenuBar = false
+        XCTAssertFalse(monitor.isRunning)
+        monitor.feedsMenuBar = false
+        XCTAssertFalse(monitor.isRunning)
+    }
+}

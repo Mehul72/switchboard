@@ -64,6 +64,8 @@ struct SystemReading {
     var diskTotal: Double?
     var power = PowerReading()
     var thermalState = ProcessInfo.processInfo.thermalState
+    /// Nil while the System tab is closed; processes are not sampled then.
+    var processes: TopProcesses?
     var unavailable: [String] = []
 }
 
@@ -74,11 +76,19 @@ final class SystemMetricsReader: @unchecked Sendable {
     private var previousTime: TimeInterval?
     private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "SystemMonitor")
     private var reportedFailures = Set<String>()
+    private let processSampler = ProcessSampler()
+
+    /// Listing every process costs far more than the rest of a sample, so it
+    /// only happens while someone is looking at the list.
+    var includesProcesses = false {
+        didSet { if !includesProcesses { processSampler.reset() } }
+    }
 
     func reset() {
         previousCPU = nil
         previousNetwork = nil
         previousTime = nil
+        processSampler.reset()
     }
 
     func read() -> SystemReading {
@@ -117,6 +127,11 @@ final class SystemMetricsReader: @unchecked Sendable {
         }
         reading.gpu = gpuUsage()
         reading.power = powerReading()
+        if includesProcesses {
+            let processes = processSampler.sample()
+            reading.processes = processes.top
+            reading.unavailable += processes.unavailable
+        }
         let failures = Set(reading.unavailable)
         for failure in failures.subtracting(reportedFailures) {
             logger.error("System metric unavailable: \(failure, privacy: .public)")
@@ -256,10 +271,47 @@ final class SystemMonitor: ObservableObject {
     private let reader = SystemMetricsReader()
     private var timer: DispatchSourceTimer?
     private var generation = UUID()
+    private var panelIsShowing = false
     static let historyLimit = 60
+    private static let interval: DispatchTimeInterval = .seconds(2)
+    private static let leeway: DispatchTimeInterval = .milliseconds(200)
 
     func start() {
-        guard timer == nil else { return }
+        guard !panelIsShowing else { return }
+        panelIsShowing = true
+        updateSampling(panelOpened: true)
+    }
+
+    func stop() {
+        guard panelIsShowing else { return }
+        panelIsShowing = false
+        updateSampling(panelOpened: false)
+    }
+
+    /// True while the menu bar readout needs numbers with the panel closed.
+    var feedsMenuBar = false {
+        didSet {
+            guard feedsMenuBar != oldValue else { return }
+            updateSampling(panelOpened: false)
+        }
+    }
+
+    private func updateSampling(panelOpened: Bool) {
+        let includesProcesses = panelIsShowing
+        queue.async { [reader] in reader.includesProcesses = includesProcesses }
+        guard panelIsShowing || feedsMenuBar else {
+            timer?.cancel()
+            timer = nil
+            isRunning = false
+            generation = UUID()
+            return
+        }
+        if let timer {
+            // Process CPU needs two samples, so take the first one now rather
+            // than leaving the list empty for up to another interval.
+            if panelOpened { timer.schedule(deadline: .now(), repeating: Self.interval, leeway: Self.leeway) }
+            return
+        }
         isRunning = true
         generation = UUID()
         let currentGeneration = generation
@@ -267,7 +319,7 @@ final class SystemMonitor: ObservableObject {
         reading = SystemReading()
         queue.async { [reader] in reader.reset() }
         let timer = DispatchSource.makeTimerSource(queue: queue)
-        timer.schedule(deadline: .now(), repeating: 2, leeway: .milliseconds(200))
+        timer.schedule(deadline: .now(), repeating: Self.interval, leeway: Self.leeway)
         timer.setEventHandler { [weak self, reader] in
             let reading = reader.read()
             Task { @MainActor [weak self] in
@@ -281,13 +333,6 @@ final class SystemMonitor: ObservableObject {
         }
         self.timer = timer
         timer.resume()
-    }
-
-    func stop() {
-        timer?.cancel()
-        timer = nil
-        isRunning = false
-        generation = UUID()
     }
 
     deinit { timer?.cancel() }

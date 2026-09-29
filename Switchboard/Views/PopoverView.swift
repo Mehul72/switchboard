@@ -4,6 +4,7 @@ import SwiftUI
 struct PopoverView: View {
     @ObservedObject var store: TweakStore
     @ObservedObject var monitor: SystemMonitor
+    @ObservedObject var readout: MenuBarReadout
     let dismiss: () -> Void
     let applyRestarts: () -> Void
     let showShortcuts: () -> Void
@@ -243,7 +244,7 @@ struct PopoverView: View {
                         clipboardGroup
                     }
                     if shouldShowSystem {
-                        SystemMonitorView(monitor: monitor)
+                        SystemMonitorView(monitor: monitor, readout: readout)
                     }
                     if store.visible.isEmpty && !shouldShowAudio && !shouldShowClipboard && !shouldShowSystem {
                         VStack(spacing: 10) {
@@ -281,7 +282,8 @@ struct PopoverView: View {
 
     private var shouldShowSystem: Bool {
         if searchText.isEmpty { return selectedCategory == .system }
-        return ["system", "monitor", "cpu", "gpu", "memory", "swap", "network", "battery", "power", "disk", "thermal"]
+        return ["system", "monitor", "cpu", "gpu", "memory", "swap", "network", "battery", "power", "disk", "thermal",
+                "process", "quit", "slow", "activity", "menu bar", "readout"]
             .contains { $0.localizedCaseInsensitiveContains(searchText) }
     }
 

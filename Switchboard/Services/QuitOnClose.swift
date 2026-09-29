@@ -158,6 +158,9 @@ final class QuitOnCloseController {
 
     private let defaults: UserDefaults
     private let permissionCheck: () -> Bool
+    private let chromeProcesses: () -> Set<pid_t>
+    private let workspaceCenter: NotificationCenter
+    private var workspaceObservers: [NSObjectProtocol] = []
     private let windowProbeQueue = DispatchQueue(label: "com.Mehul72.switchboard.window-probe",
                                                  qos: .utility)
     private var mouseMonitor: Any?
@@ -174,9 +177,13 @@ final class QuitOnCloseController {
     private var releaseAwaitingProbe: ClickRelease?
 
     init(defaults: UserDefaults = .standard,
-         permissionCheck: @escaping () -> Bool = { QuitOnCloseController.hasPermission }) {
+         permissionCheck: @escaping () -> Bool = { QuitOnCloseController.hasPermission },
+         chromeProcesses: @escaping () -> Set<pid_t> = QuitOnCloseController.runningChromePIDs,
+         workspaceCenter: NotificationCenter = NSWorkspace.shared.notificationCenter) {
         self.defaults = defaults
         self.permissionCheck = permissionCheck
+        self.chromeProcesses = chromeProcesses
+        self.workspaceCenter = workspaceCenter
         resumeIfPermitted()
     }
 
@@ -221,9 +228,14 @@ final class QuitOnCloseController {
         }
     }
 
+    /// Also the safety net for a launch notification that never arrived: the
+    /// panel calls this whenever it opens.
     func revalidatePermission() {
         resumeIfPermitted()
+        updateChromePolling()
     }
+
+    var isPollingChrome: Bool { chromeTimer != nil }
 
     private func start() -> Bool {
         guard permissionCheck() else { return false }
@@ -236,6 +248,25 @@ final class QuitOnCloseController {
         guard mouseMonitor != nil else { return false }
 
         monitoringGeneration &+= 1
+        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
+            workspaceObservers.append(workspaceCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                self?.updateChromePolling()
+            })
+        }
+        updateChromePolling()
+        return true
+    }
+
+    /// Closing Chrome's last tab destroys its window without a click to catch,
+    /// so the only way to notice is to watch its window count. With no
+    /// Chrome-family browser running there is nothing to watch, and the timer
+    /// would only wake the Mac twice a second.
+    private func updateChromePolling() {
+        guard isActive, !chromeProcesses().isEmpty else {
+            stopChromePolling()
+            return
+        }
+        guard chromeTimer == nil else { return }
         let timer = Timer(timeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
             self?.pollChromeWindows()
         }
@@ -243,7 +274,12 @@ final class QuitOnCloseController {
         RunLoop.main.add(timer, forMode: .common)
         chromeTimer = timer
         pollChromeWindows()
-        return true
+    }
+
+    private func stopChromePolling() {
+        chromeTimer?.invalidate()
+        chromeTimer = nil
+        chromeSamples.removeAll()
     }
 
     @discardableResult
@@ -252,6 +288,8 @@ final class QuitOnCloseController {
             NSEvent.removeMonitor(mouseMonitor)
         }
         mouseMonitor = nil
+        for observer in workspaceObservers { workspaceCenter.removeObserver(observer) }
+        workspaceObservers.removeAll()
         chromeTimer?.invalidate()
         chromeTimer = nil
         monitoringGeneration &+= 1
@@ -343,7 +381,7 @@ final class QuitOnCloseController {
                                   timestamp: TimeInterval) -> CloseCandidate? {
         guard let hit,
               let application = NSRunningApplication(processIdentifier: hit.pid),
-              shouldManage(application) else { return nil }
+              Self.shouldManage(application) else { return nil }
         return CloseCandidate(pid: hit.pid, frame: hit.frame,
                               timestamp: timestamp, window: hit.window)
     }
@@ -477,10 +515,13 @@ final class QuitOnCloseController {
             stop()
             return
         }
+        let runningPIDs = chromeProcesses()
+        guard !runningPIDs.isEmpty else {
+            stopChromePolling()
+            return
+        }
         guard !chromePollInFlight else { return }
 
-        let applications = chromeApplications()
-        let runningPIDs = Set(applications.map(\.processIdentifier))
         let generation = monitoringGeneration
         chromePollInFlight = true
 
@@ -535,12 +576,14 @@ final class QuitOnCloseController {
         return Date().timeIntervalSince(launched) < Self.launchGrace
     }
 
-    private func chromeApplications() -> [NSRunningApplication] {
-        NSWorkspace.shared.runningApplications.filter { application in
-            guard let bundleID = application.bundleIdentifier else { return false }
-            return Self.chromeBundleIDs.contains(bundleID)
-                && shouldManage(application)
-        }
+    /// Asks Launch Services about these five bundle IDs only. Filtering every
+    /// running app instead read each one's bundle ID twice a second, and each
+    /// read is a round trip to Launch Services: about half a percent of a core.
+    static func runningChromePIDs() -> Set<pid_t> {
+        Set(chromeBundleIDs
+            .flatMap { NSRunningApplication.runningApplications(withBundleIdentifier: $0) }
+            .filter(shouldManage)
+            .map(\.processIdentifier))
     }
 
     /// Accessibility empties its window list during Space moves, full-screen
@@ -633,7 +676,7 @@ final class QuitOnCloseController {
     private func requestNormalQuit(pid: pid_t) {
         guard !quittingPIDs.contains(pid),
               let application = NSRunningApplication(processIdentifier: pid),
-              shouldManage(application) else { return }
+              Self.shouldManage(application) else { return }
 
         quittingPIDs.insert(pid)
         if !application.terminate() {
@@ -645,7 +688,7 @@ final class QuitOnCloseController {
         }
     }
 
-    private func shouldManage(_ application: NSRunningApplication) -> Bool {
+    private static func shouldManage(_ application: NSRunningApplication) -> Bool {
         guard application.activationPolicy == .regular,
               !application.isTerminated,
               application.processIdentifier != ProcessInfo.processInfo.processIdentifier,

@@ -76,6 +76,8 @@ enum Control {
     case choice([Choice])
     case folder
     case button(String)
+    /// Durations, conditions and the display option in one menu.
+    case keepAwake
 }
 
 struct PreferenceSpec {

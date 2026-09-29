@@ -325,3 +325,100 @@ final class QuitOnClosePermissionTests: XCTestCase {
         XCTAssertFalse(defaults.bool(forKey: "QuitOnCloseEnabled"))
     }
 }
+
+/// The Chrome watch used to poll twice a second whether or not a Chrome-family
+/// browser was running, and to find one by reading every running app's bundle
+/// ID each time. These pin down when the watch runs; what it decides while
+/// running is covered above and did not change.
+final class ChromeWatchLifecycleTests: XCTestCase {
+    /// launchd: never a regular app, so even a mistaken quit could not touch it.
+    private let fakeBrowser: pid_t = 1
+    private var suite: String!
+    private var defaults: UserDefaults!
+    private var workspace: NotificationCenter!
+    private var browsers: Set<pid_t> = []
+    private var controller: QuitOnCloseController!
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        suite = "ChromeWatchLifecycleTests.\(UUID())"
+        defaults = UserDefaults(suiteName: suite)
+        workspace = NotificationCenter()
+        controller = QuitOnCloseController(defaults: defaults, permissionCheck: { true },
+                                           chromeProcesses: { [unowned self] in self.browsers },
+                                           workspaceCenter: workspace)
+        guard controller.setActive(true) else {
+            throw XCTSkip("This session could not install a global mouse monitor")
+        }
+    }
+
+    override func tearDown() {
+        controller.setActive(false)
+        controller = nil
+        defaults.removePersistentDomain(forName: suite)
+        super.tearDown()
+    }
+
+    private func post(_ name: Notification.Name) { workspace.post(name: name, object: nil) }
+
+    func testNoBrowserMeansNoTimer() {
+        XCTAssertTrue(controller.isActive, "the red-button hook runs regardless of Chrome")
+        XCTAssertFalse(controller.isPollingChrome)
+    }
+
+    func testLaunchingABrowserStartsTheWatchAndQuittingItStopsIt() {
+        browsers = [fakeBrowser]
+        post(NSWorkspace.didLaunchApplicationNotification)
+        XCTAssertTrue(controller.isPollingChrome)
+        // Another app launching must not start a second timer.
+        post(NSWorkspace.didLaunchApplicationNotification)
+        XCTAssertTrue(controller.isPollingChrome)
+        browsers = []
+        post(NSWorkspace.didTerminateApplicationNotification)
+        XCTAssertFalse(controller.isPollingChrome)
+    }
+
+    func testAPollThatFindsNoBrowserStopsItsOwnTimer() {
+        browsers = [fakeBrowser]
+        post(NSWorkspace.didLaunchApplicationNotification)
+        browsers = []
+        controller.pollChromeWindows()
+        XCTAssertFalse(controller.isPollingChrome)
+    }
+
+    func testOpeningThePanelCatchesALaunchThatWasMissed() {
+        browsers = [fakeBrowser]
+        XCTAssertFalse(controller.isPollingChrome)
+        controller.revalidatePermission()
+        XCTAssertTrue(controller.isPollingChrome)
+    }
+
+    func testTurningTheFeatureOffStopsWatchingAndListening() {
+        browsers = [fakeBrowser]
+        post(NSWorkspace.didLaunchApplicationNotification)
+        controller.setActive(false)
+        XCTAssertFalse(controller.isPollingChrome)
+        post(NSWorkspace.didLaunchApplicationNotification)
+        XCTAssertFalse(controller.isPollingChrome, "a stopped feature must not be woken by a launch")
+        controller.revalidatePermission()
+        XCTAssertFalse(controller.isPollingChrome, "the preference is now off, so the panel must not restart it")
+    }
+
+    func testABrowserAlreadyRunningAtStartIsWatched() {
+        controller.setActive(false)
+        browsers = [fakeBrowser]
+        XCTAssertTrue(controller.setActive(true))
+        XCTAssertTrue(controller.isPollingChrome)
+    }
+
+    /// The live lookup must find exactly what the old full scan found.
+    func testTargetedLookupMatchesAFullScan() {
+        let chromeIDs: Set = ["com.google.Chrome", "com.google.Chrome.beta", "com.google.Chrome.dev",
+                              "com.google.Chrome.canary", "org.chromium.Chromium"]
+        let scanned = Set(NSWorkspace.shared.runningApplications.filter { app in
+            guard let id = app.bundleIdentifier else { return false }
+            return chromeIDs.contains(id) && app.activationPolicy == .regular && !app.isTerminated
+        }.map(\.processIdentifier))
+        XCTAssertEqual(QuitOnCloseController.runningChromePIDs(), scanned)
+    }
+}

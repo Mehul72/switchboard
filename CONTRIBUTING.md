@@ -56,8 +56,15 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   VoiceOver, long labels, and scrolling on a short display.
 - Change a Finder or Dock setting, apply its restart, and restore the original
   value. Check Launch at Login from a signed copy in Applications.
-- Check Keep Awake's timer and expiry. Test red-button quit with multiple,
-  minimized, and full-screen windows, and with unsaved work.
+- Check Keep Awake's timer and expiry. Choose Until an app quits with a
+  disposable app and quit it: the notice names the app and the assertion is
+  gone from `pmset -g assertions`. On a laptop, choose While plugged in and
+  unplug and replug the adapter. Check Let display sleep with `pmset -g
+  assertions` (system sleep only). Test red-button quit with multiple,
+  minimized, and full-screen windows, and with unsaved work. With Chrome
+  closed, start Switchboard, then open Chrome and close its last tab: Chrome
+  quits after about three seconds. Repeat with a second Chrome window
+  full screen on another Space, and with one minimized: Chrome stays open.
 - Grant and revoke Accessibility and Screen Recording access. Confirm mouse
   scrolling, screen text capture, and red-button quit report missing access.
 - Play two apps at low volume. Adjust each app, switch outputs, disconnect a
@@ -99,8 +106,15 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   works. Move a window between two displays of different sizes, including one
   above or left of the main display. Turn snapping off and confirm
   Control-Option-Left and Control-drags reach apps again.
-- Compare System readings with Activity Monitor. Close the panel and reopen it
-  to check that monitoring resumes.
+- Compare System readings with Activity Monitor. Its process CPU counts each
+  core as 100%, so divide by the core count. Run `yes > /dev/null` and check it
+  tops Using the most, then quit a disposable app from the list, including one
+  with unsaved changes. Hover the list and confirm rows stop reordering. Turn
+  on each menu bar reading: the open panel stays where it is, the readings
+  item keeps one width as figures change and keeps updating with the panel
+  closed, and clicking it opens System. Command-drag it elsewhere and
+  relaunch: it keeps that place. Close the panel and reopen it to check that
+  monitoring resumes.
 - Choose Check for Updates: it reports the current release. Build with a lower
   `MARKETING_VERSION` and check again: the notice offers the newer release, its
   link and the gear's Update item open the release page, and the notice

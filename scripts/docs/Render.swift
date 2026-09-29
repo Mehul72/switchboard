@@ -29,6 +29,8 @@ struct DocumentationRenderer {
         guard let defaults = UserDefaults(suiteName: suite) else { throw CocoaError(.fileReadUnknown) }
         defer { defaults.removePersistentDomain(forName: suite) }
         let appearance = AppearanceSetting(defaults: defaults)
+        // Its own suite, so the renderer never changes the real menu bar readout.
+        let readout = MenuBarReadout(defaults: defaults)
         // Never started, so the renderer makes no request to GitHub.
         let updates = UpdateChecker(defaults: defaults)
         let audio = [("com.apple.Music", "Music", "/System/Applications/Music.app", Float(0.35)),
@@ -52,6 +54,21 @@ struct DocumentationRenderer {
                                         swapUsed: 0.2e9, network: NetworkRate(received: 1.2e6, sent: 128e3),
                                         diskFree: 320e9, diskTotal: 500e9,
                                         power: PowerReading(state: "External power"))
+        let safari = "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app"
+        let music = "/System/Applications/Music.app"
+        let processes = [
+            ProcessUsage(id: safari, name: "Safari", bundlePath: safari, processIDs: Array(101...108), cpu: 6.2,
+                         memoryBytes: 2.1e9, isOwnedByUser: true),
+            ProcessUsage(id: "pid:201", name: "mds_stores", bundlePath: nil, processIDs: [201], cpu: 3.4,
+                         memoryBytes: 0.2e9, isOwnedByUser: false),
+            ProcessUsage(id: music, name: "Music", bundlePath: music, processIDs: [301], cpu: 1.8,
+                         memoryBytes: 0.4e9, isOwnedByUser: true),
+            ProcessUsage(id: "pid:401", name: "WindowServer", bundlePath: nil, processIDs: [401], cpu: 1.2,
+                         memoryBytes: 0.6e9, isOwnedByUser: false)
+        ]
+        monitor.reading.processes = TopProcesses(byCPU: processes,
+                                                 byMemory: processes.sorted { $0.memoryBytes > $1.memoryBytes },
+                                                 cpuMeasured: true)
         monitor.history = (0..<30).map { index in
             var reading = monitor.reading
             reading.date = Date().addingTimeInterval(Double(index - 30) * 2)
@@ -65,7 +82,7 @@ struct DocumentationRenderer {
             appearance.choice = dark ? .dark : .light
             store.category = category
             let captureHeight: CGFloat = category == .system ? 660 : 680
-            let view = PopoverView(store: store, monitor: monitor, dismiss: {}, applyRestarts: {},
+            let view = PopoverView(store: store, monitor: monitor, readout: readout, dismiss: {}, applyRestarts: {},
                                    showShortcuts: {}, height: captureHeight, appearance: appearance,
                                    updates: updates)
                 .preferredColorScheme(dark ? .dark : .light)

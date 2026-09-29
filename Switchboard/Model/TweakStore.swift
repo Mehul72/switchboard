@@ -24,6 +24,8 @@ final class TweakStore: ObservableObject {
     @Published private(set) var customStates: [String: Bool] = [:]
     /// Drives the live "Ends in" line on the keep-awake row. Nil when off.
     @Published private(set) var keepAwakeSpan: AwakeSpan?
+    @Published private(set) var keepAwakeMode: AwakeMode = .off
+    @Published private(set) var keepAwakeAllowsDisplaySleep = false
     @Published var notice: StoreNotice?
     @Published private(set) var audioApps: [AudioApp] = []
     @Published private(set) var clips: [ClipEntry] = []
@@ -61,6 +63,7 @@ final class TweakStore: ObservableObject {
     private let outputVolume = OutputDeviceVolume()
     private let history = ClipboardHistory()
     private static let translateKey = "TranslateCapturedText"
+    private static let awakeDisplaySleepKey = "KeepAwakeAllowsDisplaySleep"
     private static let windowSnappingKey = "WindowSnappingEnabled"
     private static let windowSwitchingKey = "WindowSwitchingEnabled"
     /// Master switch for the capture translation feature. While false the
@@ -94,11 +97,20 @@ final class TweakStore: ObservableObject {
             self.clips = self.history.entries
         }
         history.setRecording(true)
-        awake.onExpiry = { [weak self] in
+        keepAwakeAllowsDisplaySleep = UserDefaults.standard.bool(forKey: Self.awakeDisplaySleepKey)
+        awake.allowsDisplaySleep = keepAwakeAllowsDisplaySleep
+        awake.onHoldChange = { [weak self] in self?.syncKeepAwake() }
+        awake.onFinish = { [weak self] reason in
             guard let self else { return }
             self.syncKeepAwake()
-            self.notice = StoreNotice(kind: .information,
-                                      message: "Keep awake finished. Normal sleep settings are back.")
+            switch reason {
+            case .timeUp:
+                self.notice = StoreNotice(kind: .information,
+                                          message: "Keep awake finished. Normal sleep settings are back.")
+            case .appQuit(let name):
+                self.notice = StoreNotice(kind: .information,
+                                          message: "\(name) quit, so keep awake finished. Normal sleep settings are back.")
+            }
         }
         clipboardImages.onConversion = { [weak self] result in
             switch result {
@@ -323,9 +335,6 @@ final class TweakStore: ObservableObject {
     }
 
     func selectedChoice(_ tweak: Tweak, among choices: [Choice]) -> Choice? {
-        if case .keepAwake = tweak.behavior {
-            return choices.first { $0.value == .int(awake.isActive ? awake.minutes : 0) }
-        }
         if let stored = values[tweak.id] {
             return choices.first { $0.value.matches(stored) }
         }
@@ -341,12 +350,7 @@ final class TweakStore: ObservableObject {
         case .preference(let preference):
             write(on ? preference.onValue : preference.offValue, to: tweak, preference: preference)
         case .keepAwake:
-            let applied = awake.setActive(on)
-            syncKeepAwake()
-            notice = StoreNotice(kind: applied ? .success : .error,
-                                 message: applied
-                                    ? (on ? "Your Mac will stay awake while Switchboard is running." : "Normal sleep settings are active again.")
-                                    : "macOS could not change the sleep assertion.")
+            setKeepAwake(on ? .untilStopped : .off)
         case .plainTextClipboard:
             break
         case .mouseScrollDirection:
@@ -480,11 +484,6 @@ final class TweakStore: ObservableObject {
     }
 
     func select(_ value: PrefValue, for tweak: Tweak) {
-        if case .keepAwake = tweak.behavior {
-            guard case .int(let minutes) = value else { return }
-            setKeepAwake(minutes: minutes)
-            return
-        }
         guard let preference = tweak.preference else { return }
         if case .folder = tweak.control,
            case .string(let path) = value {
@@ -568,27 +567,60 @@ final class TweakStore: ObservableObject {
     private func syncKeepAwake() {
         customStates["everyday.keep-awake"] = awake.isActive
         keepAwakeSpan = awake.span
+        keepAwakeMode = awake.mode
     }
 
     func toggleKeepAwake() {
-        setKeepAwake(minutes: awake.isActive ? 0 : 60)
+        setKeepAwake(awake.isActive ? .off : .minutes(60))
     }
 
-    private func setKeepAwake(minutes: Int) {
-        let applied = awake.set(minutes: minutes)
+    func setKeepAwake(_ mode: AwakeMode) {
+        let result = awake.set(mode)
         syncKeepAwake()
-        guard applied else {
-            notice = StoreNotice(kind: .error, message: "macOS could not change the sleep assertion.")
+        if case .failure(let failure) = result {
+            notice = StoreNotice(kind: .error, message: Self.message(for: failure, starting: mode))
             return
         }
-        switch minutes {
-        case 0:
+        switch mode {
+        case .off:
             notice = StoreNotice(kind: .success, message: "Normal sleep settings are active again.")
-        case AwakeController.indefinite:
+        case .untilStopped:
             notice = StoreNotice(kind: .success, message: "Your Mac stays awake until you switch this off.")
-        default:
-            let label = minutes < 60 ? "\(minutes) minutes" : (minutes == 60 ? "1 hour" : "\(minutes / 60) hours")
-            notice = StoreNotice(kind: .success, message: "Your Mac stays awake for \(label).")
+        case .minutes(let minutes):
+            notice = StoreNotice(kind: .success, message: "Your Mac stays awake for \(AwakeDuration.label(minutes: minutes)).")
+        case .untilAppQuits(_, let name):
+            notice = StoreNotice(kind: .success, message: "Your Mac stays awake until \(name) quits.")
+        case .whilePluggedIn:
+            notice = StoreNotice(kind: .success, message: awake.isHolding
+                                 ? "Your Mac stays awake while it's plugged in."
+                                 : "Your Mac will stay awake once it's plugged in.")
+        }
+    }
+
+    func setKeepAwakeAllowsDisplaySleep(_ allowed: Bool) {
+        let wasActive = awake.isActive
+        UserDefaults.standard.set(allowed, forKey: Self.awakeDisplaySleepKey)
+        keepAwakeAllowsDisplaySleep = allowed
+        awake.allowsDisplaySleep = allowed
+        syncKeepAwake()
+        if wasActive && !awake.isActive {
+            notice = StoreNotice(kind: .error, message: "macOS could not change the sleep assertion, so keep awake is off.")
+            return
+        }
+        notice = StoreNotice(kind: .success, message: allowed
+                             ? "Keep awake now lets the display sleep."
+                             : "Keep awake now keeps the display on too.")
+    }
+
+    private static func message(for failure: AwakeStartFailure, starting mode: AwakeMode) -> String {
+        switch failure {
+        case .appNotRunning:
+            if case .untilAppQuits(_, let name) = mode { return "\(name) has already quit, so keep awake is off." }
+            return "That app has already quit, so keep awake is off."
+        case .assertionRefused, .invalidDuration:
+            return "macOS could not change the sleep assertion."
+        case .powerChangesUnavailable:
+            return "macOS isn't reporting power changes, so keep awake can't follow the power adapter."
         }
     }
 
@@ -672,7 +704,8 @@ final class TweakStore: ObservableObject {
         guard canRestoreOriginalSettings else { return }
         pendingRestarts.formUnion(ledger.affectedTargets(in: catalog))
         let preferencesRestored = ledger.restoreAll()
-        let awakeRestored = awake.setActive(false)
+        awake.set(.off)
+        let awakeRestored = !awake.isActive
         let scrollRestored = scroll.setActive(false)
         let quitRestored = quitOnClose.setActive(false)
         UserDefaults.standard.set(false, forKey: Self.windowSnappingKey)

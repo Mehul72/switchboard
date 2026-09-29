@@ -5,6 +5,9 @@ import OSLog
 final class MenuBarPopover: NSPopover {
     private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "menu-panel")
     private weak var anchor: NSView?
+    /// Another menu bar item that toggles this panel. A click on it is the
+    /// panel's own toggle, not an outside click that should close it first.
+    weak var companionAnchor: NSView?
     private var globalMonitor: Any?
     private var localMonitor: Any?
     private var closeObserver: NSObjectProtocol?
@@ -123,8 +126,8 @@ final class MenuBarPopover: NSPopover {
     }
 
     private func contains(_ event: NSEvent) -> Bool {
-        if let anchor, event.window === anchor.window,
-           anchor.bounds.contains(anchor.convert(event.locationInWindow, from: nil)) {
+        for view in [anchor, companionAnchor].compactMap({ $0 })
+        where event.window === view.window && view.bounds.contains(view.convert(event.locationInWindow, from: nil)) {
             return true
         }
         // Native menus track in their own windows, outside the popover's parent chain.

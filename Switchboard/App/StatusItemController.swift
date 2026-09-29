@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import OSLog
 import SwiftUI
 
@@ -9,6 +10,12 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let popover = MenuBarPopover()
     private let store = TweakStore()
     private let monitor = SystemMonitor()
+    private let readout = MenuBarReadout()
+    private var readoutSubscriptions: Set<AnyCancellable> = []
+    /// The readings get their own menu bar item. Widening the Switchboard item
+    /// instead dragged the open panel sideways, because a popover follows the
+    /// item it hangs from. Created the first time a reading is switched on.
+    private var readoutItem: NSStatusItem?
     private let shortcuts = GlobalShortcuts(registrar: HotKeyRegistrar())
     private let fileShelf = FileShelfController()
     private let appearance = AppearanceSetting()
@@ -72,6 +79,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         item.button?.action = #selector(togglePopover)
         item.button?.sendAction(on: .leftMouseDown)
         configureShelfDrop()
+        configureReadout()
 
         popover.behavior = .transient
         popover.animates = true
@@ -165,7 +173,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         let height = min(Theme.popoverHeight, availableHeight)
         let size = NSSize(width: Theme.popoverWidth, height: height)
         let controller = NSHostingController(
-            rootView: PopoverView(store: store, monitor: monitor,
+            rootView: PopoverView(store: store, monitor: monitor, readout: readout,
                                   dismiss: { [weak self] in self?.popover.close() },
                                   applyRestarts: { [weak self] in
                                       self?.applyPendingRestartsKeepingPopoverOpen()
@@ -298,6 +306,71 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         }
     }
 
+    private func configureReadout() {
+        // @Published delivers the new value before the property changes, so
+        // each sink passes on what it was given rather than re-reading it.
+        readout.$metrics
+            .sink { [weak self] metrics in
+                guard let self else { return }
+                self.monitor.feedsMenuBar = !metrics.isEmpty
+                self.updateReadoutItem(reading: self.monitor.reading, metrics: metrics)
+            }
+            .store(in: &readoutSubscriptions)
+        monitor.$reading
+            .sink { [weak self] reading in
+                guard let self, !self.readout.metrics.isEmpty else { return }
+                self.updateReadoutItem(reading: reading, metrics: self.readout.metrics)
+            }
+            .store(in: &readoutSubscriptions)
+    }
+
+    private func updateReadoutItem(reading: SystemReading, metrics: [ReadoutMetric]) {
+        guard !metrics.isEmpty else {
+            // Hidden rather than removed, so it keeps the place the user gave it.
+            readoutItem?.isVisible = false
+            return
+        }
+        let item = readoutItem ?? makeReadoutItem()
+        if !item.isVisible { item.isVisible = true }
+        guard let button = item.button else { return }
+        // This runs every two seconds; each change makes the menu bar redraw
+        // the item, so only values that differ are set.
+        let title = ReadoutFormat.text(for: reading, metrics: metrics)
+        if button.title != title { button.title = title }
+        let spoken = ReadoutFormat.spoken(for: reading, metrics: metrics)
+        let label = "Switchboard readings, " + spoken
+        if button.accessibilityLabel() != label { button.setAccessibilityLabel(label) }
+        let tip = "Switchboard · " + spoken
+        if button.toolTip != tip { button.toolTip = tip }
+    }
+
+    private func makeReadoutItem() -> NSStatusItem {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        // Its own saved position, separate from the Switchboard icon's.
+        item.autosaveName = "SwitchboardReadings"
+        if let button = item.button {
+            // Fully monospaced, so the item keeps one width as the figures change.
+            button.font = .monospacedSystemFont(ofSize: 11, weight: .medium)
+            button.target = self
+            button.action = #selector(showSystemFromReadings)
+            button.sendAction(on: .leftMouseDown)
+            popover.companionAnchor = button
+        }
+        readoutItem = item
+        return item
+    }
+
+    /// The panel still hangs from the Switchboard icon, so it opens in the same
+    /// place whichever item was clicked, and never moves when readings change.
+    @objc private func showSystemFromReadings() {
+        guard !store.isCapturingText else { return }
+        if popover.isShown, store.category == .system {
+            popover.close()
+            return
+        }
+        showPopover(category: .system)
+    }
+
     private func showFileShelf() {
         guard !store.isCapturingText, let button = item.button else { return }
         switcher.cancel()
@@ -347,5 +420,10 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         // polling against a closed panel.
         store.setAudioListVisible(false)
         monitor.stop()
+        // A closed popover keeps its SwiftUI views alive, and they re-render on
+        // every monitor update: every two seconds while the menu bar readout is
+        // on. The next show builds a fresh one anyway.
+        popover.contentViewController = nil
+        hostingController = nil
     }
 }

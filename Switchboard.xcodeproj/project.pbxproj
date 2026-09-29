@@ -74,6 +74,13 @@
 		AB0000000000000000000002 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000001 /* UpdateChecker.swift */; };
 		AB0000000000000000000003 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000001 /* UpdateChecker.swift */; };
 		AB0000000000000000000005 /* UpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000004 /* UpdateCheckerTests.swift */; };
+		AC010000000000000000000002 /* ProcessUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC010000000000000000000001 /* ProcessUsage.swift */; };
+		AC010000000000000000000003 /* ProcessUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC010000000000000000000001 /* ProcessUsage.swift */; };
+		AC020000000000000000000002 /* ProcessUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC020000000000000000000001 /* ProcessUsageTests.swift */; };
+		AC030000000000000000000002 /* MenuBarReadout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC030000000000000000000001 /* MenuBarReadout.swift */; };
+		AC030000000000000000000003 /* MenuBarReadout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC030000000000000000000001 /* MenuBarReadout.swift */; };
+		AC040000000000000000000002 /* MenuBarReadoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC040000000000000000000001 /* MenuBarReadoutTests.swift */; };
+		AC050000000000000000000002 /* AwakeControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC050000000000000000000001 /* AwakeControllerTests.swift */; };
 		B3127D0373858B0D5513464D /* SwitcherWindows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78E765882650F906DC78EB3 /* SwitcherWindows.swift */; };
 		B5000000000000000000001E /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001E /* SystemMonitor.swift */; };
 		B5000000000000000000001F /* SystemMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4000000000000000000001F /* SystemMonitorView.swift */; };
@@ -183,6 +190,11 @@
 		A6AABD2F15E556C32F8E744E /* WindowSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcherView.swift; sourceTree = "<group>"; };
 		AB0000000000000000000001 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		AB0000000000000000000004 /* UpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheckerTests.swift; sourceTree = "<group>"; };
+		AC010000000000000000000001 /* ProcessUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessUsage.swift; sourceTree = "<group>"; };
+		AC020000000000000000000001 /* ProcessUsageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessUsageTests.swift; sourceTree = "<group>"; };
+		AC030000000000000000000001 /* MenuBarReadout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarReadout.swift; sourceTree = "<group>"; };
+		AC040000000000000000000001 /* MenuBarReadoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarReadoutTests.swift; sourceTree = "<group>"; };
+		AC050000000000000000000001 /* AwakeControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwakeControllerTests.swift; sourceTree = "<group>"; };
 		AD66D3C54646847EFE9C4E0D /* FileShelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelfTests.swift; sourceTree = "<group>"; };
 		B24382D42E5D8342EB12F9C9 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B4000000000000000000001E /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
@@ -288,6 +300,9 @@
 				A20000000000000000000013 /* CloseWatchTests.swift */,
 				A20000000000000000000017 /* CaptureDestinationTests.swift */,
 				AB0000000000000000000004 /* UpdateCheckerTests.swift */,
+				AC050000000000000000000001 /* AwakeControllerTests.swift */,
+				AC040000000000000000000001 /* MenuBarReadoutTests.swift */,
+				AC020000000000000000000001 /* ProcessUsageTests.swift */,
 			);
 			path = SwitchboardTests;
 			sourceTree = "<group>";
@@ -365,6 +380,8 @@
 				A10000000000000000000030 /* AudioRender.swift */,
 				A10000000000000000000020 /* WindowServerSpaces.swift */,
 				AB0000000000000000000001 /* UpdateChecker.swift */,
+				AC030000000000000000000001 /* MenuBarReadout.swift */,
+				AC010000000000000000000001 /* ProcessUsage.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -527,6 +544,11 @@
 				F92000000000000000000001 /* WelcomeGate.swift in Sources */,
 				F92000000000000000000002 /* WelcomeGateTests.swift in Sources */,
 				AB0000000000000000000003 /* UpdateChecker.swift in Sources */,
+				AC050000000000000000000002 /* AwakeControllerTests.swift in Sources */,
+				AC040000000000000000000002 /* MenuBarReadoutTests.swift in Sources */,
+				AC030000000000000000000003 /* MenuBarReadout.swift in Sources */,
+				AC020000000000000000000002 /* ProcessUsageTests.swift in Sources */,
+				AC010000000000000000000003 /* ProcessUsage.swift in Sources */,
 				AB0000000000000000000005 /* UpdateCheckerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -592,6 +614,8 @@
 				F91000000000000000000001 /* WelcomeGate.swift in Sources */,
 				F91000000000000000000003 /* WelcomeView.swift in Sources */,
 				AB0000000000000000000002 /* UpdateChecker.swift in Sources */,
+				AC030000000000000000000002 /* MenuBarReadout.swift in Sources */,
+				AC010000000000000000000002 /* ProcessUsage.swift in Sources */,
 				301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -618,7 +642,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -661,7 +685,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 51;
+				CURRENT_PROJECT_VERSION = 54;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -725,7 +749,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -768,7 +792,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 51;
+				CURRENT_PROJECT_VERSION = 54;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

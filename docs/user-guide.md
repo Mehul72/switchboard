@@ -59,7 +59,16 @@ Open **Tweaks > Everyday**, or search for a tool by name.
 
 ### Keep the Mac awake
 
-Choose a duration beside **Keep Mac awake**. The row shows how much time remains. Normal idle sleep resumes when the timer ends or you turn it off.
+Open the menu beside **Keep Mac awake** and choose when it should end:
+
+- **30 minutes**, **1 hour**, or **2 hours**. The row counts down the time left.
+- **Until I stop it**.
+- **Until an app quits**, then choose the app. Use it for an export or download that runs in its own app. Keep awake ends when that app quits, even if you open the app again later.
+- **While plugged in**, on Macs with a battery. On battery, keep awake pauses, and it resumes when you plug in again.
+
+Check **Let display sleep** in the same menu to keep the Mac running while the screen turns off. It applies to whichever option you choose, and Switchboard remembers it.
+
+Normal idle sleep resumes when keep awake ends, when you choose **Off**, or when you quit Switchboard.
 
 ### Copy text from the screen
 
@@ -289,6 +298,22 @@ Registering shortcuts doesn't need extra permission, but the feature they trigge
 
 Open **System** for CPU, GPU, memory, swap, network traffic, disk space, and battery readings. Monitoring resumes when you open the section.
 
+### What's using the most
+
+**Using the most** lists the five apps or processes using the most CPU or memory. Choose **CPU** or **Memory** above the list. An app's helper processes count toward the app, so a browser appears once with its total and the number of processes behind it.
+
+CPU figures are a share of the whole Mac, like the CPU reading above them. Activity Monitor counts each core as 100%, so its figures are higher. To compare, divide its figure by the number of cores in your Mac.
+
+Click **Quit** beside an app to ask it to quit, like **Quit** in the Dock. The app can still ask you to save your work. There's no Quit button for background processes, processes run by macOS, Finder, or Switchboard. Use Activity Monitor for those.
+
+The list stops reordering while the pointer is over it, so a row doesn't move as you click.
+
+### Readings in the menu bar
+
+Under **Show in menu bar**, check **CPU**, **GPU**, **Memory**, **Network**, or **Battery** to show those readings in the menu bar, in their own item next to the other menu bar icons. They update every two seconds, including while the panel is closed. Click the readings to open **System**. Uncheck them all to hide the readings. **Battery** appears only on Macs with a battery.
+
+To move the readings, hold **Command** and drag them along the menu bar. Switchboard remembers where you put them.
+
 <details>
 <summary>System panel with example readings</summary>
 
@@ -310,6 +335,7 @@ An unavailable reading means macOS or your hardware didn't supply it. It doesn't
 | Purple recording indicator | Per-app audio is active. **Audio > Reset app audio** releases those controls. |
 | A shortcut does nothing | Check **Keyboard Shortcuts** for disabled or unavailable bindings. Retry unavailable shortcuts or choose another combination. |
 | Command-Tab still shows the macOS switcher | Enable **Tweaks > Everyday > Window switcher** and allow Accessibility. |
+| Quit didn't close an app | The app may be waiting for you to save, or it may not be responding. Switch to it, or use **Force Quit** in Activity Monitor. |
 | A window won't snap | Enable Snap windows, then focus a resizable window outside full screen. Some apps have fixed-size windows. |
 | A window is missing from the switcher | Visit its Space once and try again. |
 | Shift doesn't open the shelf | Start dragging a file or folder, then press Shift alone. Or use the tray button or Control-Option-Command-F. |

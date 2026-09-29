@@ -70,6 +70,21 @@ final class AwakeStatusTests: XCTestCase {
         XCTAssertEqual(timed(minutes: 30, after: 0), "Ends in 30 minutes")
     }
 
+    func testConditionsDescribeWhatEndsIt() {
+        XCTAssertEqual(AwakeStatus.text(for: AwakeSpan(startedAt: start, endsAt: nil, condition: .appRuns(name: "Xcode")),
+                                        now: start.addingTimeInterval(600)),
+                       "On until Xcode quits")
+        XCTAssertEqual(AwakeStatus.text(for: AwakeSpan(startedAt: start, endsAt: nil, condition: .pluggedIn(holding: true))),
+                       "On while plugged in")
+        XCTAssertEqual(AwakeStatus.text(for: AwakeSpan(startedAt: .distantPast, endsAt: nil,
+                                                       condition: .pluggedIn(holding: false))),
+                       "Paused until plugged in")
+    }
+
+    func testDurationLabels() {
+        XCTAssertEqual(AwakeDuration.choices.map(AwakeDuration.label), ["30 minutes", "1 hour", "2 hours"])
+    }
+
     func testExpiredSpanReportsNothing() {
         XCTAssertNil(timed(minutes: 30, after: 1800))
         XCTAssertNil(timed(minutes: 30, after: 3600))

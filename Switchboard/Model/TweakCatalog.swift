@@ -5,16 +5,9 @@ enum TweakCatalog {
 
     static let everyday: [Tweak] = [
         Tweak(id: "everyday.keep-awake", title: "Keep Mac awake",
-              subtitle: "Blocks display and idle sleep",
+              subtitle: "Stops idle sleep for a time, or until an app quits",
               category: .everyday, symbol: "cup.and.saucer.fill",
-              control: .choice([
-                  Choice(label: "Off", value: .int(0)),
-                  Choice(label: "30 minutes", value: .int(30)),
-                  Choice(label: "1 hour", value: .int(60)),
-                  Choice(label: "2 hours", value: .int(120)),
-                  Choice(label: "Until I stop it", value: .int(AwakeController.indefinite))
-              ]),
-              behavior: .keepAwake),
+              control: .keepAwake, behavior: .keepAwake),
         Tweak(id: "everyday.region-ocr", title: "Copy text from the screen",
               subtitle: "Drag a region to copy its text",
               category: .everyday, symbol: "text.viewfinder",

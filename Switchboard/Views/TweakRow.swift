@@ -73,6 +73,71 @@ struct TweakRow: View {
                 .controlSize(.small)
                 .disabled(!store.canPerform(tweak))
                 .accessibilityLabel(tweak.title)
+        case .keepAwake:
+            KeepAwakeMenu(title: tweak.title, store: store)
+        }
+    }
+}
+
+/// A menu rather than a picker: running apps need a submenu, and the display
+/// option is a checkbox that applies to whichever mode is chosen.
+private struct KeepAwakeMenu: View {
+    let title: String
+    @ObservedObject var store: TweakStore
+
+    var body: some View {
+        Menu {
+            option("Off", .off)
+            ForEach(AwakeDuration.choices, id: \.self) { minutes in
+                option(AwakeDuration.label(minutes: minutes), .minutes(minutes))
+            }
+            option("Until I stop it", .untilStopped)
+            Divider()
+            Menu("Until an app quits") {
+                let apps = AwakeApp.running()
+                if apps.isEmpty {
+                    Text("No other apps are open")
+                }
+                ForEach(apps) { app in
+                    option(app.name, .untilAppQuits(pid: app.pid, name: app.name))
+                }
+            }
+            if PowerSnapshot.machineHasBattery {
+                option("While plugged in", .whilePluggedIn)
+            }
+            Divider()
+            Toggle("Let display sleep", isOn: Binding(
+                get: { store.keepAwakeAllowsDisplaySleep },
+                set: { store.setKeepAwakeAllowsDisplaySleep($0) }
+            ))
+        } label: {
+            Text(currentLabel)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .controlSize(.small)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: 125)
+        .accessibilityLabel(title)
+        .accessibilityValue(currentLabel)
+    }
+
+    /// A checkmark item. Choosing the item that is already checked keeps it,
+    /// the way a picker would, instead of switching keep awake off.
+    private func option(_ label: String, _ mode: AwakeMode) -> some View {
+        Toggle(label, isOn: Binding(
+            get: { store.keepAwakeMode == mode },
+            set: { chosen in if chosen { store.setKeepAwake(mode) } }
+        ))
+    }
+
+    private var currentLabel: String {
+        switch store.keepAwakeMode {
+        case .off: return "Off"
+        case .minutes(let minutes): return AwakeDuration.label(minutes: minutes)
+        case .untilStopped: return "Until I stop it"
+        case .untilAppQuits(_, let name): return "Until \(name) quits"
+        case .whilePluggedIn: return "While plugged in"
         }
     }
 }

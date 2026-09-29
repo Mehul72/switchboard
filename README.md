@@ -136,11 +136,11 @@ Drag a window by its title bar, then hold **Control**. Move across the grid to c
 
 ## A few other handy things
 
-- **Keep your Mac awake** for a set time, without remembering to change it back later.
+- **Keep your Mac awake** for a set time, until an app quits, or while it's plugged in, without remembering to change it back later.
 - **Reverse mouse scrolling** while keeping natural scrolling on the trackpad.
 - **Paste plain text** without bringing the old fonts and colours along.
 - **Change Finder, screenshot, and Dock settings** from one panel.
-- **Check on your Mac** with CPU, GPU, memory, network, and battery readings in the System tab.
+- **See what's slowing your Mac down** in the System tab: the apps using the most CPU and memory, each with a Quit button, plus CPU, GPU, memory, network, and battery readings. Show any of those readings in the menu bar too.
 
 Press **Command-F** in the panel to search for a setting. The appearance button beside the gear lets you choose light, dark, or the system theme.
 
