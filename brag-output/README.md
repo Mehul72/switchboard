@@ -1,6 +1,12 @@
 # Switchboard product video
 
-[Video](brag.mp4) · [Poster](brag.jpg) · [Share copy](share-copy.txt) · [Storyboard](brag-plan.md) · [Composition brief](composition-brief.md)
+[Download 4K MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/brag-output/brag.mp4) · [Still poster](brag.jpg) · [Share copy](share-copy.txt) · [Storyboard](brag-plan.md) · [Composition brief](composition-brief.md)
+
+![Silent animated Switchboard tour showing app audio, clipboard history, screen-text capture, the file shelf, window switching, snapping, and System readings.](brag-preview.gif)
+
+GitHub's repository file viewer does not play this large MP4. The animated preview above plays inline without sound; use **Download 4K MP4** for the original video with music and interaction sounds. The still poster provides a nonanimated alternative.
+
+The current GIF is **960 × 540**, **12 fps**, **30 seconds**, and **9.23 MB**.
 
 A 30-second, **3840 × 2160 (4K)**, 30 fps product tour covering per-app audio, clipboard history, screen text, the file shelf, window switching, keyboard snapping, and System readings. The window scenes take 7.10 seconds of the film.
 
@@ -32,7 +38,17 @@ npm run check
 bash export.sh
 ```
 
-The [export script](composition/export.sh) runs Hyperframes 0.8.127 with delivery quality, **`--resolution landscape-4k`**, and 30 fps. It extracts the hook at **1.5 seconds** as `brag.jpg`, bakes that poster into frame 0, and probes the result. This revision requires **3840 × 2160, 900 frames, and 30 seconds**; the first-frame replacement preserves soundtrack timing. Check all seven feature results, readable controls, music, and the final hold. No publishing command is part of this workflow.
+The [export script](composition/export.sh) runs Hyperframes 0.8.127 with delivery quality, **`--resolution landscape-4k`**, and 30 fps. It extracts the hook at **1.5 seconds** as `brag.jpg`, bakes that poster into frame 0, then creates the silent `brag-preview.gif` at **960 × 540**, **12 fps**, and **30 seconds**. The first-frame replacement preserves the MP4's soundtrack timing.
+
+Before replacing the delivered files, the script checks the MP4 for **3840 × 2160, 900 frames, 30 seconds, H.264 video, and AAC audio**. It checks the GIF for **960 × 540, 360 frames, 30 seconds, no audio, and a size below 10,000,000 bytes**, and fully decodes both formats. Review all seven feature results, readable controls, the final hold, and the MP4's sound. Nothing is published by these commands.
+
+To regenerate just the GitHub preview from the existing 4K master, use:
+
+```sh
+bash export.sh --preview-only
+```
+
+This validates the existing master and the new GIF, then replaces only `brag-preview.gif`. The 4K MP4 and still poster remain unchanged.
 
 If you change the hook timing, inspect the new poster and update the script's extraction time if needed. Stop the preview when finished with `npx --yes hyperframes@0.8.127 preview --stop`.
 

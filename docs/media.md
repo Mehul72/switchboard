@@ -4,13 +4,15 @@
 
 The README and user guide use native app views with sample content. Keep the images close to what someone will see in the app. Put instructions in the Markdown beside them, where they stay readable on a phone and accessible to screen readers.
 
-The README opens with the product-tour poster and uses eight short GIF demos. Each feature demo also has a silent MP4 and a still image. The user guide includes the tour and plain captures beside the instructions. Keep still-image and video links beside the GIFs, with the main instructions in the Markdown. App names, clips, files, disks, and system readings are sample data. Window previews and snapping scenes use example windows.
+The README opens with an animated product-tour preview and uses eight short GIF demos. Each feature demo also has a silent MP4 and a still image. The user guide includes the tour and plain captures beside the instructions. Keep still-image and video download links beside the GIFs, with the main instructions in the Markdown. App names, clips, files, disks, and system readings are sample data. Window previews and snapping scenes use example windows.
 
-The eight feature videos show the same captioned sample frames as the GIFs. They are rendered demonstrations, not recordings of a desktop or live performance. Each step lasts three seconds. MP4 gives readers playback controls without an endlessly looping animation; the still image and written instructions provide a nonanimated alternative.
+The eight feature videos show the same captioned sample frames as the GIFs. They are rendered demonstrations, not recordings of a desktop or live performance. Each step lasts three seconds. Readers can download the MP4s and open them in a video player with playback controls. The still image and written instructions provide a nonanimated alternative.
 
 ## Short product tour
 
-The [30-second tour](../brag-output/brag.mp4) covers per-app audio, clipboard history, screen text, the file shelf, window switching, keyboard snapping, and System readings. The 3840 × 2160 (4K), 30 fps video uses music, interaction sounds, animated native sample views, and a visible rendered-demo label. Its source views were captured at four pixels per logical point. A [poster image](../brag-output/brag.jpg) provides a still alternative.
+The [30-second animated preview](../brag-output/brag-preview.gif) covers per-app audio, clipboard history, screen text, the file shelf, window switching, keyboard snapping, and System readings. The [3840 × 2160 (4K), 30 fps MP4 download](https://github.com/Mehul72/switchboard/raw/refs/heads/main/brag-output/brag.mp4) includes music and interaction sounds. Both use animated native sample views and a visible rendered-demo label. Source views were captured at four pixels per logical point. A [poster image](../brag-output/brag.jpg) provides a still alternative.
+
+Embed the GIF preview in GitHub documentation. Link MP4 downloads through `https://github.com/Mehul72/switchboard/raw/refs/heads/main/` followed by the repository file path. Relative MP4 links open GitHub's file viewer, which rejects the 4K tour as too large to preview. Raw links download the file; label them as downloads. Keep the original 4K video alongside the preview.
 
 The tour was composed with Brag and Hyperframes. Its [editable source and rebuild instructions](../brag-output/README.md) are separate from the eight silent feature demos below. That file also records the bundled audio sources and their license notices.
 
@@ -58,14 +60,14 @@ Use ordinary example text instead of taglines. Keep captions short and label sam
 
 | Demo | GIF | MP4 | Still |
 | --- | --- | --- | --- |
-| Per-app audio | [GIF](images/app-audio.gif) | [Video](videos/app-audio.mp4) | [Image](images/app-audio.png) |
-| File shelf | [GIF](images/file-shelf.gif) | [Video](videos/file-shelf.mp4) | [Image](images/file-shelf-workflow.png) |
-| Disk eject | [GIF](images/disk-eject.gif) | [Video](videos/disk-eject.mp4) | [Image](images/disk-eject.png) |
-| Window switcher | [GIF](images/window-switcher.gif) | [Video](videos/window-switcher.mp4) | [Image](images/window-switcher-demo.png) |
-| Window snapping | [GIF](images/window-snapping.gif) | [Video](videos/window-snapping.mp4) | [Image](images/window-snapping.png) |
-| Snapping grid | [GIF](images/window-grid.gif) | [Video](videos/window-grid.mp4) | [Image](images/window-grid-demo.png) |
-| Screen text | [GIF](images/screen-text.gif) | [Video](videos/screen-text.mp4) | [Image](images/screen-text.png) |
-| System monitor | [GIF](images/system-monitor.gif) | [Video](videos/system-monitor.mp4) | [Image](images/system-monitor.png) |
+| Per-app audio | [GIF](images/app-audio.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/app-audio.mp4) | [Image](images/app-audio.png) |
+| File shelf | [GIF](images/file-shelf.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/file-shelf.mp4) | [Image](images/file-shelf-workflow.png) |
+| Disk eject | [GIF](images/disk-eject.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/disk-eject.mp4) | [Image](images/disk-eject.png) |
+| Window switcher | [GIF](images/window-switcher.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-switcher.mp4) | [Image](images/window-switcher-demo.png) |
+| Window snapping | [GIF](images/window-snapping.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-snapping.mp4) | [Image](images/window-snapping.png) |
+| Snapping grid | [GIF](images/window-grid.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-grid.mp4) | [Image](images/window-grid-demo.png) |
+| Screen text | [GIF](images/screen-text.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/screen-text.mp4) | [Image](images/screen-text.png) |
+| System monitor | [GIF](images/system-monitor.gif) | [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/system-monitor.mp4) | [Image](images/system-monitor.png) |
 
 The System demo uses `system-cpu.png`, `system-memory.png`, and `system-readouts.png` from `build/docs/captures/`. These show CPU and memory sorting, then the menu bar readout choices. They are also copied to `docs/images/` for the guide. Any illustrated menu bar values are labeled as examples. `system-dark.png` remains the general System panel image.
 

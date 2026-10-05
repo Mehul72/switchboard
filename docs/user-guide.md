@@ -21,11 +21,11 @@ Switchboard runs in the menu bar. Click its icon to open the panel, or press **C
 
 ## 30-second tour
 
-[![Watch the Switchboard tour: native audio, clipboard, and file shelf panels beside “Your Mac. A little easier.”](../brag-output/brag.jpg)](../brag-output/brag.mp4)
+![Animated Switchboard tour showing app audio, clipboard history, screen-text capture, files, window switching, snapping, and System readings.](../brag-output/brag-preview.gif)
 
-[Watch in 4K](../brag-output/brag.mp4) · [View the poster](../brag-output/brag.jpg)
+[Download the 4K video with sound](https://github.com/Mehul72/switchboard/raw/refs/heads/main/brag-output/brag.mp4) · [View the still poster](../brag-output/brag.jpg)
 
-The tour shows app audio, clipboard history, screen-text capture, the file shelf, window switching, snapping, and System readings. It includes music and uses rendered app views with sample content. You can follow all the instructions below without watching it.
+The silent preview shows app audio, clipboard history, screen-text capture, the file shelf, window switching, snapping, and System readings. The downloadable 4K MP4 includes music and interaction sounds. Both use rendered app views with sample content. You can follow all the instructions below without watching the tour.
 
 | In the video | Instructions |
 | --- | --- |
@@ -388,7 +388,7 @@ To move the readings, hold **Command** and drag them along the menu bar. Switchb
 
 <img src="images/system-readouts.png" width="440" alt="Rendered System sections with the process list sorted by Memory, CPU and Memory menu bar options enabled, and an example reading below.">
 
-[System walkthrough](images/system-monitor.gif) · [Video](videos/system-monitor.mp4)
+[System walkthrough](images/system-monitor.gif) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/system-monitor.mp4)
 
 <details>
 <summary>System panel with example readings</summary>

@@ -17,14 +17,16 @@
   &nbsp; · &nbsp;
   <a href="docs/user-guide.md">User guide</a>
   &nbsp; · &nbsp;
-  <a href="brag-output/brag.mp4">Watch the 4K tour</a>
+  <a href="#30-second-tour">See the tour</a>
 </p>
 
 <p align="center"><sub>macOS 14.2 or later · No account needed · Built with SwiftUI</sub></p>
 
-[![Watch the 30-second Switchboard tour: native audio, clipboard, and file shelf panels beside “Your Mac. A little easier.”](brag-output/brag.jpg)](brag-output/brag.mp4)
+## 30-second tour
 
-<p align="center"><a href="brag-output/brag.mp4"><strong>Watch the 30-second tour in 4K</strong></a> · <a href="brag-output/brag.jpg">View the poster</a><br><sub>App audio, clipboard history, screen text, files, window switching, snapping, and System readings. Includes music; all instructions are also available in the <a href="docs/user-guide.md#30-second-tour">user guide</a>.</sub></p>
+![Animated Switchboard tour showing app audio, clipboard history, screen-text capture, files, window switching, snapping, and System readings.](brag-output/brag-preview.gif)
+
+<p align="center"><a href="https://github.com/Mehul72/switchboard/raw/refs/heads/main/brag-output/brag.mp4"><strong>Download the 4K video with sound</strong></a> · <a href="brag-output/brag.jpg">View the still poster</a><br><sub>The preview above is silent. The 4K MP4 includes music and interaction sounds. Find instructions for every feature in the <a href="docs/user-guide.md#30-second-tour">user guide</a>.</sub></p>
 
 <p align="center"><sub>Native app views with sample content, refreshed October 2026. The demos are rendered examples, not desktop recordings. Each has a still image and a playable MP4.</sub></p>
 
@@ -53,7 +55,7 @@ Open **Audio** while something is playing. Each app gets a volume slider and an 
 
 Your output choice is remembered for each app. Its volume returns to 100% when the app quits. **Reset app audio** clears both adjustments and saved output choices.
 
-[Audio guide](docs/user-guide.md#audio) · [Still image](docs/images/app-audio.png) · [Video](docs/videos/app-audio.mp4)
+[Audio guide](docs/user-guide.md#audio) · [Still image](docs/images/app-audio.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/app-audio.mp4)
 
 ## File shelf
 
@@ -67,7 +69,7 @@ You're attaching a few files to an email, and they're all in different folders. 
 
 Shaking the pointer during a drag opens it too. The shelf holds up to 40 files or folders and leaves the originals where they are. It clears when you quit Switchboard.
 
-[File shelf guide](docs/user-guide.md#file-shelf-and-disks) · [Still image](docs/images/file-shelf-workflow.png) · [Video](docs/videos/file-shelf.mp4)
+[File shelf guide](docs/user-guide.md#file-shelf-and-disks) · [Still image](docs/images/file-shelf-workflow.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/file-shelf.mp4)
 
 <details>
 <summary>The shelf can eject disks, too</summary>
@@ -80,7 +82,7 @@ External drives and mounted disk images appear below your files. Click **Eject**
 
 With Accessibility access, **Command-Delete** also ejects disks selected in Finder. Ordinary files still go to the Trash, and typing or renaming keeps its normal behavior.
 
-[Disk controls](docs/user-guide.md#eject-a-disk) · [Still image](docs/images/disk-eject.png) · [Video](docs/videos/disk-eject.mp4)
+[Disk controls](docs/user-guide.md#eject-a-disk) · [Still image](docs/images/disk-eject.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/disk-eject.mp4)
 
 </details>
 
@@ -110,7 +112,7 @@ A date in a screenshot. A paragraph on a slide. Text you can see but can't selec
 
 Requires Screen Recording. Check the result before using it; small or blurry text can trip it up.
 
-[Screen text guide](docs/user-guide.md#copy-text-from-the-screen) · [Still image](docs/images/screen-text.png) · [Video](docs/videos/screen-text.mp4)
+[Screen text guide](docs/user-guide.md#copy-text-from-the-screen) · [Still image](docs/images/screen-text.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/screen-text.mp4)
 
 ## Windows
 
@@ -122,7 +124,7 @@ Two browser windows should be two choices. Switchboard's **Window switcher** giv
 
 Use **Option + `** to browse just the current app. Turn the switcher on in **Tweaks > Everyday** and allow Accessibility. Previews optionally use Screen Recording.
 
-[Window switcher guide](docs/user-guide.md#window-switcher) · [Still image](docs/images/window-switcher-demo.png) · [Video](docs/videos/window-switcher.mp4)
+[Window switcher guide](docs/user-guide.md#window-switcher) · [Still image](docs/images/window-switcher-demo.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-switcher.mp4)
 
 ### Put a window in its place
 
@@ -132,7 +134,7 @@ Half the screen for your editor, a third for your notes, or the whole workspace 
 
 Enable **Tweaks > Everyday > Snap windows** and allow Accessibility. Both window tools start off, so you can choose when to give them control of your shortcuts.
 
-[Layouts and shortcuts](docs/user-guide.md#window-snapping) · [Still image](docs/images/window-snapping.png) · [Video](docs/videos/window-snapping.mp4)
+[Layouts and shortcuts](docs/user-guide.md#window-snapping) · [Still image](docs/images/window-snapping.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-snapping.mp4)
 
 <details>
 <summary>Prefer dragging? Try the grid.</summary>
@@ -141,7 +143,7 @@ Drag a window by its title bar, then hold **Control**. Move across the grid to c
 
 ![Drag snapping demo: hold Control during a title-bar drag, select the left half of the grid, and release to place the window there.](docs/images/window-grid.gif)
 
-[Drag controls](docs/user-guide.md#snap-by-dragging) · [Still image](docs/images/window-grid-demo.png) · [Video](docs/videos/window-grid.mp4)
+[Drag controls](docs/user-guide.md#snap-by-dragging) · [Still image](docs/images/window-grid-demo.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-grid.mp4)
 
 </details>
 
@@ -157,7 +159,7 @@ Open **System** to see CPU, GPU, memory, network, disk, and power readings. **Us
 
 Scroll to **Show in menu bar** and choose the readings you want to keep visible. They update every two seconds with the panel closed. Click the readings to reopen System, or Command-drag them to a different place in the menu bar.
 
-[System guide](docs/user-guide.md#system-monitor) · [Still image](docs/images/system-monitor.png) · [Video](docs/videos/system-monitor.mp4)
+[System guide](docs/user-guide.md#system-monitor) · [Still image](docs/images/system-monitor.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/system-monitor.mp4)
 
 ## A few other handy things
 
