@@ -190,11 +190,12 @@ Record failures in an issue with the macOS version, hardware, and reproduction
 steps. Automated tests do not replace permission, hardware, or accessibility
 checks.
 
-## Documentation images
+## Documentation media
 
-After changing the UI, regenerate the app views and README demos using
-[the media guide](docs/media.md). It covers the render command, sample data,
-and checks to make before committing the images.
+After changing the UI, regenerate the app views, GIFs, and MP4 walkthroughs using
+[the media guide](docs/media.md). It covers the render command, isolated sample
+data, and image/video checks. Keep the README and user guide's control names,
+permissions, and instructions aligned with the same source revision.
 
 ## Artwork
 

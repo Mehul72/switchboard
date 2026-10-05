@@ -23,11 +23,13 @@ struct DocumentationRenderer {
         let output = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("build/docs/captures")
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-        let store = TweakStore()
         let monitor = SystemMonitor()
         let suite = "Switchboard.Documentation.\(UUID())"
         guard let defaults = UserDefaults(suiteName: suite) else { throw CocoaError(.fileReadUnknown) }
         defer { defaults.removePersistentDomain(forName: suite) }
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        let store = TweakStore(defaults: defaults, pasteboard: pasteboard)
         let appearance = AppearanceSetting(defaults: defaults)
         // Its own suite, so the renderer never changes the real menu bar readout.
         let readout = MenuBarReadout(defaults: defaults)
@@ -81,6 +83,7 @@ struct DocumentationRenderer {
                                         ("clipboard-light", .clipboard, false), ("system-dark", .system, true)] {
             appearance.choice = dark ? .dark : .light
             store.category = category
+            monitor.reading.date = Date()
             let captureHeight: CGFloat = category == .system ? 660 : 680
             let view = PopoverView(store: store, monitor: monitor, readout: readout, dismiss: {}, applyRestarts: {},
                                    showShortcuts: {}, height: captureHeight, appearance: appearance,
@@ -88,8 +91,39 @@ struct DocumentationRenderer {
                 .preferredColorScheme(dark ? .dark : .light)
             try await capture(view, name: name, size: NSSize(width: 440, height: captureHeight), dark: dark, output: output)
         }
+        try await renderSystem(monitor: monitor, readout: readout, output: output)
         try await renderFeatures(store: store, appearance: appearance, output: output)
         try await renderWindowTools(output: output)
+    }
+
+    @MainActor
+    static func renderSystem(monitor: SystemMonitor, readout: MenuBarReadout, output: URL) async throws {
+        for (name, sort, showReadings) in [("system-cpu", ProcessSort.cpu, false),
+                                         ("system-memory", .memory, false),
+                                         ("system-readouts", .memory, true)] {
+            readout.setShown(.cpu, showReadings)
+            readout.setShown(.memory, showReadings)
+            let system = SystemMonitorView(monitor: monitor, readout: readout, processSort: sort)
+            let view = VStack(alignment: .leading, spacing: 14) {
+                Text("System").font(.sectionHeader).foregroundStyle(Theme.primary)
+                system.processPanel
+                system.readoutPanel
+                if showReadings {
+                    Text("Menu bar reading example").font(.rowSubtitle).foregroundStyle(Theme.secondary)
+                    Text(ReadoutFormat.text(for: monitor.reading, metrics: readout.metrics))
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundStyle(Theme.primary)
+                        .padding(10)
+                        .background(Theme.controlBackground, in: RoundedRectangle(cornerRadius: 6))
+                }
+            }
+            .padding(Theme.edgeInset)
+            .frame(width: 440)
+            .background(PopoverBackground())
+            .preferredColorScheme(.dark)
+            try await capture(view, name: name, size: NSSize(width: 440, height: 520),
+                              dark: true, output: output, naturalHeight: true)
+        }
     }
 
     @MainActor

@@ -1,11 +1,18 @@
-"""Build README demos and publish native captures for the user guide."""
+"""Build captioned image and video demos from isolated native sample captures."""
 from pathlib import Path
 import shutil
+import subprocess
+import tempfile
+
+import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parents[2]
 CAPTURES = ROOT / 'build/docs/captures'
 OUTPUT = ROOT / 'docs/images'
+VIDEO_OUTPUT = ROOT / 'docs/videos'
+STEP_DURATION_MS = 3000
+VIDEO_FPS = 10
 
 CAPTURE_NAMES = {
     'everyday-light': 'everyday-light',
@@ -13,6 +20,9 @@ CAPTURE_NAMES = {
     'audio-dark': 'audio-dark',
     'clipboard-light': 'clipboard-light',
     'system-dark': 'system-dark',
+    'system-cpu': 'system-cpu',
+    'system-memory': 'system-memory',
+    'system-readouts': 'system-readouts',
     'shelf-step-2': 'file-shelf',
     'switcher-2': 'window-switcher',
     'grid-half': 'window-grid',
@@ -55,14 +65,42 @@ def frame(title, instruction, capture, step, total, wide=False, short=False):
     text(image, (94, 31), title, 34, bold=True)
     text(image, (36, 92), instruction, 24, color=MUTED)
     panel(image, capture, (36, 148, width - 72, height - 214))
-    text(image, (36, height - 42), 'Switchboard / Sample content', 19, color=MUTED)
+    text(image, (36, height - 42), 'Switchboard / Rendered sample demo', 19, color=MUTED)
     for index in range(total):
         x = width - 36 - (total - index) * 20
         draw.ellipse((x, height - 34, x + 8, height - 26), fill=BLUE if index == step - 1 else '#c7cdc8')
     return image
 
 
+def save_video(name, frames):
+    size = frames[0].size
+    if any(dimension % 2 for dimension in size):
+        raise ValueError(f'Video dimensions must be even: {size}')
+    VIDEO_OUTPUT.mkdir(parents=True, exist_ok=True)
+    destination = VIDEO_OUTPUT / f'{name}.mp4'
+    with tempfile.TemporaryDirectory(prefix='.encode-', dir=VIDEO_OUTPUT) as directory:
+        temporary = Path(directory) / destination.name
+        command = [
+            imageio_ffmpeg.get_ffmpeg_exe(), '-hide_banner', '-loglevel', 'error',
+            '-f', 'rawvideo', '-pixel_format', 'rgb24',
+            '-video_size', f'{size[0]}x{size[1]}', '-framerate', f'1000/{STEP_DURATION_MS}',
+            '-i', 'pipe:0', '-an', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20',
+            '-pix_fmt', 'yuv420p', '-r', str(VIDEO_FPS), '-threads', '1',
+            '-movflags', '+faststart', str(temporary),
+        ]
+        pixels = b''.join(image.convert('RGB').tobytes() for image in frames)
+        try:
+            subprocess.run(command, input=pixels, capture_output=True, check=True, timeout=60)
+        except subprocess.CalledProcessError as error:
+            raise RuntimeError(f'Could not encode {destination}: {error.stderr.decode(errors="replace")}') from error
+        temporary.replace(destination)
+
+
 def save_demo(name, frames, still=0, still_name=None):
+    if not frames or not 0 <= still < len(frames):
+        raise ValueError(f'Demo {name!r} needs frames and a valid still index')
+    if any(image.size != frames[0].size for image in frames):
+        raise ValueError(f'Demo {name!r} has frames with different dimensions')
     # A shared palette prevents app icons changing colour between frames.
     strip = Image.new('RGB', (frames[0].width, sum(f.height for f in frames)))
     for index, image in enumerate(frames):
@@ -72,8 +110,9 @@ def save_demo(name, frames, still=0, still_name=None):
     palette.putpalette(list(Image.new('RGB', (1, 1), PAPER).getpixel((0, 0))) + colours[:765])
     images = [image.quantize(palette=palette, dither=Image.Dither.NONE) for image in frames]
     images[0].save(OUTPUT / f'{name}.gif', save_all=True, append_images=images[1:],
-                   duration=3000, loop=0, optimize=True, disposal=2)
+                   duration=STEP_DURATION_MS, loop=0, optimize=True, disposal=2)
     frames[still].save(OUTPUT / f'{still_name or name}.png', optimize=True)
+    save_video(name, frames)
 
 
 def walkthrough(name, steps, *, wide=False, short=False, still=0, still_name=None):
@@ -118,12 +157,17 @@ def demos():
         ('Select the left half', 'Move across three columns and both rows.', 'grid-half'),
         ('Release the mouse to snap', 'Release Control first if you want to cancel instead.', 'snap-half'),
     ], wide=True, still=1, still_name='window-grid-demo')
+    walkthrough('system-monitor', [
+        ('Find busy apps', 'Open System, then choose CPU in Using the most.', 'system-cpu'),
+        ('Check memory use', 'Choose Memory to sort the same process list.', 'system-memory'),
+        ('Keep readings in view', 'Enable CPU and Memory under Show in menu bar.', 'system-readouts'),
+    ], still=2)
 
     frames = []
     steps = [
         ('Start a text capture', 'Control + Option + Command + T'),
         ('Draw a box around the words', 'Release the mouse to recognise the text. Escape cancels.'),
-        ('Paste the result', 'Command-V pastes it. Clipboard history keeps it handy.'),
+        ('Paste the result', 'Command-V pastes it. History saves it when recording is on.'),
     ]
     for index, (title, detail) in enumerate(steps):
         image = Image.new('RGB', (1200, 680), PAPER)
@@ -138,7 +182,7 @@ def demos():
             panel(image, 'text-result', (635, 215, 529, 340))
         else:
             text(image, (650, 300), 'Screen Recording\naccess is needed.' if index == 0 else 'The selection here\nis an illustration.', 28, color=MUTED)
-        text(image, (36, 633), 'Switchboard / Example image recognised by the app', 19, color=MUTED)
+        text(image, (36, 633), 'Switchboard / Rendered demo, example image recognised by the app', 19, color=MUTED)
         frames.append(image)
     save_demo('screen-text', frames, still=2)
 
@@ -160,8 +204,10 @@ def main():
     demos()
     for source, name in CAPTURE_NAMES.items():
         shutil.copyfile(CAPTURES / f'{source}.png', OUTPUT / f'{name}.png')
-    for path in sorted(OUTPUT.iterdir()):
-        print(f'{path.name}: {path.stat().st_size // 1024} KB')
+    for directory in (OUTPUT, VIDEO_OUTPUT):
+        for path in sorted(directory.iterdir()):
+            if path.is_file():
+                print(f'{path.relative_to(ROOT)}: {path.stat().st_size // 1024} KB')
 
 
 if __name__ == '__main__':

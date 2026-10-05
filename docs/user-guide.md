@@ -1,11 +1,12 @@
 # Switchboard user guide
 
-[Download](https://github.com/Mehul72/switchboard/releases/latest) · [README](../README.md)
+[Download](https://github.com/Mehul72/switchboard/releases/latest) · [README](../README.md) · [Demos and media](media.md)
 
 Switchboard runs in the menu bar. Click its icon to open the panel, or press **Control-Option-Command-S**. This guide covers setup and the tools you'll find there.
 
 - [Installation](#installation-and-first-launch)
 - [Settings and everyday tools](#finding-and-changing-settings)
+- [Finder and Dock](#finder-and-dock-settings)
 - [Audio](#audio)
 - [Clipboard](#screenshots-and-clipboard)
 - [File shelf and disks](#file-shelf-and-disks)
@@ -35,9 +36,11 @@ The welcome window appears once per installed copy. You'll see it again after re
 
 Copy a sentence, then copy something else. Open **Clipboard** in Switchboard and click **Copy** beside the first sentence. Return to your text editor and paste with **Command-V**.
 
-That's all you need to do to retrieve an earlier clip. It doesn't need extra permissions. History only includes things copied while Switchboard is running, and it clears when you quit.
+History records new copies while Switchboard is running and **Record Clipboard History** is on. It clears when you quit. Allow clipboard access if macOS asks; Accessibility and Screen Recording aren't needed for clipboard history.
 
 To have Switchboard open when you sign in, choose **settings gear > Launch at Login**. If it says **Approve Launch at Login…**, choose that and allow Switchboard in macOS Login Items.
+
+If the gear offers **Move Switchboard to Applications…** or **Restart Switchboard from Applications…**, use the installed Applications copy before enabling Launch at Login.
 
 ## Finding and changing settings
 
@@ -49,9 +52,22 @@ The appearance button beside the settings gear offers **Match System**, **Light*
 
 <img src="images/everyday-dark.png" width="440" alt="The Everyday tab in dark appearance. The appearance button and settings gear are at the top right.">
 
-The images in this guide are native app views rendered with sample content. Window previews and the desktop are examples, and system readings are made up. They show the current source; an older release may differ.
+The images in this guide are native app views rendered with sample content. Window previews and the desktop are examples, and system readings are made up. This guide describes the repository source reviewed on 5 October 2026; an older release may differ. See [Demos and media](media.md) for animated walkthroughs.
 
 Use **settings gear > Restore Original Settings** to put system preferences back to their values before Switchboard changed them. Shortcut bindings are managed separately.
+
+### Choose what runs automatically
+
+These settings in the gear are on by default and remember your choice:
+
+| Setting | What turning it off does |
+| --- | --- |
+| Record Clipboard History | Stops recording and clears the clips held in memory. |
+| Open Shelf During File Drags | Stops Shift and pointer shakes from opening the shelf. The tray button and shelf shortcut still work. |
+| Command-Delete Ejects Disks in Finder | Leaves Command-Delete to Finder. The shelf's eject controls still work. |
+| Check for Updates Automatically | Stops scheduled checks. **Check for Updates…** still works. |
+
+Window snapping, the window switcher, and menu bar readings start off. Enable the ones you want in **Everyday** or **System**.
 
 ## Everyday tools
 
@@ -74,9 +90,9 @@ Normal idle sleep resumes when keep awake ends, when you choose **Off**, or when
 
 Click **Select Area** beside **Copy text from the screen**, or press **Control-Option-Command-T**. Allow Screen Recording if asked, then drag around the words you want. Release the mouse to recognise the text, or press **Escape** to cancel.
 
-Paste with **Command-V**. The result also appears in Clipboard history. Check it before using it: blurry images and small text can produce mistakes.
+Paste with **Command-V**. If **Record Clipboard History** is on, the panel opens Clipboard and labels the result **Captured from the screen**. With history off, the text is copied without being kept in the list. Check it before using it: blurry images and small text can produce mistakes.
 
-Reading the text usually takes under a second. The first read can take up to a minute while macOS gets text recognition ready. The panel says it is reading, and you can keep using Switchboard meanwhile; the text lands on the clipboard when it's done. To avoid that wait, Switchboard prepares text recognition in the background shortly after it launches.
+The first read can take up to a minute while macOS gets text recognition ready. The panel says **Reading the text…**, and you can keep using Switchboard meanwhile; the text lands on the clipboard when it's done. Wait for it to finish before starting another capture. Switchboard also prepares text recognition in the background after launch when the system build has changed.
 
 <details>
 <summary>Example image and the recognised text</summary>
@@ -89,9 +105,11 @@ Reading the text usually takes under a second. The first read can take up to a m
 
 ### Mouse scrolling and closing apps
 
-**Traditional mouse scrolling** changes the mouse's scroll direction while leaving natural scrolling on for the trackpad.
+**Traditional mouse scrolling** reverses a physical mouse wheel's direction. It leaves the trackpad and Magic Mouse gestures as they are, so keep your preferred trackpad direction in macOS settings.
 
-**Red button quits the app** asks an app to quit when you close its last window. The app may still ask you to save your work. To keep an app running after its last window closes, such as a music player, check it under **settings gear > Red Button Never Quits**.
+**Red button quits the app** asks an app to quit when the red close button closes its last window. Chrome's last-tab close is handled too. The app may still ask you to save your work. Finder and Switchboard are excluded.
+
+To keep another app running after its last window closes, such as a music player, check it under **settings gear > Red Button Never Quits**. Open the app first if it isn't listed. Exclusions are remembered, and an excluded app stays in the menu even when it isn't running so you can uncheck it later.
 
 Both need Accessibility access.
 
@@ -99,7 +117,15 @@ Both need Accessibility access.
 
 Click **Make Plain** beside **Strip clipboard formatting**, then paste again. This removes the copied text's fonts, colours, and links.
 
-Finder, screenshot, and Dock preferences are in the **Files**, **Capture**, and **Dock** categories.
+## Finder and Dock settings
+
+Open **Tweaks > Files** to show hidden files, show all file extensions, put the full path in Finder's title, keep folders above files when sorting by name, or search the current folder by default. You can also skip extension-change warnings and hide desktop icons. Hidden desktop files remain in the Desktop folder.
+
+Apply the **Restart Finder** button after making your changes. **No .DS_Store on network drives** takes effect the next time a network drive is mounted.
+
+Open **Tweaks > Dock** to hide recent apps, minimise windows into their app icons, or remove the delay before an automatically hidden Dock appears. **Reveal hidden Dock instantly** requires the Dock's automatic hiding to be enabled in macOS. Apply **Restart Dock** after making changes.
+
+These are saved macOS preferences and remain in effect after Switchboard quits. Use **Restore Original Settings** to undo them.
 
 ## Audio
 
@@ -116,21 +142,43 @@ An app appears after it opens an audio stream. If it's missing, start playback a
 
 macOS shows a purple recording indicator while per-app volume or routing is active. Switchboard uses audio taps for these controls, and they work while the app is running.
 
-**Reset app audio** returns apps to full volume on the system default output and releases the taps. Output choices are remembered per app, including after the app quits; if a chosen device disconnects, playback falls back to the default output. Volume isn't remembered: an app is back at 100% once it quits.
+Output choices are remembered per app across app and Switchboard relaunches. If a chosen device disconnects, the menu says **Chosen device unavailable** and playback falls back to the default output. Reconnecting the device lets Switchboard use it again. Choose **System Default** to make an app follow macOS's current output.
+
+Volume isn't remembered after an app quits or Switchboard relaunches. **Reset app audio** returns all apps to 100% on the system default output, forgets their saved output choices, and releases the audio controls.
 
 **Output devices** has a separate set of sliders for each device's overall volume. Those affect every app using the device and don't need recording access. Device volume stays where you set it when you reset app audio or quit Switchboard.
 
+If a device doesn't support software volume, use its own controls. If a per-app audio control stops responding, Switchboard returns that app to normal volume on the default output and reports the failure. Select its volume and output again to retry.
+
 ## Screenshots and clipboard
+
+### Set up screenshots
+
+Open **Tweaks > Capture**. These settings apply to new screenshots without restarting Finder or the Dock:
+
+| Setting | How to use it |
+| --- | --- |
+| Save screenshots to | Choose an existing folder macOS can write to. |
+| Copy screenshots to clipboard | Send captures to the clipboard instead of the screenshots folder. Turn this off to save files again. |
+| Screenshot format | Choose PNG, JPEG, or HEIC. |
+| Skip the floating thumbnail | Save captures immediately instead of showing the thumbnail. |
+| Remove window shadows | Omit shadows from window captures. |
+
+The screenshot location and format are saved macOS preferences. Converting clipboard screenshots to JPEG or HEIC requires Switchboard to remain running with **Copy screenshots to clipboard** enabled.
+
+### Retrieve an earlier copy
 
 Open **Clipboard**, or press **Control-Option-Command-V**, to find something you copied earlier. Click **Copy** beside it, return to your app, and paste with **Command-V**. Switchboard doesn't paste into another app automatically.
 
 <img src="images/clipboard-light.png" width="440" alt="Clipboard history with example text entries and a Copy button beside each one.">
 
-History holds up to 20 text and image clips. That includes at most eight images, up to 8 MB each. Expand long entries with **Show more** or **Show all … lines**. A very long clip shows its first 20,000 characters; **Copy** still copies all of it. The trash button removes one entry; **Clear all** clears the list.
+History holds up to 20 text and image clips, including at most eight images. Images larger than 8 MB on the clipboard are skipped. Copying the same text or image again moves it to the top instead of creating a duplicate. Expand long entries with **Show more** or **Show all … lines**. A very long clip shows its first 20,000 characters; **Copy** still copies all of it. The trash button removes one entry; **Clear all** clears the list.
 
 History stays in memory and disappears when you quit. Content marked private by a password manager is skipped. Switchboard doesn't send clipboard content or usage data to a server. To stop recording altogether, turn off **settings gear > Record Clipboard History**. That also forgets the clips already held.
 
-If you set clipboard screenshots to JPEG or HEIC, Switchboard converts new captures while it's running. It puts both the image and a matching file on the clipboard. The file is temporary: Switchboard keeps the five most recent and deletes them when it quits. Some apps still convert pasted images to PNG.
+If you set clipboard screenshots to JPEG or HEIC, Switchboard converts new captures while it's running. It puts both the image and a matching file on the clipboard. The file is temporary: Switchboard keeps the five most recent and deletes them when it quits. It also clears leftover files at the next launch after a crash or force quit. Some apps still convert pasted images to PNG.
+
+History accepts PNG, JPEG, HEIC, and TIFF images, stores them as PNG, and copies them back as PNG. To keep a converted screenshot's JPEG or HEIC file, paste the new capture into a destination that accepts files before its temporary file is removed.
 
 ## File shelf and disks
 
@@ -165,7 +213,7 @@ Wait for the success message. If the disk is busy, close the files or apps using
 
 You can select a disk on the shelf and press **Command-Delete** to eject it. For an ordinary shelf item, that shortcut removes the reference and leaves the file in place.
 
-With Accessibility access, **Command-Delete** also ejects disks selected in Finder. This applies only when everything selected is an ejectable disk. Files, including downloaded DMGs, still go to the Trash as usual. If ejecting fails, the shelf opens with the error. To leave Command-Delete to Finder, turn off **settings gear > Command-Delete Ejects Disks in Finder**.
+With Accessibility access, **Command-Delete** also ejects disks selected in Finder. This applies only when everything selected is an ejectable disk. Files, including downloaded DMGs, still go to the Trash as usual. While you're renaming an item or typing in Finder, the shortcut keeps its text-editing behaviour. If ejecting fails, the shelf opens with the error. To leave Command-Delete to Finder, turn off **settings gear > Command-Delete Ejects Disks in Finder**.
 
 ### Disk images
 
@@ -287,6 +335,7 @@ macOS asks for access when you use a feature that needs it. Grant only the permi
 
 | Feature | Permission |
 | --- | --- |
+| Clipboard history and clipboard screenshot conversion | Clipboard access, if requested by macOS |
 | Traditional mouse scrolling, red-button quit, window snapping and switching, Command-Delete disk eject in Finder | Accessibility |
 | Copy text from the screen | Screen Recording |
 | Window previews, if enabled | Screen Recording |
@@ -298,7 +347,9 @@ Registering shortcuts doesn't need extra permission, but the feature they trigge
 
 ## System monitor
 
-Open **System** for CPU, GPU, memory, swap, network traffic, disk space, and battery readings. Monitoring resumes when you open the section.
+Open **System** for CPU, GPU, memory, swap, network traffic, disk space, and battery readings. Graphs cover up to the last two minutes. Network combines Wi-Fi and Ethernet; GPU shows the busiest GPU.
+
+Monitoring resumes when you open the section. With no menu bar readings selected, it pauses when you leave. Wait for **Measuring…** to finish after opening it; **Updates delayed** means the latest reading is over six seconds old.
 
 ### What's using the most
 
@@ -312,9 +363,13 @@ The list stops reordering while the pointer is over it, so a row doesn't move as
 
 ### Readings in the menu bar
 
-Under **Show in menu bar**, check **CPU**, **GPU**, **Memory**, **Network**, or **Battery** to show those readings in the menu bar, in their own item next to the other menu bar icons. They update every two seconds, including while the panel is closed. Click the readings to open **System**. Uncheck them all to hide the readings. **Battery** appears only on Macs with a battery.
+Under **Show in menu bar**, check **CPU**, **GPU**, **Memory**, **Network**, or **Battery** to show those readings together in a separate menu bar item. Your choices are remembered. They update every two seconds, including while the panel is closed. Click the readings to open **System**. Uncheck them all to hide the readings. **Battery** appears only on Macs with a battery.
 
 To move the readings, hold **Command** and drag them along the menu bar. Switchboard remembers where you put them.
+
+<img src="images/system-readouts.png" width="440" alt="Rendered System sections with the process list sorted by Memory, CPU and Memory menu bar options enabled, and an example reading below.">
+
+[System walkthrough](images/system-monitor.gif) · [Video](videos/system-monitor.mp4)
 
 <details>
 <summary>System panel with example readings</summary>
@@ -334,7 +389,13 @@ An unavailable reading means macOS or your hardware didn't supply it. It doesn't
 | macOS won't open the app | Check that you downloaded it from this repository and have macOS 14.2 or later. Download it again. If it's still blocked, report the exact message and release version. Don't disable macOS security protections. |
 | A feature stays off after granting access | Check **System Settings > Privacy & Security**, then enable the feature again. Screen Recording may need a relaunch. |
 | Audio is empty | Start playback in the app, then reopen Audio. |
+| An app has returned to 100% or the default audio output | Volume resets when the app quits. If Switchboard reported that per-app audio stopped responding, select the app's volume and output again. |
+| Chosen device unavailable | Reconnect the output device or choose **System Default**. Audio uses the default output while the selected device is disconnected. |
 | Purple recording indicator | Per-app audio is active. **Audio > Reset app audio** releases those controls. |
+| Text capture says Reading the text… | The first read can take up to a minute. Other controls remain available once the area is selected. Wait for the result before starting another capture. |
+| Clipboard history is empty while the app is running | Turn on **Record Clipboard History**, then copy something new. Private clips and oversized images are skipped. Allow clipboard access if macOS asks. |
+| Clipboard screenshot conversion reports denied access | Allow Switchboard's clipboard access in System Settings, reselect the screenshot format, and take a new screenshot. |
+| A screenshot goes to the clipboard instead of the chosen folder | Turn off **Tweaks > Capture > Copy screenshots to clipboard**, then take a new screenshot. |
 | A shortcut does nothing | Check **Keyboard Shortcuts** for disabled or unavailable bindings. Retry unavailable shortcuts or choose another combination. |
 | Command-Tab still shows the macOS switcher | Enable **Tweaks > Everyday > Window switcher** and allow Accessibility. |
 | Quit didn't close an app | The app may be waiting for you to save, or it may not be responding. Switch to it, or use **Force Quit** in Activity Monitor. |
@@ -345,6 +406,8 @@ An unavailable reading means macOS or your hardware didn't supply it. It doesn't
 | Clipboard or shelf is empty after relaunching | Both clear when Switchboard quits. Original files remain in their folders. |
 | A disk won't eject | Close files and apps using it, then retry. Busy disks aren't force-ejected. |
 | Launch at Login needs approval | Choose **Approve Launch at Login…** from the gear and allow Switchboard in **System Settings > General > Login Items**. Use the Applications copy. |
+| Launch at Login offers Move or Restart instead | Move the app to Applications or choose **Restart Switchboard from Applications…**, then enable Launch at Login. |
+| System shows unavailable readings | Wait for a new sample. GPU and battery sensors depend on the Mac; an unavailable reading is not zero. Use **Open Activity Monitor** for another view. |
 | Checking for updates fails | Check your internet connection, then try again. GitHub limits how often one network can ask, so a repeated failure can clear on its own within an hour. |
 
 If that doesn't help, [report a bug](https://github.com/Mehul72/switchboard/issues/new?template=bug_report.yml). Include your Switchboard version, macOS version, steps to reproduce it, and the exact error if there is one.
@@ -353,13 +416,17 @@ If that doesn't help, [report a bug](https://github.com/Mehul72/switchboard/issu
 
 Switchboard checks GitHub for a newer release once a day. The first time it finds one, a notice in the panel links to the release page. To check now, choose **settings gear > Check for Updates…**. While a newer version is known, the gear menu also offers **Update to** followed by the version number, which opens the release page.
 
-The check reads only the latest release number from GitHub. Nothing is downloaded or installed for you. To stop the daily check, turn off **settings gear > Check for Updates Automatically**; checking by hand still works.
+The check fetches release metadata from GitHub and compares its version number with your installed version. It does not download or install the app. To stop the daily check, turn off **settings gear > Check for Updates Automatically**; checking by hand still works.
 
 To install an update, quit Switchboard from the settings gear. Download the new DMG from [Releases](https://github.com/Mehul72/switchboard/releases), then drag the new app into Applications and replace the old copy. Open it from Applications again.
 
 The welcome window appears for the new copy. Clipboard history and the shelf start empty.
 
 ## Restore settings or uninstall
+
+**Restore Original Settings** restores the system preferences Switchboard recorded before changing them, stops keep awake, disables mouse-wheel reversal, red-button quit, window snapping and switching, and resets per-app audio. Apply any requested Finder or Dock restart. If a restore fails, the panel reports it so you can retry.
+
+Appearance, shortcut bindings, menu bar readings, the gear's optional behaviours, red-button exclusions, update-check preference, and Launch at Login are managed separately.
 
 1. To undo system preference changes, choose **settings gear > Restore Original Settings** before removing the app. Apply any requested Finder or Dock restart.
 2. Choose **Audio > Reset app audio** to return apps to full volume on the system default output. Overall device volume is separate; adjust it if needed.

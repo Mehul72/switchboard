@@ -22,7 +22,7 @@
 
 ![Switchboard's Everyday and Audio panels, showing settings in light appearance and per-app volume controls in dark appearance.](docs/images/overview.png)
 
-<p align="center"><sub>Native app views with sample content. The demos below are rendered examples, not desktop recordings.</sub></p>
+<p align="center"><sub>Native app views with sample content, refreshed October 2026. The demos are rendered examples, not desktop recordings. Each has a still image and a playable MP4.</sub></p>
 
 Switchboard is a little utility that lives at the top of your screen. Open it when you need a setting, or use a shortcut without leaving the app you're in. Start with whichever tool solves something annoying for you.
 
@@ -31,7 +31,8 @@ Switchboard is a little utility that lives at the top of your screen. Open it wh
   <a href="#file-shelf">File shelf</a> ·
   <a href="#clipboard">Clipboard</a> ·
   <a href="#screen-text">Screen text</a> ·
-  <a href="#windows">Windows</a>
+  <a href="#windows">Windows</a> ·
+  <a href="#system">System</a>
 </p>
 
 ## Audio
@@ -46,7 +47,9 @@ Music a bit loud during a call? Lower just Music. You can also send an app to yo
 
 Open **Audio** while something is playing. Each app gets a volume slider and an output menu. The first adjustment asks for System Audio Recording access.
 
-[Audio guide](docs/user-guide.md#audio) · [Still image](docs/images/app-audio.png)
+Your output choice is remembered for each app. Its volume returns to 100% when the app quits. **Reset app audio** clears both adjustments and saved output choices.
+
+[Audio guide](docs/user-guide.md#audio) · [Still image](docs/images/app-audio.png) · [Video](docs/videos/app-audio.mp4)
 
 ## File shelf
 
@@ -60,7 +63,7 @@ You're attaching a few files to an email, and they're all in different folders. 
 
 Shaking the pointer during a drag opens it too. The shelf holds up to 40 files or folders and leaves the originals where they are. It clears when you quit Switchboard.
 
-[File shelf guide](docs/user-guide.md#file-shelf-and-disks) · [Still image](docs/images/file-shelf-workflow.png)
+[File shelf guide](docs/user-guide.md#file-shelf-and-disks) · [Still image](docs/images/file-shelf-workflow.png) · [Video](docs/videos/file-shelf.mp4)
 
 <details>
 <summary>The shelf can eject disks, too</summary>
@@ -71,7 +74,9 @@ External drives and mounted disk images appear below your files. Click **Eject**
   <img src="docs/images/disk-eject.gif" width="540" alt="Disk eject demo: a sample drive appears on the shelf, is dragged onto Drop to eject, then disappears with a confirmation.">
 </p>
 
-[Disk controls](docs/user-guide.md#eject-a-disk) · [Still image](docs/images/disk-eject.png)
+With Accessibility access, **Command-Delete** also ejects disks selected in Finder. Ordinary files still go to the Trash, and typing or renaming keeps its normal behavior.
+
+[Disk controls](docs/user-guide.md#eject-a-disk) · [Still image](docs/images/disk-eject.png) · [Video](docs/videos/disk-eject.mp4)
 
 </details>
 
@@ -87,6 +92,8 @@ It's still there. Open Clipboard, find the earlier item, and click **Copy**. The
 
 Press **Control-Option-Command-V** to open history from anywhere. It keeps your last 20 clips while Switchboard is running, then forgets them when you quit. Content marked private by a password manager is skipped.
 
+Turn off **settings gear > Record Clipboard History** to stop recording and clear the list.
+
 [Clipboard guide](docs/user-guide.md#screenshots-and-clipboard)
 
 ## Screen text
@@ -99,7 +106,7 @@ A date in a screenshot. A paragraph on a slide. Text you can see but can't selec
 
 Requires Screen Recording. Check the result before using it; small or blurry text can trip it up.
 
-[Screen text guide](docs/user-guide.md#copy-text-from-the-screen) · [Still image](docs/images/screen-text.png)
+[Screen text guide](docs/user-guide.md#copy-text-from-the-screen) · [Still image](docs/images/screen-text.png) · [Video](docs/videos/screen-text.mp4)
 
 ## Windows
 
@@ -111,7 +118,7 @@ Two browser windows should be two choices. Switchboard's **Window switcher** giv
 
 Use **Option + `** to browse just the current app. Turn the switcher on in **Tweaks > Everyday** and allow Accessibility. Previews optionally use Screen Recording.
 
-[Window switcher guide](docs/user-guide.md#window-switcher) · [Still image](docs/images/window-switcher-demo.png)
+[Window switcher guide](docs/user-guide.md#window-switcher) · [Still image](docs/images/window-switcher-demo.png) · [Video](docs/videos/window-switcher.mp4)
 
 ### Put a window in its place
 
@@ -121,7 +128,7 @@ Half the screen for your editor, a third for your notes, or the whole workspace 
 
 Enable **Tweaks > Everyday > Snap windows** and allow Accessibility. Both window tools start off, so you can choose when to give them control of your shortcuts.
 
-[Layouts and shortcuts](docs/user-guide.md#window-snapping) · [Still image](docs/images/window-snapping.png)
+[Layouts and shortcuts](docs/user-guide.md#window-snapping) · [Still image](docs/images/window-snapping.png) · [Video](docs/videos/window-snapping.mp4)
 
 <details>
 <summary>Prefer dragging? Try the grid.</summary>
@@ -130,17 +137,31 @@ Drag a window by its title bar, then hold **Control**. Move across the grid to c
 
 ![Drag snapping demo: hold Control during a title-bar drag, select the left half of the grid, and release to place the window there.](docs/images/window-grid.gif)
 
-[Drag controls](docs/user-guide.md#snap-by-dragging) · [Still image](docs/images/window-grid-demo.png)
+[Drag controls](docs/user-guide.md#snap-by-dragging) · [Still image](docs/images/window-grid-demo.png) · [Video](docs/videos/window-grid.mp4)
 
 </details>
+
+## System
+
+### See what's keeping your Mac busy
+
+Open **System** to see CPU, GPU, memory, network, disk, and power readings. **Using the most** lists processes by CPU or memory. Supported apps have a **Quit** button that lets them ask to save your work.
+
+<p align="center">
+  <img src="docs/images/system-monitor.gif" width="540" alt="System demo: inspect the CPU list, switch to Memory, then enable CPU and Memory menu bar readings. Values are examples.">
+</p>
+
+Scroll to **Show in menu bar** and choose the readings you want to keep visible. They update every two seconds with the panel closed. Click the readings to reopen System, or Command-drag them to a different place in the menu bar.
+
+[System guide](docs/user-guide.md#system-monitor) · [Still image](docs/images/system-monitor.png) · [Video](docs/videos/system-monitor.mp4)
 
 ## A few other handy things
 
 - **Keep your Mac awake** for a set time, until an app quits, or while it's plugged in, without remembering to change it back later.
-- **Reverse mouse scrolling** while keeping natural scrolling on the trackpad.
+- **Reverse a mouse wheel's scrolling** while keeping your trackpad and Magic Mouse gestures as they are.
+- **Quit an app with its last window**, with exceptions you choose under **settings gear > Red Button Never Quits**.
 - **Paste plain text** without bringing the old fonts and colours along.
 - **Change Finder, screenshot, and Dock settings** from one panel.
-- **See what's slowing your Mac down** in the System tab: the apps using the most CPU and memory, each with a Quit button, plus CPU, GPU, memory, network, and battery readings. Show any of those readings in the menu bar too.
 
 Press **Command-F** in the panel to search for a setting. The appearance button beside the gear lets you choose light, dark, or the system theme.
 
@@ -152,7 +173,9 @@ Press **Command-F** in the panel to search for a setting. The appearance button 
 
 Look for its icon in the menu bar. There's no Dock icon. You can eject the installer once the app is copied, and enable **settings gear > Launch at Login** when you want it ready after signing in.
 
-For a quick first try, copy two different sentences. Open Clipboard and bring the first one back. No extra permissions needed.
+For a quick first try, copy two different sentences. Open Clipboard and bring the first one back. Allow clipboard access if macOS asks.
+
+Use **settings gear > Check for Updates…** when you want to check for a new version. If one is available, Switchboard links to its download page; you install it yourself.
 
 <details>
 <summary>Five shortcuts worth keeping nearby</summary>
@@ -171,13 +194,15 @@ Change bindings in **settings gear > Keyboard Shortcuts**. Inside the panel, **E
 
 ## Your data and permissions
 
-Clipboard history, shelf references, and window previews stay in memory. Switchboard doesn't send clipboard content or usage data to a server. Quitting clears those items; your original files stay put.
+Clipboard history, shelf references, and window previews stay in memory. Quitting clears those items; your original files stay put. JPEG and HEIC clipboard screenshot conversion also creates temporary files, keeping the five most recent until you quit. Switchboard doesn't send clipboard content or usage data to a server.
 
 Once a day, Switchboard asks GitHub for the latest release number so it can tell you about updates. Turn that off with **settings gear > Check for Updates Automatically**.
 
 macOS asks for permissions as you use the tools that need them. Window tools need Accessibility, screen text and optional previews need Screen Recording, and per-app audio needs System Audio Recording. You don't have to enable everything.
 
-Use **settings gear > Restore Original Settings** to undo system preference changes. Audio has a separate **Reset app audio** button.
+The settings gear also lets you turn off automatic clipboard recording, opening the shelf during file drags, and Command-Delete disk eject in Finder.
+
+Use **settings gear > Restore Original Settings** to undo recorded system preference changes, stop the live window/mouse/keep-awake tools, and reset app audio. Appearance, shortcuts, menu bar readings, and the gear's optional behaviors have their own controls.
 
 [Permission details](docs/user-guide.md#permissions) · [Restore settings or uninstall](docs/user-guide.md#restore-settings-or-uninstall)
 

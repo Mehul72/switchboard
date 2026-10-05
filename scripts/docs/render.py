@@ -53,6 +53,20 @@ def main():
                 text = replace_region(text, '    func start() {', '    func stop() {',
                                       '    func start() { isRunning = true }\n\n')
                 text = text.replace('private(set)', '')
+            if source.name == 'SystemMonitorView.swift':
+                replacements = {
+                    '@State private var processSort = ProcessSort.cpu': '@State var processSort = ProcessSort.cpu',
+                    'private var processPanel: some View': 'var processPanel: some View',
+                    'private var readoutPanel: some View': 'var readoutPanel: some View',
+                    'AppQuitter.quittableApp(for: usage) != nil': 'usage.isOwnedByUser && usage.bundlePath != nil',
+                    'AppQuitter.quit(usage)': 'documentationQuit(usage)',
+                }
+                for original, replacement in replacements.items():
+                    if text.count(original) != 1:
+                        raise RuntimeError(f'Review documentation System view access: {original}')
+                    text = text.replace(original, replacement)
+                text += '\nprivate func documentationQuit(_ usage: ProcessUsage) -> Bool {\n'
+                text += '    fatalError("Documentation must not quit real apps")\n}\n'
             if source.name == 'WindowSwitcher.swift':
                 text = text.replace('private(set)', '')
             if source.name in ('WindowSwitcherView.swift', 'WindowDragGrid.swift'):
