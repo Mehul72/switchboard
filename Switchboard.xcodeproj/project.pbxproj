@@ -29,6 +29,18 @@
 		4E6CC24F9885CBD1899F49EF /* FileShelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A9D617F4E9FE4EACBEE412 /* FileShelf.swift */; };
 		4FBF6CB0B3C8B69B5417B401 /* AppearanceSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D61A8A6408688682525794 /* AppearanceSetting.swift */; };
 		59BEF650C8EBB23794866FBE /* ShelfDraggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF806F864D4BB3F772B79F9E /* ShelfDraggingTests.swift */; };
+		5B0A00000000000000000002 /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000001 /* TestSupport.swift */; };
+		5B0A00000000000000000003 /* TweakStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D18FDF62CAF03392D61CAF /* TweakStore.swift */; };
+		5B0A00000000000000000004 /* UndoLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DAD93FDFB9505014881B70 /* UndoLedger.swift */; };
+		5B0A00000000000000000005 /* ScrollDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* ScrollDirection.swift */; };
+		5B0A00000000000000000006 /* TextCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* TextCapture.swift */; };
+		5B0A00000000000000000007 /* RestartCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5607F9A773CA8BFB3744D09 /* RestartCoordinator.swift */; };
+		5B0A00000000000000000008 /* WindowSnapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E80000000000000000000003 /* WindowSnapper.swift */; };
+		5B0A0000000000000000000A /* UndoLedgerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000009 /* UndoLedgerTests.swift */; };
+		5B0A0000000000000000000C /* TweakStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A0000000000000000000B /* TweakStoreTests.swift */; };
+		5B0A0000000000000000000E /* EventTapThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A0000000000000000000D /* EventTapThread.swift */; };
+		5B0A0000000000000000000F /* EventTapThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A0000000000000000000D /* EventTapThread.swift */; };
+		5B0A00000000000000000011 /* EventTapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000010 /* EventTapTests.swift */; };
 		5C11BD31D46ACCC392B74CCC /* CommandTabHotKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07342ED6504280661226C8D3 /* CommandTabHotKeys.swift */; };
 		6399FDEE9A817258899CAFFB /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24382D42E5D8342EB12F9C9 /* PopoverView.swift */; };
 		64C17C1261236471DF0A58B0 /* ShelfVolumesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EB4F80D0563FEF8E24B5E5 /* ShelfVolumesTests.swift */; };
@@ -132,6 +144,11 @@
 		F92000000000000000000001 /* WelcomeGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000001 /* WelcomeGate.swift */; };
 		F92000000000000000000002 /* WelcomeGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90000000000000000000002 /* WelcomeGateTests.swift */; };
 		FB1CFB8E807C6C24D5F7154D /* FileShelfController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 945EB3495FA8EB31F4954CA5 /* FileShelfController.swift */; };
+		5B0A00000000000000000012 /* TweakRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456B0B01FA009470CEEE8A25 /* TweakRow.swift */; };
+		5B0A00000000000000000014 /* TweakRowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000013 /* TweakRowLayoutTests.swift */; };
+		5B0A00000000000000000016 /* FrontHandover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000015 /* FrontHandover.swift */; };
+		5B0A00000000000000000017 /* FrontHandover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000015 /* FrontHandover.swift */; };
+		5B0A00000000000000000019 /* FrontHandoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000018 /* FrontHandoverTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -159,6 +176,11 @@
 		49EA744DB07D578E6A2066FC /* CategoryNav.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryNav.swift; sourceTree = "<group>"; };
 		4D70F0E1F4B531F49BB5CA56 /* WindowSwitching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitching.swift; sourceTree = "<group>"; };
 		4DD9EC9EA3DE392DE53601FD /* ShelfDragGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfDragGesture.swift; sourceTree = "<group>"; };
+		5B0A00000000000000000001 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
+		5B0A00000000000000000009 /* UndoLedgerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoLedgerTests.swift; sourceTree = "<group>"; };
+		5B0A0000000000000000000B /* TweakStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakStoreTests.swift; sourceTree = "<group>"; };
+		5B0A0000000000000000000D /* EventTapThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapThread.swift; sourceTree = "<group>"; };
+		5B0A00000000000000000010 /* EventTapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapTests.swift; sourceTree = "<group>"; };
 		61D82A76BCEBCE04FCF16A26 /* SwitcherInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherInput.swift; sourceTree = "<group>"; };
 		7587F57B35741679DAF0A5F0 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		81A9D617F4E9FE4EACBEE412 /* FileShelf.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShelf.swift; sourceTree = "<group>"; };
@@ -234,6 +256,9 @@
 		F90000000000000000000002 /* WelcomeGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGateTests.swift; sourceTree = "<group>"; };
 		F90000000000000000000003 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		FF806F864D4BB3F772B79F9E /* ShelfDraggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfDraggingTests.swift; sourceTree = "<group>"; };
+		5B0A00000000000000000013 /* TweakRowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakRowLayoutTests.swift; sourceTree = "<group>"; };
+		5B0A00000000000000000015 /* FrontHandover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontHandover.swift; sourceTree = "<group>"; };
+		5B0A00000000000000000018 /* FrontHandoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontHandoverTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -271,6 +296,7 @@
 				EA0000000000000000000005 /* MenuBarPopover.swift */,
 				7587F57B35741679DAF0A5F0 /* StatusItemController.swift */,
 				1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */,
+				5B0A00000000000000000015 /* FrontHandover.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -303,6 +329,12 @@
 				AC050000000000000000000001 /* AwakeControllerTests.swift */,
 				AC040000000000000000000001 /* MenuBarReadoutTests.swift */,
 				AC020000000000000000000001 /* ProcessUsageTests.swift */,
+				5B0A00000000000000000001 /* TestSupport.swift */,
+				5B0A00000000000000000009 /* UndoLedgerTests.swift */,
+				5B0A0000000000000000000B /* TweakStoreTests.swift */,
+				5B0A00000000000000000010 /* EventTapTests.swift */,
+				5B0A00000000000000000013 /* TweakRowLayoutTests.swift */,
+				5B0A00000000000000000018 /* FrontHandoverTests.swift */,
 			);
 			path = SwitchboardTests;
 			sourceTree = "<group>";
@@ -382,6 +414,7 @@
 				AB0000000000000000000001 /* UpdateChecker.swift */,
 				AC030000000000000000000001 /* MenuBarReadout.swift */,
 				AC010000000000000000000001 /* ProcessUsage.swift */,
+				5B0A0000000000000000000D /* EventTapThread.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -550,6 +583,21 @@
 				AC020000000000000000000002 /* ProcessUsageTests.swift in Sources */,
 				AC010000000000000000000003 /* ProcessUsage.swift in Sources */,
 				AB0000000000000000000005 /* UpdateCheckerTests.swift in Sources */,
+				5B0A00000000000000000002 /* TestSupport.swift in Sources */,
+				5B0A00000000000000000003 /* TweakStore.swift in Sources */,
+				5B0A00000000000000000004 /* UndoLedger.swift in Sources */,
+				5B0A00000000000000000005 /* ScrollDirection.swift in Sources */,
+				5B0A00000000000000000006 /* TextCapture.swift in Sources */,
+				5B0A00000000000000000007 /* RestartCoordinator.swift in Sources */,
+				5B0A00000000000000000008 /* WindowSnapper.swift in Sources */,
+				5B0A0000000000000000000A /* UndoLedgerTests.swift in Sources */,
+				5B0A0000000000000000000C /* TweakStoreTests.swift in Sources */,
+				5B0A0000000000000000000F /* EventTapThread.swift in Sources */,
+				5B0A00000000000000000011 /* EventTapTests.swift in Sources */,
+				5B0A00000000000000000012 /* TweakRow.swift in Sources */,
+				5B0A00000000000000000014 /* TweakRowLayoutTests.swift in Sources */,
+				5B0A00000000000000000017 /* FrontHandover.swift in Sources */,
+				5B0A00000000000000000019 /* FrontHandoverTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -617,6 +665,8 @@
 				AC030000000000000000000002 /* MenuBarReadout.swift in Sources */,
 				AC010000000000000000000002 /* ProcessUsage.swift in Sources */,
 				301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */,
+				5B0A0000000000000000000E /* EventTapThread.swift in Sources */,
+				5B0A00000000000000000016 /* FrontHandover.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -642,7 +692,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -685,7 +735,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 54;
+				CURRENT_PROJECT_VERSION = 57;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -749,7 +799,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
@@ -792,7 +842,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 54;
+				CURRENT_PROJECT_VERSION = 57;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

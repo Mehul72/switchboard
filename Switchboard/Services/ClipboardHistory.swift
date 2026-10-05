@@ -9,18 +9,44 @@ extension String {
             .replacingOccurrences(of: "\r", with: "\n")
     }
 
-    /// `split` drops empty subsequences, which under-reports any block with a
-    /// blank line in it, so a four-line paragraph reads as two.
+    /// Counts `\n`, `\r\n` and `\r` as one line ending each, blank lines
+    /// included. One pass over the bytes, because a clip can be megabytes
+    /// long and the copies made by splitting it stalled the panel.
     var lineCount: Int {
-        guard !isEmpty else { return 0 }
-        let lines = normalizedLineEndings.components(separatedBy: "\n")
-        // A trailing newline ends the last line rather than starting a new one.
-        if lines.count > 1, lines.last?.isEmpty == true { return lines.count - 1 }
-        return lines.count
+        var lineEndings = 0
+        var followsCarriageReturn = false
+        var endsWithLineEnding = false
+        var hasText = false
+        for byte in utf8 {
+            hasText = true
+            switch byte {
+            case UInt8(ascii: "\n"):
+                // The second half of `\r\n` belongs to the ending already counted.
+                if !followsCarriageReturn { lineEndings += 1 }
+                followsCarriageReturn = false
+                endsWithLineEnding = true
+            case UInt8(ascii: "\r"):
+                lineEndings += 1
+                followsCarriageReturn = true
+                endsWithLineEnding = true
+            default:
+                followsCarriageReturn = false
+                endsWithLineEnding = false
+            }
+        }
+        guard hasText else { return 0 }
+        // A trailing line ending closes the last line rather than starting a new one.
+        return endsWithLineEnding ? lineEndings : lineEndings + 1
     }
 }
 
 struct ClipEntry: Identifiable, Equatable {
+    /// A collapsed row shows two lines, which this covers at any panel width.
+    static let previewCharacterLimit = 300
+    /// SwiftUI lays out a whole string before it draws any of it, so an
+    /// expanded row holding megabytes of text froze the panel.
+    static let expandedCharacterLimit = 20_000
+
     let id = UUID()
     let text: String
     /// PNG bytes when the clip is an image rather than text.
@@ -30,6 +56,24 @@ struct ClipEntry: Identifiable, Equatable {
     /// Set when Switchboard produced the text itself, so a captured or
     /// translated clip is recognisable in the list.
     var note: String?
+    /// The start of the text on one line. Worked out once, with the line
+    /// count, because the list redraws often and rescanning a large clip on
+    /// every redraw is what made it stall.
+    let preview: String
+    let lineCount: Int
+    let exceedsExpandedLimit: Bool
+
+    init(text: String, imageData: Data?, pixelSize: CGSize?, date: Date, note: String?) {
+        self.text = text
+        self.imageData = imageData
+        self.pixelSize = pixelSize
+        self.date = date
+        self.note = note
+        preview = Self.preview(of: text)
+        lineCount = text.lineCount
+        let limit = text.index(text.startIndex, offsetBy: Self.expandedCharacterLimit, limitedBy: text.endIndex)
+        exceedsExpandedLimit = limit != nil && limit != text.endIndex
+    }
 
     var isImage: Bool { imageData != nil }
 
@@ -38,12 +82,20 @@ struct ClipEntry: Identifiable, Equatable {
         return "Image \(Int(pixelSize.width)) by \(Int(pixelSize.height))"
     }
 
-    var preview: String {
-        text.normalizedLineEndings
+    /// What an expanded row lays out: the whole clip unless it is too long.
+    /// Copy always puts the whole clip back.
+    var expandedText: String {
+        exceedsExpandedLimit ? String(text.prefix(Self.expandedCharacterLimit)) : text
+    }
+
+    private static func preview(of text: String) -> String {
+        // Only the start is ever shown, so only the start is flattened.
+        let firstWord = text.firstIndex { !$0.isWhitespace } ?? text.endIndex
+        return String(text[firstWord...].prefix(previewCharacterLimit))
+            .normalizedLineEndings
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\n", with: " ")
     }
-    var lineCount: Int { text.lineCount }
 }
 
 /// Keeps recent text clips so something copied a few minutes ago is still
@@ -123,6 +175,15 @@ final class ClipboardHistory {
     func remove(_ entry: ClipEntry) {
         entries.removeAll { $0.id == entry.id }
         onChange?()
+    }
+
+    /// Drops the image a format conversion has just replaced on the
+    /// clipboard. The converted copy is recorded by the next poll; keeping
+    /// this one too listed a single screenshot twice.
+    func forgetImage(_ imageData: Data) {
+        let countBefore = entries.count
+        entries.removeAll { $0.imageData == imageData }
+        if entries.count != countBefore { onChange?() }
     }
 
     /// Puts an entry back on the clipboard without recording it again.

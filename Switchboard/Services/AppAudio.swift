@@ -3,9 +3,11 @@ import CoreAudio
 import Darwin
 
 /// macOS tracks which application a helper process is doing work on behalf of.
-/// Apple exports the lookup without shipping a public header for it.
-@_silgen_name("responsibility_get_pid_responsible_for_pid")
-private func responsiblePID(for pid: pid_t) -> pid_t
+/// Apple exports the lookup without shipping a public header for it. Resolved
+/// at runtime, so a macOS that drops it costs this one lookup, not the launch.
+private typealias ResponsiblePIDLookup = @convention(c) (pid_t) -> pid_t
+private let responsiblePIDLookup = privateSymbol("responsibility_get_pid_responsible_for_pid",
+                                                 as: ResponsiblePIDLookup.self)
 
 /// One app that currently owns one or more Core Audio process objects.
 struct AudioApp: Identifiable, Equatable {
@@ -200,11 +202,20 @@ final class AppAudioEngine {
     /// timer running at 10Hz for the rest of the session.
     private static let teardownPollLimit = 100
 
+    private let defaults: UserDefaults
+    private let isRunning: (String) -> Bool
     private var controlled: [String: Controlled] = [:]
     /// Main-thread state used by the UI. The real-time callback never reads it.
     private var requestedGains: [String: Float] = [:]
     private var pendingTeardowns: [PendingTeardown] = []
     private var teardownTimer: Timer?
+
+    init(defaults: UserDefaults = .standard,
+         isRunning: @escaping (String) -> Bool = AppAudioEngine.hasRunningInstance) {
+        self.defaults = defaults
+        self.isRunning = isRunning
+        requestedRoutes = Self.savedRoutes(in: defaults)
+    }
 
     // MARK: - Enumeration
 
@@ -315,8 +326,7 @@ final class AppAudioEngine {
             return direct
         }
 
-        let responsible = responsiblePID(for: pid)
-        if responsible > 0, responsible != pid,
+        if let responsible = responsiblePIDLookup?(pid), responsible > 0, responsible != pid,
            let owner = NSRunningApplication(processIdentifier: responsible),
            owner.activationPolicy == .regular {
             return owner
@@ -335,9 +345,10 @@ final class AppAudioEngine {
 
     // MARK: - Volume and routing
 
-    /// Device UIDs chosen per app, kept across launches so an app someone sent
-    /// to their speakers goes back there the next time it plays.
-    private var requestedRoutes: [String: String] = AppAudioEngine.savedRoutes()
+    /// Device UIDs chosen per app. Saved, and kept after the app quits, so an
+    /// app someone sent to their speakers goes back there the next time it
+    /// plays. Only Reset app audio, or a failure to apply one, removes a route.
+    private var requestedRoutes: [String: String]
 
     func gain(for bundleID: String) -> Float {
         requestedGains[bundleID] ?? 1
@@ -368,7 +379,7 @@ final class AppAudioEngine {
         } else {
             requestedRoutes.removeValue(forKey: app.bundleID)
         }
-        Self.persistRoutes(requestedRoutes)
+        Self.persistRoutes(requestedRoutes, in: defaults)
         return apply(to: app)
     }
 
@@ -420,7 +431,7 @@ final class AppAudioEngine {
     private func forgetRequest(_ bundleID: String) {
         requestedGains.removeValue(forKey: bundleID)
         if requestedRoutes.removeValue(forKey: bundleID) != nil {
-            Self.persistRoutes(requestedRoutes)
+            Self.persistRoutes(requestedRoutes, in: defaults)
         }
     }
 
@@ -442,9 +453,10 @@ final class AppAudioEngine {
             guard let app = current[bundleID] else {
                 // An app leaves the Core Audio process list whenever it stops
                 // playing, so a missing entry is not a reason to forget what
-                // its owner chose. Only a quit app gets that.
+                // its owner chose. A quit app loses its volume, which is
+                // never saved, and keeps its output device.
                 release(bundleID)
-                if !Self.isRunning(bundleID) { forgetRequest(bundleID) }
+                if !isRunning(bundleID) { requestedGains.removeValue(forKey: bundleID) }
                 continue
             }
 
@@ -530,11 +542,13 @@ final class AppAudioEngine {
             return nil
         }
         release(bundleID)
-        requestedGains.removeValue(forKey: bundleID)
-        return "per-app volume stopped responding, so it is back at normal volume."
+        // The route goes too. Kept, it would rebuild the same tap on the
+        // next poll and stall again, every few seconds.
+        forgetRequest(bundleID)
+        return "per-app audio stopped responding, so it is back at normal volume on the default output."
     }
 
-    private static func isRunning(_ bundleID: String) -> Bool {
+    static func hasRunningInstance(_ bundleID: String) -> Bool {
         NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             .contains { !$0.isTerminated }
     }
@@ -545,7 +559,7 @@ final class AppAudioEngine {
         }
         requestedGains.removeAll()
         requestedRoutes.removeAll()
-        Self.persistRoutes(requestedRoutes)
+        Self.persistRoutes(requestedRoutes, in: defaults)
     }
 
     /// True while anything still needs maintaining: a live tap, a volume chosen
@@ -554,6 +568,16 @@ final class AppAudioEngine {
     /// moved back if that default changes.
     var isControllingAnything: Bool {
         !controlled.isEmpty || !requestedGains.isEmpty || !requestedRoutes.isEmpty
+    }
+
+    var hasSavedRoutes: Bool { !requestedRoutes.isEmpty }
+
+    /// True while the maintenance poll has work: a tap to watch, a volume
+    /// waiting for its app to play again, or a routed app that is running
+    /// and may start playing. A route saved for an app that is not running
+    /// needs nothing until that app launches.
+    var needsPolling: Bool {
+        !controlled.isEmpty || !requestedGains.isEmpty || requestedRoutes.keys.contains(where: isRunning)
     }
 
     // MARK: - Tap and aggregate device

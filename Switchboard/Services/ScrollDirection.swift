@@ -1,5 +1,6 @@
 import AppKit
 import CoreGraphics
+import os
 
 /// macOS exposes exactly one scroll-direction switch
 /// (`NSGlobalDomain com.apple.swipescrolldirection`) and it governs the mouse
@@ -8,12 +9,21 @@ import CoreGraphics
 /// trackpad never sends -- natural scrolling on the trackpad, traditional
 /// scrolling on the mouse, at the same time.
 final class ScrollInverter {
+    private struct InstalledTap {
+        let port: CFMachPort
+        let runLoopSource: CFRunLoopSource
+    }
+
     /// The event-tap callback is a C function pointer with no context, so the
-    /// port it has to re-arm lives here. The run loop source is stored beside
-    /// it rather than on the instance, so a stop always tears down exactly
-    /// what the matching start put in place.
-    private static var tap: CFMachPort?
-    private static var runLoopSource: CFRunLoopSource?
+    /// port it has to re-arm lives here, with its run loop source beside it so
+    /// a stop tears down exactly what the matching start put in place. Behind
+    /// a lock because the callback runs on the event tap thread while start,
+    /// stop and the health check run on the main thread.
+    private static let installedTap = OSAllocatedUnfairLock<InstalledTap?>(uncheckedState: nil)
+
+    private static var tapPort: CFMachPort? {
+        installedTap.withLockUnchecked { $0?.port }
+    }
 
     /// macOS can disable a tap without sending the `tapDisabled` event that
     /// would re-arm it, which leaves the feature dead with the toggle still
@@ -24,7 +34,7 @@ final class ScrollInverter {
     private let defaults: UserDefaults
     private var healthTimer: Timer?
 
-    var isActive: Bool { Self.tap != nil }
+    var isActive: Bool { Self.tapPort != nil }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -38,11 +48,6 @@ final class ScrollInverter {
     static func requestPermission() {
         let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
-    }
-
-    static func openSettings() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
-        NSWorkspace.shared.open(url)
     }
 
     @discardableResult
@@ -79,12 +84,16 @@ final class ScrollInverter {
             userInfo: nil
         ) else { return false }
 
-        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        guard let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else {
+            CFMachPortInvalidate(tap)
+            return false
+        }
+        // Stored before the tap can fire, so its first callback can re-arm it.
+        Self.installedTap.withLockUnchecked { $0 = InstalledTap(port: tap, runLoopSource: source) }
+        // Not the main run loop: every wheel tick on the Mac waits for this
+        // callback, and the main thread can be busy drawing the panel.
+        EventTapThread.shared.add(source)
         CGEvent.tapEnable(tap: tap, enable: true)
-
-        Self.tap = tap
-        Self.runLoopSource = source
         startHealthChecks()
         return true
     }
@@ -93,17 +102,17 @@ final class ScrollInverter {
     private func stop() -> Bool {
         healthTimer?.invalidate()
         healthTimer = nil
-        if let tap = Self.tap {
-            CGEvent.tapEnable(tap: tap, enable: false)
+        let removed = Self.installedTap.withLockUnchecked { installed -> InstalledTap? in
+            defer { installed = nil }
+            return installed
+        }
+        if let removed {
+            CGEvent.tapEnable(tap: removed.port, enable: false)
+            EventTapThread.shared.remove(removed.runLoopSource)
             // Dropping the last reference is not enough; without this the
             // mach port stays live for the rest of the session.
-            CFMachPortInvalidate(tap)
+            CFMachPortInvalidate(removed.port)
         }
-        if let source = Self.runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
-        }
-        Self.runLoopSource = nil
-        Self.tap = nil
         return true
     }
 
@@ -118,7 +127,7 @@ final class ScrollInverter {
     }
 
     private func reArmIfDisabled() {
-        guard let tap = Self.tap else { return }
+        guard let tap = Self.tapPort else { return }
         // A revoked Accessibility grant cannot be re-armed, so drop the tap
         // instead of retrying it forever. The preference stays put and the
         // next grant brings the feature back.
@@ -130,11 +139,12 @@ final class ScrollInverter {
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
-    private static func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
+    /// Runs on the event tap thread, for every wheel event on the Mac.
+    static func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
         // macOS silently disables a tap that runs long or trips a security
         // check; without re-arming it the feature dies with no symptom.
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            if let tap, !CGEvent.tapIsEnabled(tap: tap) {
+            if let tap = tapPort, !CGEvent.tapIsEnabled(tap: tap) {
                 CGEvent.tapEnable(tap: tap, enable: true)
             }
             return Unmanaged.passUnretained(event)

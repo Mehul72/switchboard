@@ -15,10 +15,6 @@ enum LaunchAtLogin {
         case failed
     }
 
-    static var isEnabled: Bool {
-        state == .enabled
-    }
-
     static var state: State {
         switch SMAppService.mainApp.status {
         case .enabled: return .enabled

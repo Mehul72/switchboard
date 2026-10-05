@@ -20,6 +20,12 @@ enum AccessibilityResumeStep: Equatable {
 /// Turns the red traffic-light button into a normal quit request when it closes
 /// an app's last window. Chrome needs one extra path because closing its final
 /// tab destroys the window without pressing the traffic-light button.
+struct QuitExclusionCandidate: Identifiable, Equatable {
+    let bundleID: String
+    let name: String
+    var id: String { bundleID }
+}
+
 final class QuitOnCloseController {
     private struct CloseCandidate {
         let pid: pid_t
@@ -144,6 +150,7 @@ final class QuitOnCloseController {
     /// Longer than this and the press and release are not one click.
     private static let maximumClickSeconds: TimeInterval = 3
     private static let defaultsKey = "QuitOnCloseEnabled"
+    private static let userExclusionsKey = "QuitOnCloseExcludedBundleIDs"
     private static let excludedBundleIDs: Set<String> = [
         "com.Mehul72.switchboard",
         "com.apple.finder"
@@ -175,6 +182,9 @@ final class QuitOnCloseController {
     private var clickProbeSequence = 0
     private var probeAwaitingAnswer: Int?
     private var releaseAwaitingProbe: ClickRelease?
+    /// Apps the owner wants left running when their last window closes: a
+    /// music player, a download in progress.
+    private(set) var userExcludedBundleIDs: Set<String>
 
     init(defaults: UserDefaults = .standard,
          permissionCheck: @escaping () -> Bool = { QuitOnCloseController.hasPermission },
@@ -184,6 +194,7 @@ final class QuitOnCloseController {
         self.permissionCheck = permissionCheck
         self.chromeProcesses = chromeProcesses
         self.workspaceCenter = workspaceCenter
+        userExcludedBundleIDs = Set(defaults.stringArray(forKey: Self.userExclusionsKey) ?? [])
         resumeIfPermitted()
     }
 
@@ -194,12 +205,41 @@ final class QuitOnCloseController {
         _ = AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
 
-    static func openSettings() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
-        NSWorkspace.shared.open(url)
+    var isActive: Bool { mouseMonitor != nil }
+
+    func setExcluded(_ excluded: Bool, bundleID: String) {
+        if excluded { userExcludedBundleIDs.insert(bundleID) } else { userExcludedBundleIDs.remove(bundleID) }
+        defaults.set(userExcludedBundleIDs.sorted(), forKey: Self.userExclusionsKey)
     }
 
-    var isActive: Bool { mouseMonitor != nil }
+    /// True for an app red-button quit must never touch: Switchboard, Finder,
+    /// and whatever the owner listed.
+    static func isExcluded(bundleID: String, userExcluded: Set<String>) -> Bool {
+        excludedBundleIDs.contains(bundleID) || userExcluded.contains(bundleID)
+    }
+
+    /// What the exclusion menu offers: every running app, plus excluded apps
+    /// that are not running, so one can still be taken off the list.
+    static func exclusionCandidates(excluded: Set<String>,
+                                    running: [NSRunningApplication] = NSWorkspace.shared.runningApplications)
+        -> [QuitExclusionCandidate] {
+        var names: [String: String] = [:]
+        for application in running where shouldManage(application) {
+            guard let bundleID = application.bundleIdentifier else { continue }
+            names[bundleID] = application.localizedName ?? bundleID
+        }
+        for bundleID in excluded where names[bundleID] == nil {
+            names[bundleID] = installedName(bundleID: bundleID) ?? bundleID
+        }
+        return names.map { QuitExclusionCandidate(bundleID: $0.key, name: $0.value) }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    private static func installedName(bundleID: String) -> String? {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
+        let name = FileManager.default.displayName(atPath: url.path)
+        return name.hasSuffix(".app") ? String(name.dropLast(4)) : name
+    }
 
     @discardableResult
     func setActive(_ active: Bool) -> Bool {
@@ -381,7 +421,7 @@ final class QuitOnCloseController {
                                   timestamp: TimeInterval) -> CloseCandidate? {
         guard let hit,
               let application = NSRunningApplication(processIdentifier: hit.pid),
-              Self.shouldManage(application) else { return nil }
+              shouldQuit(application) else { return nil }
         return CloseCandidate(pid: hit.pid, frame: hit.frame,
                               timestamp: timestamp, window: hit.window)
     }
@@ -676,7 +716,7 @@ final class QuitOnCloseController {
     private func requestNormalQuit(pid: pid_t) {
         guard !quittingPIDs.contains(pid),
               let application = NSRunningApplication(processIdentifier: pid),
-              Self.shouldManage(application) else { return }
+              shouldQuit(application) else { return }
 
         quittingPIDs.insert(pid)
         if !application.terminate() {
@@ -686,6 +726,11 @@ final class QuitOnCloseController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             self?.quittingPIDs.remove(pid)
         }
+    }
+
+    private func shouldQuit(_ application: NSRunningApplication) -> Bool {
+        guard Self.shouldManage(application), let bundleID = application.bundleIdentifier else { return false }
+        return !Self.isExcluded(bundleID: bundleID, userExcluded: userExcludedBundleIDs)
     }
 
     private static func shouldManage(_ application: NSRunningApplication) -> Bool {

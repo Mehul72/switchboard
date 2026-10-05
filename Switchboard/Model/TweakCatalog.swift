@@ -3,7 +3,9 @@ import Foundation
 enum TweakCatalog {
     static let all: [Tweak] = everyday + files + capture + dock
 
-    static let everyday: [Tweak] = [
+    static let everyday: [Tweak] = quickTools + translation + everydaySettings
+
+    private static let quickTools: [Tweak] = [
         Tweak(id: "everyday.keep-awake", title: "Keep Mac awake",
               subtitle: "Stops idle sleep for a time, or until an app quits",
               category: .everyday, symbol: "cup.and.saucer.fill",
@@ -11,15 +13,19 @@ enum TweakCatalog {
         Tweak(id: "everyday.region-ocr", title: "Copy text from the screen",
               subtitle: "Drag a region to copy its text",
               category: .everyday, symbol: "text.viewfinder",
-              control: .button("Select Area"), behavior: .regionOCR),
-        // Translation is finished and verified but held back from the UI for
-        // now. Re-enable by restoring this row and flipping
-        // TweakStore.translationEnabled back to true.
-        //
-        // Tweak(id: "everyday.ocr-translate", title: "Translate to English",
-        // subtitle: "Applies to text you capture above",
-        // category: .everyday, symbol: "character.book.closed",
-        // control: .toggle, behavior: .translateCaptures),
+              control: .button("Select Area"), behavior: .regionOCR)
+    ]
+
+    // Translation is finished and verified but held back from the UI for now.
+    // TweakStore.translationEnabled is the one switch that brings it back.
+    private static let translation: [Tweak] = TweakStore.translationEnabled ? [
+        Tweak(id: "everyday.ocr-translate", title: "Translate to English",
+              subtitle: "Applies to text you capture above",
+              category: .everyday, symbol: "character.book.closed",
+              control: .toggle, behavior: .translateCaptures)
+    ] : []
+
+    private static let everydaySettings: [Tweak] = [
         Tweak(id: "everyday.quit-on-close", title: "Red button quits the app",
               subtitle: "When it closes the app's last window",
               category: .everyday, symbol: "xmark.app",
@@ -109,7 +115,7 @@ enum TweakCatalog {
               control: .folder,
               successMessage: "Saved. Your next screenshot lands there."),
         Tweak(id: "capture.clipboard", title: "Copy screenshots to clipboard",
-              subtitle: "No file is saved; encoding still applies",
+              subtitle: "Skips the screenshots folder; encoding still applies",
               category: .capture, symbol: "doc.on.clipboard",
               domain: "com.apple.screencapture", key: "target-screenshot",
               legacyKeys: ["target"],

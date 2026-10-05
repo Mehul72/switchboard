@@ -25,6 +25,11 @@ struct ShelfFile: Identifiable {
 @MainActor
 final class FileShelf: ObservableObject {
     static let limit = 40
+
+    /// For the menu bar item's tooltip and VoiceOver label.
+    nonisolated static func countDescription(_ count: Int) -> String {
+        count == 1 ? "1 item on shelf" : "\(count) items on shelf"
+    }
     @Published private(set) var files: [ShelfFile] = []
     @Published var notice: ShelfNotice?
     var onCountChange: ((Int) -> Void)?

@@ -1,7 +1,7 @@
 import Foundation
 
-// Dock, Finder and SystemUIServer only reread these domains on launch, so a
-// preference write is only half the job.
+// Dock and Finder only reread these domains on launch, so a preference write
+// is only half the job.
 enum SystemRestart {
     static func killall(_ target: RestartTarget) -> Bool {
         let task = Process()

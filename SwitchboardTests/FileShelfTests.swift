@@ -3,6 +3,12 @@ import XCTest
 
 @MainActor
 final class FileShelfTests: XCTestCase {
+    func testCountDescriptionSaysItemForOneAndItemsOtherwise() {
+        XCTAssertEqual(FileShelf.countDescription(1), "1 item on shelf")
+        XCTAssertEqual(FileShelf.countDescription(2), "2 items on shelf")
+        XCTAssertEqual(FileShelf.countDescription(40), "40 items on shelf")
+    }
+
     private var directory: URL!
 
     override func setUpWithError() throws {

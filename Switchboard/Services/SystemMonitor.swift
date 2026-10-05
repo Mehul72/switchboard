@@ -24,6 +24,46 @@ struct NetworkCounter {
     let sent: UInt64
 }
 
+/// Byte counters for the physical network interfaces.
+enum NetworkInterfaceCounters {
+    /// Reads the 64-bit counters from the routing table.
+    ///
+    /// `getifaddrs` only carries 32-bit counters, which wrap every 4 GB. At
+    /// gigabit speeds that is about twice a minute, and every wrap showed as
+    /// a sample with no traffic at all.
+    static func read() -> [String: NetworkCounter]? {
+        var request: [Int32] = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST2, 0]
+        var length = 0
+        guard sysctl(&request, UInt32(request.count), nil, &length, nil, 0) == 0, length > 0 else { return nil }
+        var messages = [UInt8](repeating: 0, count: length)
+        guard sysctl(&request, UInt32(request.count), &messages, &length, nil, 0) == 0 else { return nil }
+
+        var counters: [String: NetworkCounter] = [:]
+        messages.withUnsafeBytes { bytes in
+            var offset = 0
+            while offset + MemoryLayout<if_msghdr>.size <= length {
+                let header = bytes.loadUnaligned(fromByteOffset: offset, as: if_msghdr.self)
+                let messageLength = Int(header.ifm_msglen)
+                // A zero length would never advance; the table is damaged.
+                guard messageLength > 0 else { return }
+                defer { offset += messageLength }
+                guard Int32(header.ifm_type) == RTM_IFINFO2,
+                      offset + MemoryLayout<if_msghdr2>.size <= length else { continue }
+                let interface = bytes.loadUnaligned(fromByteOffset: offset, as: if_msghdr2.self)
+                guard interface.ifm_flags & IFF_UP != 0, interface.ifm_flags & IFF_LOOPBACK == 0 else { continue }
+                var nameBytes = [CChar](repeating: 0, count: Int(IF_NAMESIZE))
+                guard if_indextoname(UInt32(interface.ifm_index), &nameBytes) != nil else { continue }
+                let name = String(cString: nameBytes)
+                // Physical Ethernet/Wi-Fi interfaces avoid counting VPN and bridge traffic twice.
+                guard name.hasPrefix("en") else { continue }
+                counters[name] = NetworkCounter(received: interface.ifm_data.ifi_ibytes,
+                                                sent: interface.ifm_data.ifi_obytes)
+            }
+        }
+        return counters
+    }
+}
+
 struct NetworkRate {
     let received: Double
     let sent: Double
@@ -105,7 +145,7 @@ final class SystemMetricsReader: @unchecked Sendable {
         reading.swapUsed = swapUsed()
         if reading.memoryUsed == nil { reading.unavailable.append("Memory") }
         if reading.swapUsed == nil { reading.unavailable.append("Swap") }
-        if let counters = networkCounters() {
+        if let counters = NetworkInterfaceCounters.read() {
             if let previousNetwork, let previousTime {
                 reading.network = NetworkRate.measure(current: counters, previous: previousNetwork,
                                                       elapsed: time - previousTime)
@@ -178,28 +218,6 @@ final class SystemMetricsReader: @unchecked Sendable {
         var size = MemoryLayout<xsw_usage>.size
         guard sysctlbyname("vm.swapusage", &usage, &size, nil, 0) == 0 else { return nil }
         return Double(usage.xsu_used)
-    }
-
-    private func networkCounters() -> [String: NetworkCounter]? {
-        var addresses: UnsafeMutablePointer<ifaddrs>?
-        guard getifaddrs(&addresses) == 0 else { return nil }
-        defer { freeifaddrs(addresses) }
-        var result: [String: NetworkCounter] = [:]
-        var cursor = addresses
-        while let entry = cursor {
-            defer { cursor = entry.pointee.ifa_next }
-            let interface = entry.pointee
-            guard let address = interface.ifa_addr, Int32(address.pointee.sa_family) == AF_LINK,
-                  interface.ifa_flags & UInt32(IFF_UP) != 0,
-                  interface.ifa_flags & UInt32(IFF_LOOPBACK) == 0,
-                  let data = interface.ifa_data else { continue }
-            let name = String(cString: interface.ifa_name)
-            // Physical Ethernet/Wi-Fi interfaces avoid counting VPN and bridge traffic twice.
-            guard name.hasPrefix("en") else { continue }
-            let counters = data.assumingMemoryBound(to: if_data.self).pointee
-            result[name] = NetworkCounter(received: UInt64(counters.ifi_ibytes), sent: UInt64(counters.ifi_obytes))
-        }
-        return result
     }
 
     private func gpuUsage() -> Double? {

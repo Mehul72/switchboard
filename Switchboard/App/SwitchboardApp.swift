@@ -30,4 +30,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = StatusItemController()
         statusItem.showWelcomeIfNewCopy()
     }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        statusItem.prepareForQuit()
+    }
 }

@@ -21,6 +21,11 @@ struct TweakRow: View {
                 // beats the description of what it would do.
                 if let span = liveSpan {
                     AwakeStatusLabel(span: span)
+                } else if isReadingScreenText {
+                    Text("Reading the text…")
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.secondary)
+                        .lineLimit(1)
                 } else if let subtitle = tweak.subtitle {
                     Text(subtitle)
                         .font(.rowSubtitle)
@@ -32,7 +37,10 @@ struct TweakRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             // A fixed column keeps every control on the same edge and stops a
-            // wide picker from squeezing the label next to it.
+            // wide picker from squeezing the label next to it. This frame is
+            // the only one that places a control: a menu or picker is as wide
+            // as its label, and a second frame around it centred the narrow
+            // ones in the column instead of leaving them on the trailing edge.
             control
                 .frame(maxWidth: Theme.controlColumn, alignment: .trailing)
                 .layoutPriority(1)
@@ -42,6 +50,11 @@ struct TweakRow: View {
         .frame(minHeight: 44)
         .contentShape(Rectangle())
         .rowHoverHighlight()
+    }
+
+    private var isReadingScreenText: Bool {
+        guard case .regionOCR = tweak.behavior else { return false }
+        return store.isReadingScreenText
     }
 
     private var liveSpan: AwakeSpan? {
@@ -117,7 +130,6 @@ private struct KeepAwakeMenu: View {
         }
         .controlSize(.small)
         .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: 125)
         .accessibilityLabel(title)
         .accessibilityValue(currentLabel)
     }
@@ -178,7 +190,6 @@ private struct ChoicePicker: View {
         .labelsHidden()
         .pickerStyle(.menu)
         .controlSize(.small)
-        .frame(maxWidth: 125)
     }
 }
 
@@ -219,7 +230,6 @@ private struct FolderButton: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
-        .frame(maxWidth: 135)
         .accessibilityLabel("\(title): \(label)")
     }
 

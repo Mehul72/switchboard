@@ -2,18 +2,11 @@ import XCTest
 
 @MainActor
 final class MenuBarReadoutTests: XCTestCase {
-    private var suite: String!
     private var defaults: UserDefaults!
 
     override func setUp() {
         super.setUp()
-        suite = "MenuBarReadoutTests.\(UUID())"
-        defaults = UserDefaults(suiteName: suite)
-    }
-
-    override func tearDown() {
-        defaults.removePersistentDomain(forName: suite)
-        super.tearDown()
+        defaults = InMemoryDefaults()
     }
 
     func testOffByDefault() {

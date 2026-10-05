@@ -76,6 +76,8 @@ Click **Select Area** beside **Copy text from the screen**, or press **Control-O
 
 Paste with **Command-V**. The result also appears in Clipboard history. Check it before using it: blurry images and small text can produce mistakes.
 
+Reading the text usually takes under a second. The first read can take up to a minute while macOS gets text recognition ready. The panel says it is reading, and you can keep using Switchboard meanwhile; the text lands on the clipboard when it's done. To avoid that wait, Switchboard prepares text recognition in the background shortly after it launches.
+
 <details>
 <summary>Example image and the recognised text</summary>
 
@@ -89,7 +91,7 @@ Paste with **Command-V**. The result also appears in Clipboard history. Check it
 
 **Traditional mouse scrolling** changes the mouse's scroll direction while leaving natural scrolling on for the trackpad.
 
-**Red button quits the app** asks an app to quit when you close its last window. The app may still ask you to save your work.
+**Red button quits the app** asks an app to quit when you close its last window. The app may still ask you to save your work. To keep an app running after its last window closes, such as a music player, check it under **settings gear > Red Button Never Quits**.
 
 Both need Accessibility access.
 
@@ -114,7 +116,7 @@ An app appears after it opens an audio stream. If it's missing, start playback a
 
 macOS shows a purple recording indicator while per-app volume or routing is active. Switchboard uses audio taps for these controls, and they work while the app is running.
 
-**Reset app audio** returns apps to full volume on the system default output and releases the taps. Output choices are remembered per app; if a chosen device disconnects, playback falls back to the default output.
+**Reset app audio** returns apps to full volume on the system default output and releases the taps. Output choices are remembered per app, including after the app quits; if a chosen device disconnects, playback falls back to the default output. Volume isn't remembered: an app is back at 100% once it quits.
 
 **Output devices** has a separate set of sliders for each device's overall volume. Those affect every app using the device and don't need recording access. Device volume stays where you set it when you reset app audio or quit Switchboard.
 
@@ -124,11 +126,11 @@ Open **Clipboard**, or press **Control-Option-Command-V**, to find something you
 
 <img src="images/clipboard-light.png" width="440" alt="Clipboard history with example text entries and a Copy button beside each one.">
 
-History holds up to 20 text and image clips. That includes at most eight images, up to 8 MB each. Expand long entries with **Show more** or **Show all … lines**. The trash button removes one entry; **Clear all** clears the list.
+History holds up to 20 text and image clips. That includes at most eight images, up to 8 MB each. Expand long entries with **Show more** or **Show all … lines**. A very long clip shows its first 20,000 characters; **Copy** still copies all of it. The trash button removes one entry; **Clear all** clears the list.
 
-History stays in memory and disappears when you quit. Content marked private by a password manager is skipped. Switchboard doesn't send clipboard content or usage data to a server.
+History stays in memory and disappears when you quit. Content marked private by a password manager is skipped. Switchboard doesn't send clipboard content or usage data to a server. To stop recording altogether, turn off **settings gear > Record Clipboard History**. That also forgets the clips already held.
 
-If you set clipboard screenshots to JPEG or HEIC, Switchboard converts new captures while it's running. It puts both the image and a matching file on the clipboard. Some apps still convert pasted images to PNG.
+If you set clipboard screenshots to JPEG or HEIC, Switchboard converts new captures while it's running. It puts both the image and a matching file on the clipboard. The file is temporary: Switchboard keeps the five most recent and deletes them when it quits. Some apps still convert pasted images to PNG.
 
 ## File shelf and disks
 
@@ -141,7 +143,7 @@ The shelf holds files while you move between folders or apps. It keeps reference
 3. Drop it onto **Drop to keep**.
 4. When you're ready, drag its thumbnail from the shelf into Finder, an email, or another app that accepts files.
 
-Press Shift after the drag starts, without other keys. Holding it before you start dragging won't open the shelf.
+Press Shift after the drag starts, without other keys. Holding it before you start dragging won't open the shelf. If the shelf opens when you don't want it, turn off **settings gear > Open Shelf During File Drags**; its shortcut and tray button keep working.
 
 <img src="images/file-shelf.png" width="400" alt="The shelf holding an image, a text file, and a folder, with an external disk listed below.">
 
@@ -163,7 +165,7 @@ Wait for the success message. If the disk is busy, close the files or apps using
 
 You can select a disk on the shelf and press **Command-Delete** to eject it. For an ordinary shelf item, that shortcut removes the reference and leaves the file in place.
 
-With Accessibility access, **Command-Delete** also ejects disks selected in Finder. This applies only when everything selected is an ejectable disk. Files, including downloaded DMGs, still go to the Trash as usual. If ejecting fails, the shelf opens with the error.
+With Accessibility access, **Command-Delete** also ejects disks selected in Finder. This applies only when everything selected is an ejectable disk. Files, including downloaded DMGs, still go to the Trash as usual. If ejecting fails, the shelf opens with the error. To leave Command-Delete to Finder, turn off **settings gear > Command-Delete Ejects Disks in Finder**.
 
 ### Disk images
 
@@ -265,7 +267,7 @@ These work from any app while Switchboard is running. Each action runs when you 
 | Copy text from the screen | Control-Option-Command-T |
 | Toggle keep-awake | Control-Option-Command-A |
 
-The keep-awake shortcut starts a one-hour session or stops the current one, then opens the panel. Text capture opens the region selector and shows the result afterward. Other shortcuts pause while a capture is in progress.
+The keep-awake shortcut starts a one-hour session or stops the current one, then opens the panel. Text capture opens the region selector and shows the result afterward. Other shortcuts pause while you're selecting the area, and work again as soon as you've chosen it.
 
 ### Customising shortcuts
 
@@ -290,7 +292,7 @@ macOS asks for access when you use a feature that needs it. Grant only the permi
 | Window previews, if enabled | Screen Recording |
 | Per-app audio | System Audio Recording |
 
-Manage these in **System Settings > Privacy & Security**. If a toggle stayed off while you granted access, turn it on again. Screen Recording may need a quit and relaunch.
+Manage these in **System Settings > Privacy & Security**. When a feature needs Accessibility or Screen Recording, the notice in the panel has a link that opens the right pane. If a toggle stayed off while you granted access, turn it on again. Screen Recording may need a quit and relaunch.
 
 Registering shortcuts doesn't need extra permission, but the feature they trigger still might. Launch at Login may need approval in **System Settings > General > Login Items**.
 

@@ -42,6 +42,17 @@ xcrun notarytool history --keychain-profile "$KEYCHAIN_PROFILE" >/dev/null 2>&1 
   || fail "Notary credentials '$KEYCHAIN_PROFILE' not stored. See the header of this script."
 echo "  certificate and notary credentials present"
 
+# Before the build number is bumped, so a failing suite leaves the project
+# file untouched. The suite takes keyboard focus for a few seconds.
+step "Running the tests"
+TEST_DIR=$(mktemp -d "${TMPDIR:-/tmp}/switchboard-release-tests.XXXXXX")
+if ! SWITCHBOARD_TEST_DERIVED_DATA="$TEST_DIR/DerivedData" ./scripts/test.sh > "$TEST_DIR/test.log" 2>&1; then
+  grep -E "error:|Test Case .* failed" "$TEST_DIR/test.log" | tail -20 || true
+  fail "Tests failed. Full log: $TEST_DIR/test.log"
+fi
+grep -E "Executed [0-9]+ tests" "$TEST_DIR/test.log" | tail -1
+rm -rf "$TEST_DIR"
+
 # Apple rejects a build number it has already seen, so bump it every run.
 CURRENT_BUILD=$(xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
   -showBuildSettings 2>/dev/null | awk '/CURRENT_PROJECT_VERSION/{print $3; exit}')

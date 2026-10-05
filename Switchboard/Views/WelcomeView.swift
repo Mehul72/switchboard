@@ -60,12 +60,18 @@ private struct WelcomeView: View {
         WelcomeFeature(title: "Clipboard",
                        detail: "Copy any of your last 20 text and image clips again.",
                        symbol: "doc.on.clipboard"),
+        WelcomeFeature(title: "File shelf",
+                       detail: "Hold files while you move between folders and apps. Press Shift during a drag to open it.",
+                       symbol: "tray.2"),
         WelcomeFeature(title: "System",
                        detail: "Check CPU, GPU, memory, network, disk, and battery readings.",
                        symbol: "gauge.with.dots.needle.50percent"),
         WelcomeFeature(title: "Window snapping",
                        detail: "Move windows into halves, thirds, and quarters. Switch it on in Everyday.",
                        symbol: "rectangle.split.2x1"),
+        WelcomeFeature(title: "Window switcher",
+                       detail: "Give every window its own card under Command-Tab. Switch it on in Everyday.",
+                       symbol: "rectangle.on.rectangle"),
     ]
 
     var body: some View {
@@ -117,9 +123,11 @@ private struct WelcomeView: View {
     // The template icon is the one in the menu bar, which is easier to spot
     // than a description of where it sits.
     private var menuBarHint: Text {
-        let click = Text("Switchboard lives in the menu bar. Click \(Image(nsImage: MenuBarIcon.image)) to open it")
-        guard let panelShortcut else { return click + Text(".") }
-        return click + Text(", or press \(panelShortcut.label) from any app.")
+        let icon = Image(nsImage: MenuBarIcon.image)
+        guard let panelShortcut else {
+            return Text("Switchboard lives in the menu bar. Click \(icon) to open it.")
+        }
+        return Text("Switchboard lives in the menu bar. Click \(icon) to open it, or press \(panelShortcut.label) from any app.")
     }
 
     private var spokenMenuBarHint: String {

@@ -18,6 +18,10 @@ final class MenuBarPopover: NSPopover {
     private var activationObserver: NSObjectProtocol?
     private var activationFallback: DispatchWorkItem?
     private var replayedClickTimestamp: TimeInterval?
+    /// Whether macOS counts the app as active. `NSApp.isActive` already reads
+    /// true while the panel is open; the running application reports the real
+    /// state. A property so tests can stand in for the inactive case.
+    var isAppActive: () -> Bool = { NSRunningApplication.current.isActive }
 
     override init() {
         super.init()
@@ -68,9 +72,10 @@ final class MenuBarPopover: NSPopover {
             }
             // The panel opens without activating the app, so the first click activates it,
             // and a menu opened by that click is dismissed when activation lands.
-            // NSApp.isActive already reads true here; the running application reports the real state.
+            // A click on a menu bar item is left alone: it opens no menu and activates
+            // nothing, so holding it only delayed the toggle until the fallback fired.
             if event.type == .leftMouseDown, event.timestamp != self.replayedClickTimestamp,
-               !NSRunningApplication.current.isActive {
+               !self.isOnAnchor(event), !self.isAppActive() {
                 self.holdUntilActive(event)
                 return nil
             }
@@ -125,11 +130,14 @@ final class MenuBarPopover: NSPopover {
         activationFallback = nil
     }
 
-    private func contains(_ event: NSEvent) -> Bool {
-        for view in [anchor, companionAnchor].compactMap({ $0 })
-        where event.window === view.window && view.bounds.contains(view.convert(event.locationInWindow, from: nil)) {
-            return true
+    private func isOnAnchor(_ event: NSEvent) -> Bool {
+        [anchor, companionAnchor].compactMap { $0 }.contains { view in
+            event.window === view.window && view.bounds.contains(view.convert(event.locationInWindow, from: nil))
         }
+    }
+
+    private func contains(_ event: NSEvent) -> Bool {
+        if isOnAnchor(event) { return true }
         // Native menus track in their own windows, outside the popover's parent chain.
         if event.window?.level == .popUpMenu { return true }
         let contentWindow = contentViewController?.view.window

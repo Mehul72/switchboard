@@ -16,10 +16,12 @@ struct ClipboardHistoryList: View {
                         .frame(width: 56, height: 56)
                         .background(Theme.controlBackground, in: RoundedRectangle(cornerRadius: 14))
                         .accessibilityHidden(true)
-                    Text("Nothing copied yet")
+                    Text(store.isRecordingClipboard ? "Nothing copied yet" : "Clipboard history is off")
                         .font(.rowTitle)
                         .foregroundStyle(Theme.primary)
-                    Text("Anything you copy while Switchboard runs shows up here")
+                    Text(store.isRecordingClipboard
+                         ? "Anything you copy while Switchboard runs shows up here"
+                         : "Turn on Record Clipboard History in the settings gear to keep recent copies")
                         .font(.rowSubtitle)
                         .foregroundStyle(Theme.secondary)
                         .multilineTextAlignment(.center)
@@ -95,13 +97,19 @@ private struct ClipRow: View {
             } else {
                 // Selectable so a translation can be read and picked apart here,
                 // rather than pasted somewhere else just to see it.
-                Text(expanded ? clip.text : clip.preview)
+                Text(expanded ? clip.expandedText : clip.preview)
                     .font(.bodyText)
                     .foregroundStyle(Theme.primary)
                     .lineLimit(expanded ? nil : 2)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                if expanded, clip.exceedsExpandedLimit {
+                    Text("Showing the first \(ClipEntry.expandedCharacterLimit.formatted()) characters. Copy puts all of it on the clipboard.")
+                        .font(.rowSubtitle)
+                        .foregroundStyle(Theme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             if !clip.isImage, clip.lineCount > 2 || clip.preview.count > 90 {

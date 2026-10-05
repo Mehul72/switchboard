@@ -3,6 +3,17 @@ import Carbon.HIToolbox
 import XCTest
 
 final class FinderEjectShortcutTests: XCTestCase {
+    /// Renaming a disk on the desktop keeps it selected, so Command-Delete in
+    /// the name field used to count as "eject the selected disk".
+    func testAFocusedTextFieldMeansTheKeyIsTyping() {
+        XCTAssertTrue(FinderSelection.isTextEntry(role: "AXTextField"))
+        XCTAssertTrue(FinderSelection.isTextEntry(role: "AXTextArea"))
+        XCTAssertTrue(FinderSelection.isTextEntry(role: "AXComboBox"))
+        XCTAssertFalse(FinderSelection.isTextEntry(role: "AXOutline"))
+        XCTAssertFalse(FinderSelection.isTextEntry(role: "AXScrollArea"))
+        XCTAssertFalse(FinderSelection.isTextEntry(role: nil))
+    }
+
     private let drive = ShelfVolume(url: URL(fileURLWithPath: "/Volumes/Studio SSD"), name: "Studio SSD", uuid: "drive")
     private let image = ShelfVolume(url: URL(fileURLWithPath: "/Volumes/Installer"), name: "Installer", uuid: "image",
                                     imageURL: URL(fileURLWithPath: "/tmp/Installer.dmg"), imageDevice: "/dev/disk10")

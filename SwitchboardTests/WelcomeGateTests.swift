@@ -1,21 +1,18 @@
 import XCTest
 
 final class WelcomeGateTests: XCTestCase {
-    private var suite: String!
     private var defaults: UserDefaults!
     private var folder: URL!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        suite = "Switchboard.WelcomeGateTests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suite)!
+        defaults = InMemoryDefaults()
         folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("WelcomeGateTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     }
 
     override func tearDownWithError() throws {
-        defaults.removePersistentDomain(forName: suite)
         try? FileManager.default.removeItem(at: folder)
         defaults = nil
         try super.tearDownWithError()

@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -12,10 +13,50 @@ struct StoreNotice: Identifiable, Equatable {
 struct NoticeLink: Equatable {
     let title: String
     let url: URL
+
+    // macOS shows its own permission prompt once. After that, these are the
+    // only way to the right pane without hunting through System Settings.
+    static let accessibilitySettings = NoticeLink(
+        title: "Open Accessibility Settings",
+        url: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+    static let screenRecordingSettings = NoticeLink(
+        title: "Open Screen Recording Settings",
+        url: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
 }
 
+/// Things Switchboard does without being asked each time. All are on until
+/// someone switches one off in the settings gear.
+enum OptionalBehavior: String, CaseIterable, Identifiable {
+    case clipboardHistory = "ClipboardHistoryEnabled"
+    case shelfDragTrigger = "ShelfOpensDuringDrags"
+    case finderEject = "FinderCommandDeleteEjects"
+
+    var id: Self { self }
+    var defaultsKey: String { rawValue }
+
+    var menuTitle: String {
+        switch self {
+        case .clipboardHistory: return "Record Clipboard History"
+        case .shelfDragTrigger: return "Open Shelf During File Drags"
+        case .finderEject: return "Command-Delete Ejects Disks in Finder"
+        }
+    }
+
+    func confirmation(enabled: Bool) -> String {
+        switch (self, enabled) {
+        case (.clipboardHistory, true): return "Clipboard history is recording again."
+        case (.clipboardHistory, false): return "Clipboard history is off, and its clips are forgotten."
+        case (.shelfDragTrigger, true): return "Shake the pointer or press Shift during a file drag to open the shelf."
+        case (.shelfDragTrigger, false): return "The shelf no longer opens during drags. Its shortcut and tray button still work."
+        case (.finderEject, true): return "Command-Delete ejects disks selected in Finder."
+        case (.finderEject, false): return "Command-Delete in Finder is left to Finder."
+        }
+    }
+}
+
+@MainActor
 final class TweakStore: ObservableObject {
-    let catalog = TweakCatalog.all
+    let catalog: [Tweak]
 
     @Published var search = ""
     @Published var category: Category = .everyday
@@ -46,35 +87,69 @@ final class TweakStore: ObservableObject {
     /// The device chosen per app, absent when the app follows the system default.
     @Published private(set) var audioRoutes: [String: String] = [:]
     @Published private(set) var systemDefaultOutputUID: String?
-    @Published private(set) var isCapturingText = false
+    /// The crosshair is up. The panel and the shortcuts stay out of its way.
+    @Published private(set) var isSelectingScreenRegion = false
+    /// The picture is taken and its text is being read in the background.
+    /// Nothing waits for this: a read can take half a minute.
+    @Published private(set) var isReadingScreenText = false
     /// True while window shortcuts should be registered: switched on and
     /// allowed under Accessibility.
     @Published private(set) var isWindowSnappingActive = false
     var onWindowSnappingChange: ((Bool) -> Void)?
     @Published private(set) var isWindowSwitchingActive = false
     var onWindowSwitchingChange: ((Bool) -> Void)?
+    @Published private(set) var disabledBehaviors: Set<OptionalBehavior> = []
+    /// The shelf's drag watcher and the Finder key monitor live with the
+    /// menu bar controller, which starts and stops them from here.
+    var onBehaviorChange: ((OptionalBehavior, Bool) -> Void)?
+    /// Apps the red button never quits, by bundle identifier.
+    @Published private(set) var quitOnCloseExclusions: Set<String> = []
 
-    private let ledger = UndoLedger()
+    private let defaults: UserDefaults
+    private let pasteboard: NSPasteboard
+    private let ledger: UndoLedger
     private let awake = AwakeController()
-    private let scroll = ScrollInverter()
-    private let quitOnClose = QuitOnCloseController()
-    private let clipboardImages = ClipboardImageConverter()
-    private let appAudio = AppAudioEngine()
+    private let scroll: ScrollInverter
+    private let quitOnClose: QuitOnCloseController
+    private let clipboardImages: ClipboardImageConverter
+    private let appAudio: AppAudioEngine
     private let outputVolume = OutputDeviceVolume()
-    private let history = ClipboardHistory()
+    private let history: ClipboardHistory
+    private let screenText: ScreenTextSource
     private static let translateKey = "TranslateCapturedText"
     private static let awakeDisplaySleepKey = "KeepAwakeAllowsDisplaySleep"
     private static let windowSnappingKey = "WindowSnappingEnabled"
     private static let windowSwitchingKey = "WindowSwitchingEnabled"
+    private static let recognitionPreparedKey = "TextRecognitionPreparedForSystem"
     /// Master switch for the capture translation feature. While false the
     /// toggle is absent from the catalog and captures are never translated,
     /// even if the preference was switched on earlier.
-    static let translationEnabled = false
+    nonisolated static let translationEnabled = false
     private var audioMaintenanceTimer: Timer?
     private var isShowingAudioList = false
     private var accessibilityObserver: NSObjectProtocol?
+    private var appLaunchObserver: NSObjectProtocol?
 
-    init() {
+    /// The parameters exist so tests can point the store at throwaway
+    /// preference domains, a private pasteboard and a stand-in for the screen.
+    init(catalog: [Tweak] = TweakCatalog.all,
+         defaults: UserDefaults = .standard,
+         pasteboard: NSPasteboard = .general,
+         screenText: ScreenTextSource = .live) {
+        self.catalog = catalog
+        self.defaults = defaults
+        self.pasteboard = pasteboard
+        self.screenText = screenText
+        ledger = UndoLedger(defaults: defaults)
+        scroll = ScrollInverter(defaults: defaults)
+        quitOnClose = QuitOnCloseController(defaults: defaults)
+        clipboardImages = ClipboardImageConverter(pasteboard: pasteboard)
+        appAudio = AppAudioEngine(defaults: defaults)
+        history = ClipboardHistory(pasteboard: pasteboard)
+        start()
+    }
+
+    private func start() {
         // This retired preference controlled window restoration, not quitting
         // from the red close button. Put it back exactly as it was before the
         // old Switchboard row touched it.
@@ -92,12 +167,23 @@ final class TweakStore: ObservableObject {
                 self?.refresh()
             }
         }
+        // An output saved for an app that is not running needs no polling.
+        // Its launch is the moment to start watching for it to play.
+        appLaunchObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.resumeAudioPollingForSavedRoutes() }
+        }
         history.onChange = { [weak self] in
             guard let self else { return }
             self.clips = self.history.entries
         }
-        history.setRecording(true)
-        keepAwakeAllowsDisplaySleep = UserDefaults.standard.bool(forKey: Self.awakeDisplaySleepKey)
+        disabledBehaviors = Set(OptionalBehavior.allCases.filter {
+            defaults.object(forKey: $0.defaultsKey) as? Bool == false
+        })
+        history.setRecording(isEnabled(.clipboardHistory))
+        quitOnCloseExclusions = quitOnClose.userExcludedBundleIDs
+        keepAwakeAllowsDisplaySleep = defaults.bool(forKey: Self.awakeDisplaySleepKey)
         awake.allowsDisplaySleep = keepAwakeAllowsDisplaySleep
         awake.onHoldChange = { [weak self] in self?.syncKeepAwake() }
         awake.onFinish = { [weak self] reason in
@@ -112,6 +198,10 @@ final class TweakStore: ObservableObject {
                                           message: "\(name) quit, so keep awake finished. Normal sleep settings are back.")
             }
         }
+        clipboardImages.onReplacement = { [weak self] original in
+            self?.history.forgetImage(original)
+        }
+        prepareTextRecognitionOncePerSystemBuild()
         clipboardImages.onConversion = { [weak self] result in
             switch result {
             case .success(let format):
@@ -148,7 +238,30 @@ final class TweakStore: ObservableObject {
         refreshAudioApps()
     }
 
-    // MARK: - Per-app audio
+    // MARK: - Optional behaviours
+
+    func isEnabled(_ behavior: OptionalBehavior) -> Bool { !disabledBehaviors.contains(behavior) }
+
+    func setEnabled(_ behavior: OptionalBehavior, _ enabled: Bool) {
+        guard enabled != isEnabled(behavior) else { return }
+        defaults.set(enabled, forKey: behavior.defaultsKey)
+        if enabled { disabledBehaviors.remove(behavior) } else { disabledBehaviors.insert(behavior) }
+        if behavior == .clipboardHistory {
+            history.setRecording(enabled)
+            // Switching it off is a request to stop holding copies, so the
+            // ones already held go too.
+            if !enabled { history.clear() }
+        }
+        onBehaviorChange?(behavior, enabled)
+        notice = StoreNotice(kind: .success, message: behavior.confirmation(enabled: enabled))
+    }
+
+    var isRecordingClipboard: Bool { history.isRecording }
+
+    func setQuitOnCloseExcluded(_ excluded: Bool, bundleID: String) {
+        quitOnClose.setExcluded(excluded, bundleID: bundleID)
+        quitOnCloseExclusions = quitOnClose.userExcludedBundleIDs
+    }
 
     // MARK: - Clipboard history
 
@@ -162,10 +275,17 @@ final class TweakStore: ObservableObject {
 
     func removeClip(_ entry: ClipEntry) { history.remove(entry) }
 
+    /// Converted clipboard screenshots are files in the temporary folder.
+    /// Clipboard history is forgotten when Switchboard quits, and they go
+    /// with it.
+    func discardSpooledScreenshots() { clipboardImages.discardSpool() }
+
     func clearClips() {
         history.clear()
         notice = StoreNotice(kind: .success, message: "Clipboard history cleared.")
     }
+
+    // MARK: - Per-app audio
 
     func refreshAudioApps() {
         let latest = AppAudioEngine.runningApps()
@@ -272,8 +392,13 @@ final class TweakStore: ObservableObject {
         }
     }
 
+    private func resumeAudioPollingForSavedRoutes() {
+        guard appAudio.hasSavedRoutes else { return }
+        refreshAudioApps()
+    }
+
     private func updateAudioMaintenanceTimer() {
-        guard appAudio.isControllingAnything || isShowingAudioList else {
+        guard appAudio.needsPolling || isShowingAudioList else {
             audioMaintenanceTimer?.invalidate()
             audioMaintenanceTimer = nil
             return
@@ -281,7 +406,7 @@ final class TweakStore: ObservableObject {
         guard audioMaintenanceTimer == nil else { return }
 
         let timer = Timer(timeInterval: 2, repeats: true) { [weak self] _ in
-            self?.refreshAudioApps()
+            MainActor.assumeIsolated { self?.refreshAudioApps() }
         }
         RunLoop.main.add(timer, forMode: .common)
         audioMaintenanceTimer = timer
@@ -302,8 +427,10 @@ final class TweakStore: ObservableObject {
 
     var hasUndoRecord: Bool { !ledger.isEmpty }
     var canRestoreOriginalSettings: Bool {
+        // The stored switches, not the live ones: with Accessibility revoked
+        // a feature is idle but still on, and Restore must still clear it.
         hasUndoRecord || awake.isActive || scroll.isActive || quitOnClose.isActive
-            || isWindowSnappingActive || UserDefaults.standard.bool(forKey: Self.windowSwitchingKey)
+            || defaults.bool(forKey: Self.windowSnappingKey) || defaults.bool(forKey: Self.windowSwitchingKey)
             || appAudio.isControllingAnything
     }
 
@@ -330,7 +457,7 @@ final class TweakStore: ObservableObject {
         case .regionOCR:
             return false
         case .translateCaptures:
-            return UserDefaults.standard.bool(forKey: Self.translateKey)
+            return defaults.bool(forKey: Self.translateKey)
         }
     }
 
@@ -364,14 +491,14 @@ final class TweakStore: ObservableObject {
         case .regionOCR:
             break
         case .translateCaptures:
-            UserDefaults.standard.set(on, forKey: Self.translateKey)
+            defaults.set(on, forKey: Self.translateKey)
             if #available(macOS 15.0, *) {
                 notice = StoreNotice(kind: .success,
                                      message: on
                                         ? "Captured text will be translated to English."
                                         : "Captured text is copied exactly as it appears.")
             } else {
-                UserDefaults.standard.set(false, forKey: Self.translateKey)
+                defaults.set(false, forKey: Self.translateKey)
                 notice = StoreNotice(kind: .error,
                                      message: "Translation needs macOS 15 or later.")
             }
@@ -391,7 +518,8 @@ final class TweakStore: ObservableObject {
             QuitOnCloseController.requestPermission()
             customStates[tweak.id] = false
             notice = StoreNotice(kind: .information,
-                                 message: "Allow Switchboard under Accessibility, then switch this on again.")
+                                 message: "Allow Switchboard under Accessibility, then switch this on again.",
+                                 link: .accessibilitySettings)
             return
         }
 
@@ -407,7 +535,7 @@ final class TweakStore: ObservableObject {
     /// does, so the toggle only reads as on when both agree.
     private func setWindowSnapping(_ on: Bool) {
         guard on else {
-            UserDefaults.standard.set(false, forKey: Self.windowSnappingKey)
+            defaults.set(false, forKey: Self.windowSnappingKey)
             syncWindowSnapping()
             notice = StoreNotice(kind: .success,
                                  message: "Window snapping is off. Its key combinations work in other apps again.")
@@ -417,10 +545,11 @@ final class TweakStore: ObservableObject {
             WindowSnapper.requestPermission()
             syncWindowSnapping()
             notice = StoreNotice(kind: .information,
-                                 message: "Allow Switchboard under Accessibility, then switch this on again.")
+                                 message: "Allow Switchboard under Accessibility, then switch this on again.",
+                                 link: .accessibilitySettings)
             return
         }
-        UserDefaults.standard.set(true, forKey: Self.windowSnappingKey)
+        defaults.set(true, forKey: Self.windowSnappingKey)
         // Set before syncing, so a conflict reported while the shortcuts
         // register replaces this message instead of being hidden by it.
         notice = StoreNotice(kind: .success,
@@ -431,7 +560,7 @@ final class TweakStore: ObservableObject {
     /// Accessibility can be revoked while the app runs. The preference is
     /// kept, so granting access again brings the shortcuts back.
     private func syncWindowSnapping() {
-        let active = UserDefaults.standard.bool(forKey: Self.windowSnappingKey) && WindowSnapper.hasPermission
+        let active = defaults.bool(forKey: Self.windowSnappingKey) && WindowSnapper.hasPermission
         guard active != isWindowSnappingActive else { return }
         isWindowSnappingActive = active
         onWindowSnappingChange?(active)
@@ -442,10 +571,11 @@ final class TweakStore: ObservableObject {
             WindowSnapper.requestPermission()
             syncWindowSwitching()
             notice = StoreNotice(kind: .information,
-                                 message: "Allow Switchboard under Accessibility, then switch this on again. Screen Recording is optional for previews.")
+                                 message: "Allow Switchboard under Accessibility, then switch this on again. Screen Recording is optional for previews.",
+                                 link: .accessibilitySettings)
             return
         }
-        UserDefaults.standard.set(on, forKey: Self.windowSwitchingKey)
+        defaults.set(on, forKey: Self.windowSwitchingKey)
         notice = StoreNotice(kind: .success, message: on
                              ? "Hold Command and press Tab to switch windows, or Option-` for this app's windows. Enable Previews in the switcher for thumbnails."
                              : "Window switching is off. The macOS Command-Tab switcher is available again.")
@@ -453,7 +583,7 @@ final class TweakStore: ObservableObject {
     }
 
     private func syncWindowSwitching() {
-        let active = UserDefaults.standard.bool(forKey: Self.windowSwitchingKey) && WindowSnapper.hasPermission
+        let active = defaults.bool(forKey: Self.windowSwitchingKey) && WindowSnapper.hasPermission
         guard active != isWindowSwitchingActive else { return }
         isWindowSwitchingActive = active
         onWindowSwitchingChange?(active)
@@ -472,7 +602,8 @@ final class TweakStore: ObservableObject {
             ScrollInverter.requestPermission()
             customStates[tweak.id] = false
             notice = StoreNotice(kind: .information,
-                                 message: "Allow Switchboard under Accessibility, then switch this on again.")
+                                 message: "Allow Switchboard under Accessibility, then switch this on again.",
+                                 link: .accessibilitySettings)
             return
         }
         let applied = scroll.setActive(true)
@@ -502,13 +633,13 @@ final class TweakStore: ObservableObject {
     func perform(_ tweak: Tweak) {
         switch tweak.behavior {
         case .plainTextClipboard:
-            let success = ClipboardCleaner.makePlainText()
+            let success = ClipboardCleaner.makePlainText(pasteboard: pasteboard)
             notice = StoreNotice(kind: success ? .success : .information,
                                  message: success
                                     ? "Clipboard formatting removed."
                                     : "Copy some text first, then try again.")
         case .regionOCR:
-            guard !isCapturingText else { return }
+            guard canPerform(tweak) else { return }
             captureScreenText()
         default:
             break
@@ -517,7 +648,7 @@ final class TweakStore: ObservableObject {
 
     func canPerform(_ tweak: Tweak) -> Bool {
         if case .regionOCR = tweak.behavior {
-            return !isCapturingText
+            return !isSelectingScreenRegion && !isReadingScreenText
         }
         return true
     }
@@ -527,13 +658,12 @@ final class TweakStore: ObservableObject {
     private func requestTranslationIfWanted(for text: String) {
         guard Self.translationEnabled,
               #available(macOS 15.0, *),
-              UserDefaults.standard.bool(forKey: Self.translateKey) else { return }
+              defaults.bool(forKey: Self.translateKey) else { return }
         let language = TextCapture.dominantLanguage(of: text)
         guard let language, !TextCapture.isEnglish(language) else { return }
         pendingTranslation = PendingTranslation(text: text, source: language)
     }
 
-    @MainActor
     func finishTranslation(_ translated: String?,
                            from source: Locale.Language,
                            failure: String?) {
@@ -547,12 +677,14 @@ final class TweakStore: ObservableObject {
                                     ?? "Copied the original text. \(name) could not be translated.")
             return
         }
-        guard TextCapture.copyToClipboard(translated) else {
+        guard TextCapture.copyToClipboard(translated, pasteboard: pasteboard) else {
             notice = StoreNotice(kind: .error, message: "The translation could not be put on the clipboard.")
             return
         }
-        history.record(translated, note: "Translated from \(name)")
-        showCapturedText()
+        if isEnabled(.clipboardHistory) {
+            history.record(translated, note: "Translated from \(name)")
+            showCapturedText()
+        }
         notice = StoreNotice(kind: .success,
                              message: "Translated from \(name). It is in Clipboard.")
     }
@@ -599,7 +731,7 @@ final class TweakStore: ObservableObject {
 
     func setKeepAwakeAllowsDisplaySleep(_ allowed: Bool) {
         let wasActive = awake.isActive
-        UserDefaults.standard.set(allowed, forKey: Self.awakeDisplaySleepKey)
+        defaults.set(allowed, forKey: Self.awakeDisplaySleepKey)
         keepAwakeAllowsDisplaySleep = allowed
         awake.allowsDisplaySleep = allowed
         syncKeepAwake()
@@ -625,32 +757,76 @@ final class TweakStore: ObservableObject {
     }
 
     /// The picker UI runs full screen, so the popover closes underneath it and
-    /// the result has to be reported the next time it opens.
+    /// comes back when the crosshair has gone.
     private func captureScreenText() {
-        isCapturingText = true
+        isSelectingScreenRegion = true
         onScreenSelectionBegan?()
-        TextCapture.selectRegion { [weak self] result in
+        screenText.selectRegion { [weak self] selection in
             guard let self else { return }
-            self.isCapturingText = false
-            // However this ends -- copied, empty, or cancelled -- the panel
-            // comes back so the result is actually readable.
-            defer { self.onScreenSelectionEnded?() }
+            self.isSelectingScreenRegion = false
+            switch selection {
+            case .success(let picture): self.readText(in: picture)
+            case .failure(let error): self.reportCaptureFailure(error)
+            }
+            // However this went -- a picture to read, nothing chosen, or a
+            // refusal -- the panel comes back so what happened is readable.
+            self.onScreenSelectionEnded?()
+        }
+    }
+
+    /// Reading runs in the background while the app carries on.
+    ///
+    /// It used to count as part of the capture, which kept the panel shut and
+    /// every shortcut ignored until Vision answered. The first read on a
+    /// system build takes about half a minute while macOS compiles its
+    /// models, and for all of it Switchboard looked hung.
+    private func readText(in picture: Data) {
+        isReadingScreenText = true
+        notice = StoreNotice(kind: .information,
+                             message: "Reading the text… The first read can take up to a minute while macOS gets text recognition ready.")
+        screenText.recognise(picture) { [weak self] result in
+            guard let self else { return }
+            self.isReadingScreenText = false
             switch result {
-            case .success(let text):
-                guard TextCapture.copyToClipboard(text) else {
-                    self.notice = StoreNotice(kind: .error, message: "The text could not be put on the clipboard.")
-                    return
-                }
-                let lines = text.lineCount
-                self.notice = StoreNotice(kind: .success,
-                                          message: "Copied \(lines) line\(lines == 1 ? "" : "s") of text.")
-                self.history.record(text, note: "Captured from the screen")
-                self.showCapturedText()
-                self.requestTranslationIfWanted(for: text)
-            case .failure(let error):
-                let cancelled = (error as? TextCapture.CaptureError) == .cancelled
-                self.notice = StoreNotice(kind: cancelled ? .information : .error,
-                                          message: error.localizedDescription)
+            case .success(let text): self.deliverCapturedText(text)
+            case .failure(let error): self.reportCaptureFailure(error)
+            }
+        }
+    }
+
+    private func deliverCapturedText(_ text: String) {
+        guard TextCapture.copyToClipboard(text, pasteboard: pasteboard) else {
+            notice = StoreNotice(kind: .error, message: "The text could not be put on the clipboard.")
+            return
+        }
+        let lines = text.lineCount
+        notice = StoreNotice(kind: .success, message: "Copied \(lines) line\(lines == 1 ? "" : "s") of text.")
+        // With history off nothing is kept, so there is no list to show the text in.
+        if isEnabled(.clipboardHistory) {
+            history.record(text, note: "Captured from the screen")
+            showCapturedText()
+        }
+        requestTranslationIfWanted(for: text)
+    }
+
+    private func reportCaptureFailure(_ error: Error) {
+        let reason = error as? TextCapture.CaptureError
+        notice = StoreNotice(kind: reason == .cancelled ? .information : .error,
+                             message: error.localizedDescription,
+                             link: reason == .permissionDenied ? .screenRecordingSettings : nil)
+    }
+
+    /// macOS compiles its recognition models the first time an app reads
+    /// text on a given system build. Doing that shortly after launch, in the
+    /// background, keeps it off someone's first capture.
+    private func prepareTextRecognitionOncePerSystemBuild() {
+        let systemBuild = ProcessInfo.processInfo.operatingSystemVersionString
+        guard defaults.string(forKey: Self.recognitionPreparedKey) != systemBuild else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + screenText.prepareDelaySeconds) { [weak self] in
+            self?.screenText.prepare { [weak self] didRead in
+                // Left unrecorded after a failure, so the next launch tries again.
+                guard didRead, let self else { return }
+                self.defaults.set(systemBuild, forKey: Self.recognitionPreparedKey)
             }
         }
     }
@@ -708,8 +884,8 @@ final class TweakStore: ObservableObject {
         let awakeRestored = !awake.isActive
         let scrollRestored = scroll.setActive(false)
         let quitRestored = quitOnClose.setActive(false)
-        UserDefaults.standard.set(false, forKey: Self.windowSnappingKey)
-        UserDefaults.standard.set(false, forKey: Self.windowSwitchingKey)
+        defaults.set(false, forKey: Self.windowSnappingKey)
+        defaults.set(false, forKey: Self.windowSwitchingKey)
         appAudio.releaseAll()
         audioVolumes.removeAll()
         audioRoutes.removeAll()
@@ -749,6 +925,9 @@ final class TweakStore: ObservableObject {
         audioMaintenanceTimer?.invalidate()
         if let accessibilityObserver {
             DistributedNotificationCenter.default().removeObserver(accessibilityObserver)
+        }
+        if let appLaunchObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(appLaunchObserver)
         }
     }
 }

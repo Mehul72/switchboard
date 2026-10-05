@@ -270,6 +270,63 @@ final class WindowServerSpaceTests: XCTestCase {
         XCTAssertFalse(WindowServerSpaces.isParkedOnHiddenSpace(windowSpaces: [1],
                                                                 visibleSpaces: []))
     }
+
+    /// One display as the server described it on macOS 27: kind 4 while Chrome
+    /// was full screen on Space 19, kind 0 on the desktop, Space 1.
+    private func display(_ identifier: String, spaceKind: Int?) -> [String: Any] {
+        var space: [String: Any] = ["id64": 19, "ManagedSpaceID": 19, "pid": 687, "uuid": "AC016399"]
+        space["type"] = spaceKind
+        return ["Display Identifier": identifier, "Current Space": space, "Spaces": [space]]
+    }
+
+    func testAFullScreenSpaceIsToldFromADesktop() {
+        XCTAssertTrue(WindowServerSpaces.showsFullScreenSpace([display("built-in", spaceKind: 4)],
+                                                              displayIdentifier: "built-in"))
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace([display("built-in", spaceKind: 0)],
+                                                               displayIdentifier: "built-in"))
+    }
+
+    func testEachDisplayAnswersForItsOwnSpace() {
+        let displays = [display("left", spaceKind: 4), display("right", spaceKind: 0)]
+
+        XCTAssertTrue(WindowServerSpaces.showsFullScreenSpace(displays, displayIdentifier: "left"))
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace(displays, displayIdentifier: "right"))
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace(displays, displayIdentifier: "unplugged"),
+                       "with two answers and no match there is no telling which applies")
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace(displays, displayIdentifier: nil))
+    }
+
+    /// With one set of Spaces shared by every display the server answers once.
+    func testASingleAnswerAppliesToWhicheverDisplayAsked() {
+        XCTAssertTrue(WindowServerSpaces.showsFullScreenSpace([display("Main", spaceKind: 4)],
+                                                              displayIdentifier: "external"))
+        XCTAssertTrue(WindowServerSpaces.showsFullScreenSpace([display("Main", spaceKind: 4)],
+                                                              displayIdentifier: nil))
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace([display("Main", spaceKind: 0)],
+                                                               displayIdentifier: "external"))
+    }
+
+    func testAnAnswerThatCannotBeReadIsNotFullScreen() {
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace([], displayIdentifier: "built-in"))
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace([display("built-in", spaceKind: nil)],
+                                                               displayIdentifier: "built-in"))
+        XCTAssertFalse(WindowServerSpaces.showsFullScreenSpace([["Display Identifier": "built-in"]],
+                                                               displayIdentifier: "built-in"))
+    }
+
+    /// The kind comes from a private call. If a macOS update stops reporting
+    /// it, the panel goes back to flashing shut over full-screen apps with
+    /// nothing else to say why, so the shape is checked against the live system.
+    func testTheWindowServerStillReportsAKindForEachCurrentSpace() throws {
+        let displays = WindowServerSpaces.managedDisplays()
+        try XCTSkipIf(displays.isEmpty, "no window server session to ask")
+
+        for display in displays {
+            XCTAssertNotNil(display["Display Identifier"] as? String)
+            let current = try XCTUnwrap(display["Current Space"] as? [String: Any])
+            XCTAssertNotNil(current["type"] as? NSNumber, "the current Space no longer says what kind it is")
+        }
+    }
 }
 
 /// Both Accessibility-gated features used to wipe the stored preference when
@@ -309,11 +366,54 @@ final class AccessibilityResumeTests: XCTestCase {
     }
 }
 
+/// Someone who closes a music player's window to keep listening lists it
+/// here. The list has to hold, or the red button quits what they protected.
+final class QuitOnCloseExclusionTests: XCTestCase {
+    func testSwitchboardAndFinderAreNeverQuitWhateverTheList() {
+        XCTAssertTrue(QuitOnCloseController.isExcluded(bundleID: "com.apple.finder", userExcluded: []))
+        XCTAssertTrue(QuitOnCloseController.isExcluded(bundleID: "com.Mehul72.switchboard", userExcluded: []))
+    }
+
+    func testOnlyListedAppsAreExcluded() {
+        let listed: Set = ["com.apple.Music"]
+        XCTAssertTrue(QuitOnCloseController.isExcluded(bundleID: "com.apple.Music", userExcluded: listed))
+        XCTAssertFalse(QuitOnCloseController.isExcluded(bundleID: "com.apple.Safari", userExcluded: listed))
+        XCTAssertFalse(QuitOnCloseController.isExcluded(bundleID: "com.apple.Music", userExcluded: []))
+    }
+
+    func testTheListSurvivesARelaunchAndEntriesCanBeRemoved() {
+        let defaults = InMemoryDefaults()
+        let controller = QuitOnCloseController(defaults: defaults, permissionCheck: { false })
+        XCTAssertTrue(controller.userExcludedBundleIDs.isEmpty)
+
+        controller.setExcluded(true, bundleID: "com.apple.Music")
+        controller.setExcluded(true, bundleID: "com.apple.Music")
+        controller.setExcluded(true, bundleID: "com.example.downloader")
+        controller.setExcluded(false, bundleID: "com.example.downloader")
+        controller.setExcluded(false, bundleID: "com.example.never-listed")
+
+        let relaunched = QuitOnCloseController(defaults: defaults, permissionCheck: { false })
+        XCTAssertEqual(relaunched.userExcludedBundleIDs, ["com.apple.Music"])
+    }
+
+    /// An excluded app that has quit must still be offered, or it could never
+    /// be taken off the list.
+    func testExcludedAppsThatAreNotRunningAreStillOffered() {
+        let offered = QuitOnCloseController.exclusionCandidates(
+            excluded: ["com.apple.Safari", "com.example.not-installed"], running: [])
+
+        XCTAssertEqual(offered.map(\.bundleID), ["com.example.not-installed", "com.apple.Safari"])
+        XCTAssertEqual(offered.map(\.name), ["com.example.not-installed", "Safari"])
+    }
+
+    func testNothingRunningAndNothingExcludedOffersNothing() {
+        XCTAssertTrue(QuitOnCloseController.exclusionCandidates(excluded: [], running: []).isEmpty)
+    }
+}
+
 final class QuitOnClosePermissionTests: XCTestCase {
     func testPermissionRevocationPreservesPreferenceUntilExplicitlyDisabled() {
-        let suite = "switchboard-permission-tests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suite)!
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let defaults = InMemoryDefaults()
         defaults.set(true, forKey: "QuitOnCloseEnabled")
         let controller = QuitOnCloseController(defaults: defaults, permissionCheck: { false })
 
@@ -333,7 +433,6 @@ final class QuitOnClosePermissionTests: XCTestCase {
 final class ChromeWatchLifecycleTests: XCTestCase {
     /// launchd: never a regular app, so even a mistaken quit could not touch it.
     private let fakeBrowser: pid_t = 1
-    private var suite: String!
     private var defaults: UserDefaults!
     private var workspace: NotificationCenter!
     private var browsers: Set<pid_t> = []
@@ -341,8 +440,7 @@ final class ChromeWatchLifecycleTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        suite = "ChromeWatchLifecycleTests.\(UUID())"
-        defaults = UserDefaults(suiteName: suite)
+        defaults = InMemoryDefaults()
         workspace = NotificationCenter()
         controller = QuitOnCloseController(defaults: defaults, permissionCheck: { true },
                                            chromeProcesses: { [unowned self] in self.browsers },
@@ -355,7 +453,6 @@ final class ChromeWatchLifecycleTests: XCTestCase {
     override func tearDown() {
         controller.setActive(false)
         controller = nil
-        defaults.removePersistentDomain(forName: suite)
         super.tearDown()
     }
 

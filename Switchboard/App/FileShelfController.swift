@@ -14,7 +14,8 @@ final class FileShelfController: NSObject, NSWindowDelegate {
     private var outsideMonitor: Any?
     private var localMonitor: Any?
     private var subscriptions: Set<AnyCancellable> = []
-    private var choosingFiles = false
+    /// The file picker while it is open, so closing the shelf can dismiss it.
+    private var filePicker: NSOpenPanel?
     private var announcedNotice: String?
 
     convenience override init() {
@@ -36,10 +37,11 @@ final class FileShelfController: NSObject, NSWindowDelegate {
     }
 
     var isVisible: Bool { panel?.isVisible == true }
+    var isChoosingFiles: Bool { filePicker != nil }
 
-    func show(relativeTo button: NSStatusBarButton) {
-        guard let anchorWindow = button.window else { return }
-        let anchor = anchorWindow.convertToScreen(button.convert(button.bounds, to: nil))
+    func show(relativeTo anchorView: NSView) {
+        guard let anchorWindow = anchorView.window else { return }
+        let anchor = anchorWindow.convertToScreen(anchorView.convert(anchorView.bounds, to: nil))
         present(on: anchorWindow.screen ?? NSScreen.main) { visible, height in
             NSPoint(x: max(visible.minX + 8, min(anchor.maxX - Self.width, visible.maxX - Self.width - 8)),
                     y: max(visible.minY + 8, anchor.minY - height - 8))
@@ -109,6 +111,13 @@ final class FileShelfController: NSObject, NSWindowDelegate {
     }
 
     func close() {
+        // Hiding a panel leaves its sheet attached and the sheet's completion
+        // never runs. The picker then counted as open for the rest of the
+        // session: Add Files did nothing and outside clicks stopped closing
+        // the shelf.
+        let abandonedPicker = filePicker
+        filePicker = nil
+        abandonedPicker?.cancel(nil)
         panel?.orderOut(nil)
         drag.finish()
         removeDismissalMonitors()
@@ -128,17 +137,19 @@ final class FileShelfController: NSObject, NSWindowDelegate {
     }
 
     func chooseFiles() {
-        guard let panel, !choosingFiles else { return }
+        guard let panel, !isChoosingFiles else { return }
         let picker = NSOpenPanel()
         picker.title = "Add to Shelf"
         picker.prompt = "Add to Shelf"
         picker.canChooseDirectories = true
         picker.canChooseFiles = true
         picker.allowsMultipleSelection = true
-        choosingFiles = true
+        filePicker = picker
         picker.beginSheetModal(for: panel) { [weak self] result in
-            guard let self else { return }
-            self.choosingFiles = false
+            // A picker dismissed by closing the shelf reports back later; by
+            // then it is no longer the current one and must change nothing.
+            guard let self, self.filePicker === picker else { return }
+            self.filePicker = nil
             if result == .OK { self.accept(picker.urls) }
         }
     }
@@ -173,12 +184,12 @@ final class FileShelfController: NSObject, NSWindowDelegate {
     private func installDismissalMonitors() {
         guard outsideMonitor == nil else { return }
         outsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            guard let self, !self.choosingFiles, !self.drag.isDraggingOut else { return }
+            guard let self, !self.isChoosingFiles, !self.drag.isDraggingOut else { return }
             self.close()
         }
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             guard let self else { return event }
-            if !self.choosingFiles, !self.drag.isDraggingOut, event.window != self.panel {
+            if !self.isChoosingFiles, !self.drag.isDraggingOut, event.window != self.panel {
                 self.close()
             }
             return event

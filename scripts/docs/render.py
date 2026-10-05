@@ -40,7 +40,8 @@ def main():
             text = source.read_text()
             if source.name == 'TweakStore.swift':
                 # Only the temporary model copy is changed. Production views stay intact.
-                text = replace_region(text, '    init() {', '    func refresh() {', '    init() {}\n\n')
+                text = replace_region(text, '    private func start() {', '    func refresh() {',
+                                      '    private func start() {}\n\n')
                 text = replace_region(text, '    func refreshAudioApps() {',
                                       '    func volume(for app:', '    func refreshAudioApps() {}\n\n')
                 old = 'var hasAdjustedAudio: Bool { appAudio.isControllingAnything }'

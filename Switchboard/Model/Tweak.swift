@@ -18,7 +18,12 @@ enum PrefValue: Equatable {
     func matches(_ stored: Any?) -> Bool {
         guard let stored else { return false }
         switch self {
-        case .bool(let value): return (stored as? NSNumber)?.boolValue == value
+        case .bool(let value):
+            if let number = stored as? NSNumber { return number.boolValue == value }
+            // `defaults write` without a type flag stores "YES" or "1" as
+            // text, and macOS still reads that as a boolean.
+            if let text = stored as? String { return (text as NSString).boolValue == value }
+            return false
         case .int(let value): return (stored as? NSNumber)?.intValue == value
         case .float(let value):
             guard let number = stored as? NSNumber else { return false }
@@ -49,15 +54,8 @@ enum Category: String, CaseIterable {
 enum RestartTarget: String, CaseIterable {
     case dock = "Dock"
     case finder = "Finder"
-    case systemUIServer = "SystemUIServer"
 
-    var label: String {
-        switch self {
-        case .dock: return "Dock"
-        case .finder: return "Finder"
-        case .systemUIServer: return "menu bar"
-        }
-    }
+    var label: String { rawValue }
 }
 
 struct PendingTranslation: Equatable {

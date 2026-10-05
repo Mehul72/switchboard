@@ -4,6 +4,7 @@ import XCTest
 /// per-mode keys the first time it needs them, then reads only the per-mode
 /// keys. Writing just the old key therefore works once and is ignored from
 /// then on. Each test runs against a throwaway domain, never the real one.
+/// `ScratchPreferenceDomain` removes the files those domains leave behind.
 final class CaptureDestinationTests: XCTestCase {
     private let screencaptureKeys = ["target", "target-screenshot",
                                      "location", "location-screenshot"]
@@ -11,17 +12,11 @@ final class CaptureDestinationTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        domain = "com.switchboard.tests.capture.\(UUID().uuidString)"
+        domain = ScratchPreferenceDomain.make("capture")
     }
 
     override func tearDownWithError() throws {
         PreferenceStore.write(nil, domain: domain, keys: screencaptureKeys)
-        // cfprefsd keeps the emptied plist, which would pile up one per run.
-        let plist = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Preferences/\(domain).plist")
-        if FileManager.default.fileExists(atPath: plist.path) {
-            try FileManager.default.removeItem(at: plist)
-        }
         try super.tearDownWithError()
     }
 

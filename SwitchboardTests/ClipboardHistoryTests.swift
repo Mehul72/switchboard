@@ -388,6 +388,66 @@ final class ClipboardImageCaptureTests: XCTestCase {
         XCTAssertEqual(history.entries.first?.pixelSize, CGSize(width: 40, height: 20))
     }
 
+    /// The history polls on its own timer, so it can record the PNG before
+    /// the conversion replaces it. One screenshot must still be one entry.
+    func testAScreenshotRecordedBeforeItsConversionIsNotListedTwice() throws {
+        let converter = ClipboardImageConverter(pasteboard: pasteboard,
+                                                spoolDirectory: spoolDirectory)
+        defer { converter.stop() }
+        converter.configure(enabled: true, format: "jpg")
+        converter.onReplacement = { [history] original in history?.forgetImage(original) }
+        let converted = expectation(description: "converted to JPEG")
+        converter.onConversion = { result in
+            if case .failure(let error) = result { XCTFail(error.localizedDescription) }
+            converted.fulfill()
+        }
+        let screenshot = encoded(Self.swatch(width: 40, height: 20), as: .png)
+        put(screenshot, as: .png)
+
+        history.capture()
+        XCTAssertEqual(history.entries.count, 1, "the poll got there first")
+        converter.processNewClipboardContents()
+        wait(for: [converted], timeout: 5)
+        history.capture()
+
+        XCTAssertEqual(history.entries.count, 1)
+        XCTAssertEqual(history.entries.first?.pixelSize, CGSize(width: 40, height: 20))
+        XCTAssertNotEqual(history.entries.first?.imageData, screenshot,
+                          "the converted copy has different bytes, so comparing bytes cannot spot the repeat")
+    }
+
+    func testForgettingAnImageLeavesEveryOtherClip() throws {
+        put(encoded(Self.swatch(width: 40, height: 20), as: .png), as: .png)
+        history.capture()
+        history.record("some text", note: nil)
+        var changes = 0
+        history.onChange = { changes += 1 }
+
+        history.forgetImage(Data([0, 1, 2]))
+        XCTAssertEqual(history.entries.count, 2)
+        XCTAssertEqual(changes, 0, "nothing changed, so nothing is announced")
+
+        history.forgetImage(try XCTUnwrap(history.entries.last?.imageData))
+        XCTAssertEqual(history.entries.map(\.text), ["some text"])
+        XCTAssertEqual(changes, 1)
+    }
+
+    func testDiscardingTheSpoolDeletesConvertedScreenshots() throws {
+        let converter = ClipboardImageConverter(pasteboard: pasteboard,
+                                                spoolDirectory: spoolDirectory)
+        defer { converter.stop() }
+        converter.configure(enabled: true, format: "jpg")
+        let item = try convertPNGOnClipboard(to: .jpeg, using: converter)
+        let file = try XCTUnwrap(URL(string: try XCTUnwrap(item.string(forType: .fileURL))))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: file.path))
+
+        converter.discardSpool()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: spoolDirectory.path))
+        converter.discardSpool()
+    }
+
     func testSpooledFilesAreCappedAndKeepTheNewest() throws {
         let converter = ClipboardImageConverter(pasteboard: pasteboard,
                                                 spoolDirectory: spoolDirectory)

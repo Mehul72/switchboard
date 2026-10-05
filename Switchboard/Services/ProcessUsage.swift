@@ -309,10 +309,27 @@ final class ProcessSampler {
 enum AppQuitter {
     /// The app a row represents, if it is one Switchboard is willing to quit.
     static func quittableApp(for usage: ProcessUsage) -> NSRunningApplication? {
-        guard usage.isOwnedByUser, usage.bundlePath != nil else { return nil }
-        return usage.processIDs.lazy
+        guard usage.isOwnedByUser, let bundlePath = usage.bundlePath else { return nil }
+        let quittable = usage.processIDs.lazy
             .compactMap { NSRunningApplication(processIdentifier: $0) }
-            .first(where: isQuittable)
+            .filter(isQuittable)
+        return appToQuit(among: quittable, bundlePath: bundlePath) { $0.bundleURL?.path }
+    }
+
+    /// The app whose own bundle is the row's bundle, or failing that the
+    /// first one found.
+    ///
+    /// A row groups an app with the helpers nested inside it, lowest process
+    /// ID first. Once IDs wrap around a helper can come first, and asking a
+    /// helper to quit closes a tab rather than the app.
+    static func appToQuit<App>(among quittable: some Sequence<App>, bundlePath: String,
+                               pathOf: (App) -> String?) -> App? {
+        var firstFound: App?
+        for app in quittable {
+            if pathOf(app) == bundlePath { return app }
+            if firstFound == nil { firstFound = app }
+        }
+        return firstFound
     }
 
     static func isQuittable(_ app: NSRunningApplication) -> Bool {

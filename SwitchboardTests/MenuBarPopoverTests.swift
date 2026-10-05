@@ -100,6 +100,59 @@ final class MenuBarPopoverTests: XCTestCase {
         }
     }
 
+    /// A click on a menu bar item does not activate the app, so one held for
+    /// activation only ever came back through the 0.3 second fallback.
+    func testAnchorClickIsNotHeldWhileTheAppIsInactive() throws {
+        try withRunningApplication {
+            let (anchorWindow, button) = try self.makeAnchor()
+            defer { anchorWindow.close() }
+            let toggle = ActionCounter()
+            button.target = toggle
+            button.action = #selector(ActionCounter.fire)
+            let popover = MenuBarPopover()
+            popover.animates = false
+            popover.contentViewController = NSHostingController(rootView: Theme.canvas.frame(width: 200, height: 200))
+            defer { popover.close() }
+            popover.isAppActive = { false }
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            let anchor = try XCTUnwrap(button.window)
+            let point = button.convert(NSPoint(x: button.bounds.midX, y: button.bounds.midY), to: nil)
+
+            NSApp.postEvent(try self.click(.leftMouseUp, in: anchor, at: point), atStart: true)
+            NSApp.sendEvent(try self.click(.leftMouseDown, in: anchor, at: point))
+
+            XCTAssertEqual(toggle.count, 1, "the click reached the menu bar item at once")
+        }
+    }
+
+    /// The hand-over for real: this app holds the front, gives it to another
+    /// app, and opens the panel on macOS's own reports of the change. The
+    /// stand-ins in FrontHandoverTests cannot show that those reports arrive.
+    func testAPanelOpenedOnceTheFrontIsHandedBackStaysOpen() throws {
+        let appToHandFrontTo = try XCTUnwrap(NSWorkspace.shared.menuBarOwningApplication)
+        try XCTSkipIf(appToHandFrontTo == .current, "no other app to hand the front to")
+        try withRunningApplication(untilFinished: { finish in
+            let (anchorWindow, button) = try self.makeAnchor()
+            let popover = self.makePopover()
+            let handover = FrontHandover()
+            handover.fullScreenApp = { _ in appToHandFrontTo }
+            XCTAssertTrue(handover.isFrontApp(), "the test app must hold the front for there to be anything to hand back")
+
+            handover.handBack(on: nil) {
+                XCTAssertFalse(handover.isFrontApp(), "the front went back before the panel opened")
+                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+                XCTAssertTrue(popover.isShown)
+                // Many times longer than AppKit takes to act on a change it had not finished with.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    XCTAssertTrue(popover.isShown, "losing the front must not take the panel with it")
+                    popover.close()
+                    anchorWindow.close()
+                    finish()
+                }
+            }
+        })
+    }
+
     /// Never a real status item: a popover opened from one asks macOS 27 to hold the
     /// menu bar open, and removing the item a moment later left the menu bar stuck
     /// over full-screen apps until MenuBarAgent restarted.
@@ -153,9 +206,20 @@ final class MenuBarPopoverTests: XCTestCase {
     }
 
     private func withRunningApplication(_ body: @escaping () throws -> Void) throws {
+        try withRunningApplication(untilFinished: { finish in
+            try body()
+            finish()
+        })
+    }
+
+    /// The body runs inside a main-queue block, and a run loop spun there never
+    /// services the main queue, which is where workspace notifications arrive.
+    /// A test waiting for one has to return and call `finish` later.
+    private func withRunningApplication(untilFinished body: @escaping (_ finish: @escaping () -> Void) throws -> Void) throws {
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
         var failure: Error?
+        var bodyStarted = false
         let stop = {
             app.stop(nil)
             let wake = NSEvent.otherEvent(with: .applicationDefined, location: .zero, modifierFlags: [],
@@ -163,8 +227,11 @@ final class MenuBarPopoverTests: XCTestCase {
             app.postEvent(wake, atStart: true)
         }
         let execute = {
-            do { try body() } catch { failure = error }
-            stop()
+            bodyStarted = true
+            do { try body(stop) } catch {
+                failure = error
+                stop()
+            }
         }
         var observer: NSObjectProtocol?
         if app.isActive {
@@ -177,7 +244,7 @@ final class MenuBarPopoverTests: XCTestCase {
             DispatchQueue.main.async { app.activate(ignoringOtherApps: true) }
         }
         let timeout = Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { _ in
-            XCTFail("The popover test application did not become active")
+            XCTFail(bodyStarted ? "The popover test did not finish" : "The popover test application did not become active")
             stop()
         }
         defer {
@@ -192,6 +259,12 @@ final class MenuBarPopoverTests: XCTestCase {
 @MainActor
 private final class ProtectedPopoverDelegate: NSObject, NSPopoverDelegate {
     func popoverShouldClose(_ popover: NSPopover) -> Bool { false }
+}
+
+@MainActor
+private final class ActionCounter: NSObject {
+    var count = 0
+    @objc func fire() { count += 1 }
 }
 
 private final class ClickTarget: NSView {

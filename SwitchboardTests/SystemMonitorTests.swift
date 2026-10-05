@@ -51,6 +51,20 @@ final class SystemMonitorTests: XCTestCase {
         XCTAssertNil(reader.read().network)
     }
 
+    /// The counters are cumulative, so a later read can never be smaller.
+    /// The old 32-bit ones went backwards every 4 GB.
+    func testLiveNetworkCountersComeFromPhysicalInterfacesAndNeverGoBackwards() throws {
+        let first = try XCTUnwrap(NetworkInterfaceCounters.read())
+        let second = try XCTUnwrap(NetworkInterfaceCounters.read())
+
+        for (name, counter) in first {
+            XCTAssertTrue(name.hasPrefix("en"), name)
+            guard let later = second[name] else { continue }
+            XCTAssertGreaterThanOrEqual(later.received, counter.received, name)
+            XCTAssertGreaterThanOrEqual(later.sent, counter.sent, name)
+        }
+    }
+
     @MainActor
     func testRepeatedStartAndStopAreSafe() {
         let monitor = SystemMonitor()

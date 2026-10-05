@@ -17,8 +17,22 @@ final class PrefValueTests: XCTestCase {
         XCTAssertFalse(PrefValue.bool(true).matches(NSNumber(value: false)))
     }
 
-    func testBoolDoesNotMatchAString() {
-        XCTAssertFalse(PrefValue.bool(true).matches("1"))
+    /// `defaults write com.apple.finder AppleShowAllFiles YES` stores text,
+    /// and Finder still shows hidden files. The toggle has to agree with it.
+    func testBoolReadsStoredTextTheWayMacOSDoes() {
+        for text in ["YES", "yes", "true", "TRUE", "1"] {
+            XCTAssertTrue(PrefValue.bool(true).matches(text), text)
+            XCTAssertFalse(PrefValue.bool(false).matches(text), text)
+        }
+        for text in ["NO", "no", "false", "0", ""] {
+            XCTAssertTrue(PrefValue.bool(false).matches(text), text)
+            XCTAssertFalse(PrefValue.bool(true).matches(text), text)
+        }
+    }
+
+    func testBoolDoesNotMatchOtherStoredTypes() {
+        XCTAssertFalse(PrefValue.bool(true).matches(Data([1])))
+        XCTAssertFalse(PrefValue.bool(false).matches(["NO"]))
     }
 
     func testIntComparesExactly() {

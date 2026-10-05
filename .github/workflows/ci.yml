@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Nothing here writes to the repository or reads a secret.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      # Pinned to a commit: a tag can be moved, a commit cannot.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # In the log so a failure can be traced to the toolchain it ran on.
+      - name: Toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+
+      # The same entry point people and release.sh use.
+      - name: Build and run the tests
+        run: ./scripts/test.sh

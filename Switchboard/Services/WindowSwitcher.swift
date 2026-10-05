@@ -258,9 +258,8 @@ final class WindowSwitcher: ObservableObject {
 
     func requestPreviews() {
         cancel()
-        if !CGRequestScreenCaptureAccess(),
-           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-            NSWorkspace.shared.open(url)
+        if !CGRequestScreenCaptureAccess() {
+            NSWorkspace.shared.open(NoticeLink.screenRecordingSettings.url)
         }
     }
 

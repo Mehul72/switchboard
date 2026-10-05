@@ -35,7 +35,7 @@ struct PopoverView: View {
                 CategoryNav(selection: $selectedCategory, includesTweakCategories: !compactHeight)
             }
             if !compactHeight, let notice = store.notice {
-                NoticeView(notice: notice, openLink: openInBrowser)
+                NoticeView(notice: notice, openLink: openLink)
                     .padding(.horizontal, Theme.edgeInset)
                     .padding(.bottom, 10)
             }
@@ -149,8 +149,25 @@ struct PopoverView: View {
                 }
             }
             Divider()
+            ForEach(OptionalBehavior.allCases) { behavior in
+                Toggle(behavior.menuTitle, isOn: Binding(get: { store.isEnabled(behavior) },
+                                                         set: { store.setEnabled(behavior, $0) }))
+            }
+            Menu("Red Button Never Quits") {
+                let apps = QuitOnCloseController.exclusionCandidates(excluded: store.quitOnCloseExclusions)
+                if apps.isEmpty {
+                    Text("No other apps are open")
+                }
+                ForEach(apps) { app in
+                    Toggle(app.name, isOn: Binding(
+                        get: { store.quitOnCloseExclusions.contains(app.bundleID) },
+                        set: { store.setQuitOnCloseExcluded($0, bundleID: app.bundleID) }
+                    ))
+                }
+            }
+            Divider()
             if let latest = updates.availableVersion {
-                Button("Update to \(latest.description)…") { openInBrowser(UpdateChecker.releasePage) }
+                Button("Update to \(latest.description)…") { openLink(UpdateChecker.releasePage) }
             }
             Button("Check for Updates…") {
                 store.notice = StoreNotice(kind: .information, message: "Checking for updates…")
@@ -232,7 +249,7 @@ struct PopoverView: View {
                         if searchText.isEmpty, [.everyday, .files, .capture, .dock].contains(selectedCategory) {
                             TweakCategoryNav(selection: $selectedCategory)
                         }
-                        if let notice = store.notice { NoticeView(notice: notice, openLink: openInBrowser) }
+                        if let notice = store.notice { NoticeView(notice: notice, openLink: openLink) }
                     }
                     ForEach(store.visibleCategories.filter { $0 != .audio && $0 != .clipboard && $0 != .system }, id: \.self) { category in
                         settingGroup(category)
@@ -400,10 +417,12 @@ struct PopoverView: View {
         }
     }
 
-    private func openInBrowser(_ url: URL) {
+    private func openLink(_ url: URL) {
         if NSWorkspace.shared.open(url) { return }
-        store.notice = StoreNotice(kind: .error,
-                                   message: "Your browser could not be opened. Visit \(url.absoluteString) instead.")
+        let isWebPage = url.scheme == "https" || url.scheme == "http"
+        store.notice = StoreNotice(kind: .error, message: isWebPage
+            ? "Your browser could not be opened. Visit \(url.absoluteString) instead."
+            : "System Settings could not be opened. Open Privacy & Security there yourself.")
     }
 
     private func recoverLaunchAtLogin() {

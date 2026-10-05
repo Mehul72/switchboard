@@ -121,7 +121,6 @@ final class GitHubReleaseFeedTests: XCTestCase {
 
 @MainActor
 final class UpdateCheckerTests: XCTestCase {
-    private var suite: String!
     private var defaults: UserDefaults!
     private var feed: FakeFeed!
     private var clock = Date(timeIntervalSince1970: 1_800_000_000)
@@ -129,14 +128,12 @@ final class UpdateCheckerTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        suite = "Switchboard.UpdateCheckerTests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suite)!
+        defaults = InMemoryDefaults()
         feed = FakeFeed()
         reports = []
     }
 
     override func tearDown() async throws {
-        defaults.removePersistentDomain(forName: suite)
         defaults = nil
         try await super.tearDown()
     }

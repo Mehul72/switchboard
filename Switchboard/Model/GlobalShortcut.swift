@@ -177,18 +177,26 @@ struct GlobalShortcut: Codable, Equatable, Hashable {
         self.modifiers = modifiers
     }
 
+    /// `NSEvent.ModifierFlags` and `CGEventFlags` share one bit layout, so a
+    /// key seen by AppKit and the same key seen by an event tap compare equal.
     init(event: NSEvent) {
-        keyCode = UInt32(event.keyCode)
-        var flags: UInt32 = 0
-        if event.modifierFlags.contains(.command) { flags |= UInt32(cmdKey) }
-        if event.modifierFlags.contains(.control) { flags |= UInt32(controlKey) }
-        if event.modifierFlags.contains(.option) { flags |= UInt32(optionKey) }
-        if event.modifierFlags.contains(.shift) { flags |= UInt32(shiftKey) }
+        self.init(keyCode: UInt32(event.keyCode),
+                  flags: CGEventFlags(rawValue: UInt64(event.modifierFlags.rawValue)))
+    }
+
+    /// Straight from an event tap's key code and flags. A tap sees every key
+    /// press on the Mac, so this builds no `NSEvent`.
+    init(keyCode: UInt32, flags: CGEventFlags) {
+        var carbonModifiers: UInt32 = 0
+        if flags.contains(.maskCommand) { carbonModifiers |= UInt32(cmdKey) }
+        if flags.contains(.maskControl) { carbonModifiers |= UInt32(controlKey) }
+        if flags.contains(.maskAlternate) { carbonModifiers |= UInt32(optionKey) }
+        if flags.contains(.maskShift) { carbonModifiers |= UInt32(shiftKey) }
         // Arrow and function-key events carry Fn even without the modifier held.
-        if event.modifierFlags.contains(.function), keyCode < 96 {
-            flags |= UInt32(kEventKeyModifierFnMask)
+        if flags.contains(.maskSecondaryFn), keyCode < 96 {
+            carbonModifiers |= UInt32(kEventKeyModifierFnMask)
         }
-        modifiers = flags
+        self.init(keyCode: keyCode, modifiers: carbonModifiers)
     }
 
     var validationError: String? {

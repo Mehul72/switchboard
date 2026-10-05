@@ -89,12 +89,20 @@ final class WindowDragGrid {
     }
 
     private func mouseDragged(controlHeld: Bool) {
-        guard let current = drag, let target = current.target else { return }
+        guard let current = drag else { return }
         if current.isWindowMove {
             updateGrid(controlHeld: controlHeld)
             return
         }
-        guard !current.isCheckingMove else { return }
+        // The grid only shows with Control held. Until then there is nothing
+        // to decide, and asking the dragged app for its window frame on every
+        // drag event, in every app, was work done for no one.
+        guard controlHeld else { return }
+        checkForWindowMove()
+    }
+
+    private func checkForWindowMove() {
+        guard let current = drag, let target = current.target, !current.isCheckingMove else { return }
         drag?.isCheckingMove = true
         let sequence = current.sequence
         probeQueue.async { [weak self] in
@@ -118,8 +126,13 @@ final class WindowDragGrid {
     }
 
     private func flagsChanged(controlHeld: Bool) {
-        guard drag?.isWindowMove == true else { return }
-        updateGrid(controlHeld: controlHeld)
+        if drag?.isWindowMove == true {
+            updateGrid(controlHeld: controlHeld)
+            return
+        }
+        // Control pressed part way through a drag, possibly with the pointer
+        // at rest, so no drag event will follow to do the check.
+        if controlHeld { checkForWindowMove() }
     }
 
     private func updateGrid(controlHeld: Bool) {

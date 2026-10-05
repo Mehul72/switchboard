@@ -1,5 +1,6 @@
 import AppKit
 import ImageIO
+import OSLog
 import UniformTypeIdentifiers
 
 enum ClipboardImageFormat: String, Equatable {
@@ -71,7 +72,12 @@ final class ClipboardImageConverter {
     static let spooledFileLimit = 5
 
     var onConversion: ((Result<ClipboardImageFormat, Error>) -> Void)?
+    /// Hands over the PNG a conversion has just replaced, so a history that
+    /// already recorded it can drop that entry instead of listing one
+    /// screenshot twice.
+    var onReplacement: ((_ original: Data) -> Void)?
 
+    private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "clipboard")
     private let pasteboard: NSPasteboard
     private let spoolDirectory: URL
     private var timer: Timer?
@@ -198,6 +204,7 @@ final class ClipboardImageConverter {
                         return
                     }
                     self.lastChangeCount = self.pasteboard.changeCount
+                    self.onReplacement?(pngData)
                     self.onConversion?(.success(targetFormat))
                 case .failure(let error):
                     self.onConversion?(.failure(error))
@@ -250,6 +257,17 @@ final class ClipboardImageConverter {
         }
         pruneSpool(keeping: destination)
         return destination
+    }
+
+    /// Deletes every converted screenshot kept on disk. A file URL still on
+    /// the clipboard stops resolving; the image beside it still pastes.
+    func discardSpool() {
+        guard FileManager.default.fileExists(atPath: spoolDirectory.path) else { return }
+        do {
+            try FileManager.default.removeItem(at: spoolDirectory)
+        } catch {
+            logger.error("Could not delete converted screenshots: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private func discardSpooledFile(_ url: URL?) {

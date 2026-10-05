@@ -4,19 +4,16 @@ import XCTest
 
 @MainActor
 final class GlobalShortcutsTests: XCTestCase {
-    private var suite: String!
     private var defaults: UserDefaults!
     private var registrar: TestHotKeyRegistrar!
 
     override func setUp() {
         super.setUp()
-        suite = "Switchboard.ShortcutsTests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suite)!
+        defaults = InMemoryDefaults()
         registrar = TestHotKeyRegistrar()
     }
 
     override func tearDown() {
-        defaults.removePersistentDomain(forName: suite)
         registrar = nil
         defaults = nil
         super.tearDown()
@@ -542,10 +539,7 @@ final class ShortcutEditorTests: XCTestCase {
     }
 
     private func checkRecorderWindowScope() throws {
-        let suite = "Switchboard.ShortcutEditorTests.\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
-        let shortcuts = GlobalShortcuts(defaults: defaults, registrar: TestHotKeyRegistrar())
+        let shortcuts = GlobalShortcuts(defaults: InMemoryDefaults(), registrar: TestHotKeyRegistrar())
         let editor = ShortcutSettingsController(shortcuts: shortcuts)
         editor.open()
         let window = try XCTUnwrap(editor.window)
@@ -572,10 +566,7 @@ final class ShortcutEditorTests: XCTestCase {
     }
 
     private func checkRecorderLifecycle() throws {
-        let suite = "Switchboard.ShortcutEditorTests.\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
-        let shortcuts = GlobalShortcuts(defaults: defaults, registrar: TestHotKeyRegistrar())
+        let shortcuts = GlobalShortcuts(defaults: InMemoryDefaults(), registrar: TestHotKeyRegistrar())
         let editor = ShortcutSettingsController(shortcuts: shortcuts)
         editor.open()
         let window = try XCTUnwrap(editor.window)

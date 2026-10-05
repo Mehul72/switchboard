@@ -2,32 +2,48 @@ import AppKit
 import ApplicationServices
 import Carbon
 import OSLog
+import os
 
 /// Dock handles Command-Tab before Carbon hotkey dispatch. Consume only the
 /// claimed chords, so releasing this tap also releases the native switcher.
 @MainActor
 final class CommandTabHotKeys: HotKeyRegistering {
+    /// What a key event means to the claimed chords.
+    enum KeyVerdict: Equatable {
+        case pass
+        case press(UInt32)
+        case release(UInt32)
+    }
+
+    /// Everything the tap callback reads. The callback runs on the event tap
+    /// thread, so none of it can be main-actor state.
+    private struct ClaimedChords {
+        var bindings: [UInt32: GlobalShortcut] = [:]
+        var pressedID: UInt32?
+        var tap: CFMachPort?
+    }
+
     var onEvent: ((UInt32, Bool) -> Void)?
-    private var bindings: [UInt32: GlobalShortcut] = [:]
-    private var pressedID: UInt32?
-    private var tap: CFMachPort?
+    private nonisolated let claimed = OSAllocatedUnfairLock<ClaimedChords>(uncheckedState: ClaimedChords())
     private var source: CFRunLoopSource?
-    private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "command-tab")
+    private nonisolated let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "command-tab")
 
     func register(_ shortcut: GlobalShortcut, id: UInt32) throws {
         guard shortcut.isCommandTab else { throw HotKeyError.systemReserved }
-        guard !bindings.values.contains(shortcut), bindings[id] == nil else {
-            throw HotKeyError.unavailable(OSStatus(eventHotKeyExistsErr))
-        }
+        let isTaken = claimed.withLockUnchecked { $0.bindings.values.contains(shortcut) || $0.bindings[id] != nil }
+        guard !isTaken else { throw HotKeyError.unavailable(OSStatus(eventHotKeyExistsErr)) }
         guard AXIsProcessTrusted() else { throw HotKeyError.accessibilityRequired }
-        if tap == nil { try install() }
-        bindings[id] = shortcut
+        if source == nil { try install() }
+        claimed.withLockUnchecked { $0.bindings[id] = shortcut }
     }
 
     func unregister(id: UInt32) throws {
-        bindings[id] = nil
-        if pressedID == id { pressedID = nil }
-        if bindings.isEmpty { stop() }
+        let nothingLeft = claimed.withLockUnchecked { chords -> Bool in
+            chords.bindings[id] = nil
+            if chords.pressedID == id { chords.pressedID = nil }
+            return chords.bindings.isEmpty
+        }
+        if nothingLeft { stop() }
     }
 
     private func install() throws {
@@ -36,60 +52,96 @@ final class CommandTabHotKeys: HotKeyRegistering {
                                           options: .defaultTap, eventsOfInterest: mask,
                                           callback: { _, type, event, context in
             guard let context else { return Unmanaged.passUnretained(event) }
-            return MainActor.assumeIsolated {
-                Unmanaged<CommandTabHotKeys>.fromOpaque(context).takeUnretainedValue().handle(type, event)
-            }
+            return Unmanaged<CommandTabHotKeys>.fromOpaque(context).takeUnretainedValue().handle(type, event)
         }, userInfo: Unmanaged.passUnretained(self).toOpaque()) else { throw HotKeyError.eventMonitorUnavailable }
         guard let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else {
             CFMachPortInvalidate(tap)
             throw HotKeyError.eventMonitorUnavailable
         }
-        self.tap = tap
+        claimed.withLockUnchecked { $0.tap = tap }
         self.source = source
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        // Not the main run loop: every key press on the Mac waits for this
+        // callback, and the main thread can be busy drawing a panel.
+        EventTapThread.shared.add(source)
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
-    private func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
+    /// Pure, so the rule that decides which keys never reach other apps can
+    /// be tested without a tap.
+    nonisolated static func verdict(type: CGEventType, keyCode: Int64, flags: CGEventFlags,
+                                    bindings: [UInt32: GlobalShortcut], pressedID: UInt32?) -> KeyVerdict {
+        if type == .keyUp {
+            guard keyCode == kVK_Tab, let pressedID else { return .pass }
+            return .release(pressedID)
+        }
+        guard type == .keyDown, let keyCode = UInt32(exactly: keyCode) else { return .pass }
+        let chord = GlobalShortcut(keyCode: keyCode, flags: flags)
+        guard let id = bindings.first(where: { $0.value == chord })?.key else { return .pass }
+        return .press(id)
+    }
+
+    /// Runs on the event tap thread. The event is held until this returns, so
+    /// it only decides whether the key is claimed and hands the action itself
+    /// to the main thread.
+    private nonisolated func handle(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-            pressedID = nil
+            let tap = claimed.withLockUnchecked { chords -> CFMachPort? in
+                chords.pressedID = nil
+                return chords.tap
+            }
             logger.notice("Command-Tab event tap was disabled by macOS")
             if let tap, AXIsProcessTrusted() { CGEvent.tapEnable(tap: tap, enable: true) }
             return Unmanaged.passUnretained(event)
         }
-        if type == .keyUp, event.getIntegerValueField(.keyboardEventKeycode) == kVK_Tab,
-           let id = pressedID {
-            pressedID = nil
+        let (bindings, pressedID) = claimed.withLockUnchecked { ($0.bindings, $0.pressedID) }
+        switch Self.verdict(type: type, keyCode: event.getIntegerValueField(.keyboardEventKeycode),
+                            flags: event.flags, bindings: bindings, pressedID: pressedID) {
+        case .pass:
+            return Unmanaged.passUnretained(event)
+        case .release(let id):
+            claimed.withLockUnchecked { $0.pressedID = nil }
             deliver(id: id, pressed: false)
             return nil
+        case .press(let id):
+            guard AXIsProcessTrusted() else { return Unmanaged.passUnretained(event) }
+            claimed.withLockUnchecked { $0.pressedID = id }
+            deliver(id: id, pressed: true)
+            return nil
         }
-        guard type == .keyDown, let key = NSEvent(cgEvent: event),
-              let id = bindings.first(where: { $0.value == GlobalShortcut(event: key) })?.key,
-              AXIsProcessTrusted() else { return Unmanaged.passUnretained(event) }
-        pressedID = id
-        deliver(id: id, pressed: true)
-        return nil
     }
 
-    private func deliver(id: UInt32, pressed: Bool) {
-        // Building the preview panel can take longer than an event tap is
-        // allowed to block. The queued event still checks current ownership.
+    private nonisolated func deliver(id: UInt32, pressed: Bool) {
+        // Building the preview panel takes longer than an event tap may
+        // block. The queued event still checks current ownership.
         DispatchQueue.main.async { [weak self] in
-            guard let self, self.bindings[id] != nil else { return }
+            guard let self, self.claimed.withLockUnchecked({ $0.bindings[id] != nil }) else { return }
             self.onEvent?(id, pressed)
         }
     }
 
     private func stop() {
-        if let tap { CGEvent.tapEnable(tap: tap, enable: false); CFMachPortInvalidate(tap) }
-        if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
-        tap = nil
+        Self.tearDown(source: source, claimed: claimed)
         source = nil
-        pressedID = nil
+    }
+
+    /// Shared with `deinit`, which cannot call main-actor methods.
+    private nonisolated static func tearDown(source: CFRunLoopSource?,
+                                             claimed: OSAllocatedUnfairLock<ClaimedChords>) {
+        let tap = claimed.withLockUnchecked { chords -> CFMachPort? in
+            defer {
+                chords.tap = nil
+                chords.pressedID = nil
+            }
+            return chords.tap
+        }
+        if let tap { CGEvent.tapEnable(tap: tap, enable: false) }
+        // Removed on the tap thread itself, so no callback is still running,
+        // and holding this object, once the source is gone.
+        if let source { EventTapThread.shared.remove(source) }
+        if let tap { CFMachPortInvalidate(tap) }
     }
 
     deinit {
-        if let tap { CGEvent.tapEnable(tap: tap, enable: false); CFMachPortInvalidate(tap) }
-        if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
+        Self.tearDown(source: source, claimed: claimed)
     }
 }

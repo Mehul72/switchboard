@@ -1,6 +1,33 @@
 import XCTest
 
 final class ProcessUsageTests: XCTestCase {
+    private struct FakeApp: Equatable {
+        let name: String
+        let bundlePath: String?
+    }
+
+    /// Asking a browser's helper to quit closes a tab. The row's own bundle
+    /// is the app the Quit button is about.
+    @MainActor
+    func testQuitGoesToTheAppThatOwnsTheBundleNotTheFirstHelper() {
+        let helper = FakeApp(name: "helper", bundlePath: "/Applications/Browser.app/Contents/Helpers/Helper.app")
+        let browser = FakeApp(name: "browser", bundlePath: "/Applications/Browser.app")
+
+        XCTAssertEqual(AppQuitter.appToQuit(among: [helper, browser], bundlePath: "/Applications/Browser.app",
+                                            pathOf: \.bundlePath), browser)
+    }
+
+    @MainActor
+    func testQuitFallsBackToTheFirstAppWhenNoBundleMatches() {
+        let first = FakeApp(name: "first", bundlePath: nil)
+        let second = FakeApp(name: "second", bundlePath: "/Elsewhere.app")
+
+        XCTAssertEqual(AppQuitter.appToQuit(among: [first, second], bundlePath: "/Applications/Browser.app",
+                                            pathOf: \.bundlePath), first)
+        XCTAssertNil(AppQuitter.appToQuit(among: [FakeApp](), bundlePath: "/Applications/Browser.app",
+                                          pathOf: \.bundlePath))
+    }
+
     private func sample(_ pid: pid_t, _ path: String, cpu: Double? = nil, memory: Double = 0,
                         mine: Bool = true) -> ProcessSample {
         ProcessSample(pid: pid, executablePath: path, cpuShare: cpu, memoryBytes: memory, isOwnedByUser: mine)

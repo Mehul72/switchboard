@@ -8,6 +8,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let logger = Logger(subsystem: "com.Mehul72.switchboard", category: "welcome")
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = MenuBarPopover()
+    private let frontHandover = FrontHandover()
     private let store = TweakStore()
     private let monitor = SystemMonitor()
     private let readout = MenuBarReadout()
@@ -87,6 +88,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
         updates.onReport = { [weak self] report in self?.showUpdateReport(report) }
         updates.start()
+        // A session that crashed or was force quit never reached prepareForQuit.
+        store.discardSpooledScreenshots()
 
         store.onScreenSelectionBegan = { [weak self] in
             guard let self else { return }
@@ -110,6 +113,10 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                 self.showPopover()
             }
         }
+    }
+
+    func prepareForQuit() {
+        store.discardSpooledScreenshots()
     }
 
     /// Opens the welcome window on the first launch of this copy of the app.
@@ -138,7 +145,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     @objc private func togglePopover() {
-        guard !store.isCapturingText else { return }
+        guard !store.isSelectingScreenRegion else { return }
         if fileShelf.isVisible {
             fileShelf.close()
             return
@@ -151,7 +158,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     private func showPopover(category: Category? = nil) {
-        guard !store.isCapturingText, let button = item.button else { return }
+        guard !store.isSelectingScreenRegion, let button = item.button else { return }
         fileShelf.close()
         switcher.cancel()
         if let category { store.category = category }
@@ -160,7 +167,14 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             popover.contentViewController?.view.window?.makeKey()
             return
         }
+        frontHandover.handBack(on: button.window?.screen ?? NSScreen.main) { [weak self] in
+            self?.presentPopover()
+        }
+    }
 
+    private func presentPopover() {
+        // Handing the front back takes a few milliseconds, long enough for a capture to begin.
+        guard !store.isSelectingScreenRegion, !popover.isShown, let button = item.button else { return }
         if let notice = store.notice,
            notice.kind != .error,
            notice.id == lastDismissedNoticeID {
@@ -200,7 +214,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     private func performShortcut(_ action: ShortcutAction) {
-        guard !store.isCapturingText else { return }
+        guard !store.isSelectingScreenRegion else { return }
         if let mode = action.switcherMode, let binding = shortcuts.bindings[action] {
             switcher.advance(sameAppOnly: mode.sameApp, backwards: mode.backwards, modifiers: binding.modifiers)
             return
@@ -215,6 +229,11 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             if fileShelf.isVisible { fileShelf.close() } else { showFileShelf() }
         case .captureText:
             guard let tweak = store.catalog.first(where: { $0.id == "everyday.region-ocr" }) else { return }
+            // An earlier capture is still being read; a second one would only queue behind it.
+            guard store.canPerform(tweak) else {
+                NSSound.beep()
+                return
+            }
             captureWasStartedByShortcut = true
             shortcutSettings?.window?.orderOut(nil)
             store.perform(tweak)
@@ -257,7 +276,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             case .needsPermission:
                 WindowSnapper.requestPermission()
                 self?.store.notice = StoreNotice(kind: .information,
-                                                 message: "Allow Switchboard under Accessibility so window shortcuts can move windows.")
+                                                 message: "Allow Switchboard under Accessibility so window shortcuts can move windows.",
+                                                 link: .accessibilitySettings)
                 // The toggle turns itself off on refresh, so show the panel
                 // where that state and this notice can be seen together.
                 self?.showPopover(category: .everyday)
@@ -277,13 +297,13 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private func configureShelfDrop() {
         shelfDragWatcher.onTrigger = { [weak self] files, pointer in
-            guard let self, !self.store.isCapturingText else { return }
+            guard let self, !self.store.isSelectingScreenRegion else { return }
             self.switcher.cancel()
             self.popover.close()
             self.fileShelf.show(beside: pointer, incoming: files)
         }
         shelfDragWatcher.onDragEnded = { [weak self] in self?.fileShelf.dragEndedElsewhere() }
-        shelfDragWatcher.start()
+        if store.isEnabled(.shelfDragTrigger) { shelfDragWatcher.start() }
         // Finder's Command-Delete needs the disk list before the shelf is ever opened;
         // mount notifications keep it current after this.
         fileShelf.volumes.refresh()
@@ -294,15 +314,28 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                 self.fileShelf.volumes.eject(volume, failed: { [weak self] in self?.showFileShelf() })
             }
         }
-        finderEject.start()
+        if store.isEnabled(.finderEject) { finderEject.start() }
+        store.onBehaviorChange = { [weak self] behavior, enabled in
+            guard let self else { return }
+            switch behavior {
+            case .shelfDragTrigger:
+                if enabled { self.shelfDragWatcher.start() } else { self.shelfDragWatcher.stop() }
+            case .finderEject:
+                if enabled { self.finderEject.start() } else { self.finderEject.stop() }
+            case .clipboardHistory:
+                // The store owns the history and has already stopped or started it.
+                break
+            }
+        }
         fileShelf.shelf.onCountChange = { [weak self] count in
             guard let self, let button = self.item.button else { return }
             self.item.length = count == 0 ? NSStatusItem.squareLength : NSStatusItem.variableLength
             button.imagePosition = .imageLeading
             button.title = count == 0 ? "" : " \(count)"
             button.font = .monospacedDigitSystemFont(ofSize: 11, weight: .medium)
-            button.setAccessibilityLabel(count == 0 ? "Switchboard" : "Switchboard, \(count) items on shelf")
-            button.toolTip = count == 0 ? "Switchboard" : "Switchboard · \(count) items on shelf"
+            let shelved = FileShelf.countDescription(count)
+            button.setAccessibilityLabel(count == 0 ? "Switchboard" : "Switchboard, \(shelved)")
+            button.toolTip = count == 0 ? "Switchboard" : "Switchboard · \(shelved)"
         }
     }
 
@@ -363,7 +396,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     /// The panel still hangs from the Switchboard icon, so it opens in the same
     /// place whichever item was clicked, and never moves when readings change.
     @objc private func showSystemFromReadings() {
-        guard !store.isCapturingText else { return }
+        guard !store.isSelectingScreenRegion else { return }
         if popover.isShown, store.category == .system {
             popover.close()
             return
@@ -372,7 +405,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     private func showFileShelf() {
-        guard !store.isCapturingText, let button = item.button else { return }
+        guard !store.isSelectingScreenRegion, let button = item.button else { return }
         switcher.cancel()
         popover.close()
         fileShelf.show(relativeTo: button)

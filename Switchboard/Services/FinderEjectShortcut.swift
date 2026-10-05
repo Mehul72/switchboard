@@ -19,6 +19,9 @@ enum FinderSelection {
         AXUIElementSetMessagingTimeout(app, messagingTimeoutSeconds)
         var items: [AXUIElement] = []
         if let focused: AXUIElement = value(of: app, kAXFocusedUIElementAttribute) {
+            // Command-Delete in a name being edited deletes to the start of
+            // the line. That is typing, not an action on the selected disk.
+            guard !isTextEntry(role: value(of: focused, kAXRoleAttribute)) else { return [] }
             items = selection(around: focused)
         }
         // With no Finder window focused the desktop is the target. With one
@@ -28,6 +31,11 @@ enum FinderSelection {
             items = desktop.map(selection(around:)) ?? []
         }
         return items.compactMap { fileURL(in: $0, depth: 0) }
+    }
+
+    static func isTextEntry(role: String?) -> Bool {
+        guard let role else { return false }
+        return [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole].contains(role)
     }
 
     private static func selection(around element: AXUIElement) -> [AXUIElement] {

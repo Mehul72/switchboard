@@ -15,10 +15,25 @@ container.
 Run the test suite with **Command-U** in Xcode, or from the repository root:
 
 ```sh
-xcodebuild -project Switchboard.xcodeproj -scheme Switchboard \
-  -destination 'platform=macOS' -derivedDataPath build/tests \
-  CODE_SIGNING_ALLOWED=NO test
+./scripts/test.sh
 ```
+
+Pass `xcodebuild` options through to run part of it, for example
+`./scripts/test.sh -only-testing:SwitchboardTests/WindowLayoutTests`.
+
+The suite needs a logged-in desktop. It takes keyboard focus for a few seconds
+and briefly opens a file picker, so don't type while it runs. Tests keep their
+preferences in memory. The few that need a real preferences domain use names
+starting `com.switchboard.tests.` and remove those files a few seconds after
+the run, so nothing is left in `~/Library/Preferences`.
+
+Never switch on mouse scrolling, red-button quit, snapping, or switching from
+a test, and never call `applyPendingRestarts` or start screen text capture. In
+a terminal that has Accessibility access those would hook the real session,
+restart the real Finder, or put a crosshair on the screen.
+
+Every push to `main` and every pull request runs the same script on GitHub
+through [ci.yml](.github/workflows/ci.yml).
 
 After changing theme colors, check text contrast:
 
@@ -61,18 +76,37 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   gone from `pmset -g assertions`. On a laptop, choose While plugged in and
   unplug and replug the adapter. Check Let display sleep with `pmset -g
   assertions` (system sleep only). Test red-button quit with multiple,
-  minimized, and full-screen windows, and with unsaved work. With Chrome
+  minimized, and full-screen windows, and with unsaved work. Check an app
+  under **Red Button Never Quits** in the settings gear and close its last
+  window: it keeps running. With Chrome
   closed, start Switchboard, then open Chrome and close its last tab: Chrome
   quits after about three seconds. Repeat with a second Chrome window
   full screen on another Space, and with one minimized: Chrome stays open.
 - Grant and revoke Accessibility and Screen Recording access. Confirm mouse
   scrolling, screen text capture, and red-button quit report missing access.
+- Check a slow first text read. Quit Switchboard, then run
+  `rm -rf ~/Library/Caches/com.Mehul72.switchboard/com.apple.e5rt.e5bundlecache`
+  so macOS has to compile its recognition models again. Relaunch and select an
+  area within twenty seconds: the panel returns at once saying it is reading,
+  the menu bar icon and the shortcuts keep working, and the text arrives about
+  half a minute later. To check the background preparation instead, also run
+  `defaults delete com.Mehul72.switchboard TextRecognitionPreparedForSystem`,
+  relaunch, wait a minute, and select an area: the text arrives at once.
 - Play two apps at low volume. Adjust each app, switch outputs, disconnect a
   device, and reset app audio. Check device volume separately, including an
-  output with no software volume control.
+  output with no software volume control. Send an app to another output, quit
+  and reopen it, and play: it uses that output again, at full volume. Then deny
+  System Audio Recording in Privacy & Security and lower an app's volume: the
+  app must stay audible or the panel must report the failure. It has not been
+  established which of the two happens.
 - Copy text and images, expand and remove history entries, and clear history.
   Check that private clipboard content stays excluded and that JPEG/HEIC
-  screenshots can be pasted into apps that accept files.
+  screenshots can be pasted into apps that accept files, each appearing once in
+  the history. Copy the contents of a file of several megabytes and open
+  Clipboard: the panel stays quick, and with Traditional mouse scrolling and
+  Window switcher on, scrolling and Command-Tab in other apps do too. Turn off
+  **Record Clipboard History** in the settings gear: the list empties and new
+  copies stay out of it.
 - Drag disposable files from Finder and shake, then repeat with a Shift press.
   The shelf must open beside the pointer, not under it. Check that a straight
   drag, a window drag, text selection, Shift held from the start, and Shift with
@@ -80,19 +114,30 @@ Before a release, check the app on a Mac with disposable files and quiet audio:
   them into Finder and an attachment field; originals must remain in place. Check
   duplicates, the 40-item limit, renaming and deleting originals, Clear, the item
   menus, Command-O, Escape, outside-click dismissal, and the menu bar count.
+  Open the file picker with **+**, then click the menu bar icon: both close,
+  and **+** opens a picker again. Turn off **Open Shelf During File Drags** in
+  the settings gear: shaking and Shift no longer open the shelf.
   Mount a disposable DMG and verify its source file offers Open before mounting
   and Eject afterward. Hover and cancel without ejecting, then drop explicitly
   onto Eject and confirm the mounted volume disappears while the DMG remains.
   In Finder, select the mounted volume on the desktop and press Command-Delete;
   it must eject. Select a file, and a file plus a disk, and press Command-Delete;
-  both must go to the Trash as normal, with no eject.
+  both must go to the Trash as normal, with no eject. Rename the mounted volume
+  on the desktop and press Command-Delete in the name field: it stays mounted.
+  Turn off **Command-Delete Ejects Disks in Finder** in the settings gear: the
+  shortcut no longer ejects.
   Test an external drive, a busy disk, an unplug during eject, keyboard navigation,
   VoiceOver, full-screen Spaces, and a short display. Never force-eject a busy disk.
 - From another app, test the five Switchboard shortcuts, including holding a key.
   Repeat with that app in a full-screen Space and its menu bar hidden. The panel
   must stay open on that Space, accept typing in search, and close with Escape,
-  an outside click, or the panel shortcut. Open clipboard history while the
+  an outside click, or the panel shortcut. Open the panel and click its icon
+  again at once: it closes without a pause. Open clipboard history while the
   panel is already showing and confirm it stays open with keyboard focus.
+  Still over the full-screen app, click a row in the panel so Switchboard is
+  the front app, then start **Copy text from the screen** from the panel: after
+  the selection the panel must come back and stay open. Close it with the panel
+  shortcut and open it with the shortcut again: it must stay open then too.
   Record a new binding, cancel with Escape or Tab, disable and restore it,
   and relaunch to check persistence. Try duplicates and occupied combinations.
   Check recording with VoiceOver and a different keyboard layout. Confirm
@@ -183,10 +228,11 @@ Then run:
 ./scripts/release.sh
 ```
 
-The script increments the build number, archives the app, signs it, notarizes
-both the app and DMG, and staples their tickets. It replaces `build/` and writes
-`build/Switchboard-<version>.dmg`. Upload that DMG to the corresponding GitHub
-release.
+The script runs the test suite first and stops there if a test fails, before
+anything is changed. It then increments the build number, archives the app,
+signs it, notarizes both the app and DMG, and staples their tickets. It
+replaces `build/` and writes `build/Switchboard-<version>.dmg`. Upload that DMG
+to the corresponding GitHub release.
 
 The in-app update check reads GitHub's latest release, which leaves out drafts
 and prereleases. Tag each release `vX.Y.Z` to match `MARKETING_VERSION`. A tag

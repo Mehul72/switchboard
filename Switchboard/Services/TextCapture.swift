@@ -4,6 +4,24 @@ import ImageIO
 import NaturalLanguage
 import Vision
 
+/// The parts of a screen text capture that leave the app: the system's
+/// selection UI and Vision. A value, so tests can stand in for both. Every
+/// completion runs on the main thread.
+struct ScreenTextSource {
+    var selectRegion: (@escaping (Result<Data, Error>) -> Void) -> Void
+    var recognise: (Data, @escaping (Result<String, Error>) -> Void) -> Void
+    /// Answers true once a sample has been read, which is when macOS has its
+    /// recognition models compiled.
+    var prepare: (@escaping (Bool) -> Void) -> Void
+    /// How long after launch `prepare` runs, to stay clear of login.
+    var prepareDelaySeconds: TimeInterval
+
+    static let live = ScreenTextSource(selectRegion: TextCapture.selectRegion,
+                                       recognise: TextCapture.recogniseInBackground,
+                                       prepare: TextCapture.prepareRecognition,
+                                       prepareDelaySeconds: 20)
+}
+
 /// Drag a region, get its text on the clipboard. macOS can recognise text in an
 /// image you already have, but offers no way to grab text off the screen
 /// itself, which is the part people actually want.
@@ -39,7 +57,11 @@ enum TextCapture {
 
     /// Runs Apple's own selection UI, so the crosshair, escape-to-cancel and
     /// Screen Recording prompt all behave exactly as they do system-wide.
-    static func selectRegion(completion: @escaping (Result<String, Error>) -> Void) {
+    ///
+    /// Hands back the picture of the chosen region, on the main thread.
+    /// Reading it is a separate step because it can take far longer than the
+    /// selection, and the app has to stay usable while it runs.
+    static func selectRegion(completion: @escaping (Result<Data, Error>) -> Void) {
         guard CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() else {
             completion(.failure(CaptureError.permissionDenied))
             return
@@ -54,13 +76,15 @@ enum TextCapture {
         task.arguments = ["-i", "-o", "-x", url.path]
         task.terminationHandler = { process in
             let status = process.terminationStatus
-            recognitionQueue.async {
-                let data = try? Data(contentsOf: url)
+            // Not the recognition queue: a read already under way there would
+            // hold this up, and the selection would look as if it never ended.
+            DispatchQueue.global(qos: .userInitiated).async {
+                let picture = try? Data(contentsOf: url)
                 try? FileManager.default.removeItem(at: url)
 
-                let result: Result<String, Error>
-                if let data, !data.isEmpty {
-                    result = recognise(data)
+                let result: Result<Data, Error>
+                if let picture, !picture.isEmpty {
+                    result = .success(picture)
                 } else if !CGPreflightScreenCaptureAccess() {
                     result = .failure(CaptureError.permissionDenied)
                 } else if status == 0 {
@@ -85,12 +109,56 @@ enum TextCapture {
         }
     }
 
+    /// Reads the text in a picture off the main thread and answers on it.
+    static func recogniseInBackground(_ picture: Data, completion: @escaping (Result<String, Error>) -> Void) {
+        recognitionQueue.async {
+            let result = recognise(picture)
+            DispatchQueue.main.async { completion(result) }
+        }
+    }
+
+    /// Reads a small drawn sample so macOS compiles its recognition models
+    /// now. It does that the first time an app reads text on a system build,
+    /// which was measured at 27 seconds, and otherwise it lands on someone's
+    /// first capture. Answers true once the sample was read.
+    static func prepareRecognition(completion: @escaping (Bool) -> Void) {
+        // Same queue as real reads, so a capture started meanwhile waits for
+        // this work instead of repeating it.
+        recognitionQueue.async(qos: .utility) {
+            var didRead = false
+            if let sample = sampleTextImage(), case .success = recognise(sample) {
+                didRead = true
+            }
+            DispatchQueue.main.async { completion(didRead) }
+        }
+    }
+
+    private static func sampleTextImage() -> CGImage? {
+        let width = 360
+        let height = 90
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+                                      bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        context.setFillColor(CGColor(gray: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        let sample = NSAttributedString(string: "Switchboard 2026", attributes: [
+            NSAttributedString.Key(kCTFontAttributeName as String): CTFontCreateWithName("Helvetica" as CFString, 34, nil),
+            NSAttributedString.Key(kCTForegroundColorAttributeName as String): CGColor(gray: 0, alpha: 1)
+        ])
+        context.textPosition = CGPoint(x: 18, y: 30)
+        CTLineDraw(CTLineCreateWithAttributedString(sample), context)
+        return context.makeImage()
+    }
+
     static func recognise(_ imageData: Data) -> Result<String, Error> {
         guard let source = CGImageSourceCreateWithData(imageData as CFData, nil),
               let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             return .failure(CaptureError.unreadableImage)
         }
+        return recognise(cgImage)
+    }
 
+    private static func recognise(_ cgImage: CGImage) -> Result<String, Error> {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
@@ -143,8 +211,7 @@ enum TextCapture {
     }
 
     @discardableResult
-    static func copyToClipboard(_ text: String) -> Bool {
-        let pasteboard = NSPasteboard.general
+    static func copyToClipboard(_ text: String, pasteboard: NSPasteboard = .general) -> Bool {
         pasteboard.clearContents()
         return pasteboard.setString(text, forType: .string)
     }

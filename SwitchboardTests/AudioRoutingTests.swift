@@ -195,18 +195,51 @@ final class AudioOutputDeviceEnumerationTests: XCTestCase {
 /// intact, and anything unexpected in there must not take the app down.
 final class AudioRoutePersistenceTests: XCTestCase {
     private var defaults: UserDefaults!
-    private var suiteName: String!
 
     override func setUp() {
         super.setUp()
-        suiteName = "switchboard.tests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suiteName)
+        defaults = InMemoryDefaults()
     }
 
     override func tearDown() {
-        defaults.removePersistentDomain(forName: suiteName)
         defaults = nil
         super.tearDown()
+    }
+
+    /// Deleting the route when its app quit made the saved choice pointless:
+    /// it was gone before the app could ever play again.
+    func testASavedRouteOutlivesItsAppQuitting() {
+        let bundleID = "com.example.switchboard-tests.not-running"
+        AppAudioEngine.persistRoutes([bundleID: "Some-Device-UID"], in: defaults)
+        let engine = AppAudioEngine(defaults: defaults, isRunning: { _ in false })
+
+        XCTAssertEqual(engine.reconcile(with: []), [])
+
+        XCTAssertEqual(engine.selectedOutputUID(for: bundleID), "Some-Device-UID")
+        XCTAssertEqual(AppAudioEngine.savedRoutes(in: defaults), [bundleID: "Some-Device-UID"])
+        XCTAssertTrue(engine.isControllingAnything, "Reset app audio must stay available to clear it")
+    }
+
+    func testPollingWaitsUntilARoutedAppIsRunning() {
+        let bundleID = "com.example.switchboard-tests.routed"
+        AppAudioEngine.persistRoutes([bundleID: "Some-Device-UID"], in: defaults)
+        var running = false
+        let engine = AppAudioEngine(defaults: defaults, isRunning: { _ in running })
+
+        XCTAssertFalse(engine.needsPolling)
+        running = true
+        XCTAssertTrue(engine.needsPolling)
+    }
+
+    func testResetForgetsSavedRoutes() {
+        AppAudioEngine.persistRoutes(["com.example.switchboard-tests.routed": "Some-Device-UID"], in: defaults)
+        let engine = AppAudioEngine(defaults: defaults, isRunning: { _ in false })
+
+        engine.releaseAll()
+
+        XCTAssertFalse(engine.hasSavedRoutes)
+        XCTAssertTrue(AppAudioEngine.savedRoutes(in: defaults).isEmpty)
+        XCTAssertFalse(engine.isControllingAnything)
     }
 
     func testRoutesSurviveARoundTrip() {

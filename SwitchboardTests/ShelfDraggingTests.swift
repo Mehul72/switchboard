@@ -80,9 +80,16 @@ final class ShelfDraggingTests: XCTestCase {
 
     func testPanelGetsKeyboardFocusAndEscapeClosesIt() throws {
         try withRunningApplication {
-            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-            defer { NSStatusBar.system.removeStatusItem(item) }
-            let button = try XCTUnwrap(item.button)
+            // A plain window stands in for the menu bar item. A real status
+            // item that lives for milliseconds can leave the menu bar stuck.
+            let anchorWindow = NSWindow(contentRect: NSRect(x: 200, y: 600, width: 60, height: 24),
+                                        styleMask: [.borderless], backing: .buffered, defer: false)
+            anchorWindow.isReleasedWhenClosed = false
+            let button = NSButton(title: "T", target: nil, action: nil)
+            button.frame = NSRect(x: 0, y: 0, width: 60, height: 24)
+            anchorWindow.contentView?.addSubview(button)
+            anchorWindow.orderFrontRegardless()
+            defer { anchorWindow.close() }
             let volumes = ShelfVolumes(load: { $0(.success([])) }, eject: { _, _ in })
             let controller = FileShelfController(shelf: FileShelf(), volumes: volumes)
             defer { controller.close() }
@@ -98,6 +105,28 @@ final class ShelfDraggingTests: XCTestCase {
             NSApp.sendEvent(escape)
             XCTAssertFalse(controller.isVisible)
             XCTAssertTrue(controller.drag.urls.isEmpty)
+        }
+    }
+
+    /// Hiding the shelf used to leave the picker's sheet attached with its
+    /// completion never run, so Add Files stayed dead until relaunch.
+    func testClosingTheShelfDismissesItsFilePicker() throws {
+        try withRunningApplication {
+            let volumes = ShelfVolumes(load: { $0(.success([])) }, eject: { _, _ in })
+            let controller = FileShelfController(shelf: FileShelf(), volumes: volumes)
+            defer { controller.close() }
+            let pointer = NSEvent.mouseLocation
+            controller.show(beside: pointer, incoming: [])
+            controller.chooseFiles()
+            XCTAssertTrue(controller.isChoosingFiles)
+
+            controller.close()
+            XCTAssertFalse(controller.isChoosingFiles)
+
+            controller.show(beside: pointer, incoming: [])
+            controller.chooseFiles()
+            XCTAssertTrue(controller.isChoosingFiles, "a new picker opens after the old one was dismissed")
+            XCTAssertNotNil(controller.panel?.attachedSheet)
         }
     }
 

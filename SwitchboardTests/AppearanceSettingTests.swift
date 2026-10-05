@@ -4,15 +4,9 @@ import XCTest
 @MainActor
 final class AppearanceSettingTests: XCTestCase {
     private var defaults: UserDefaults!
-    private var suite: String!
 
     override func setUp() {
-        suite = "AppearanceSettingTests-\(UUID())"
-        defaults = UserDefaults(suiteName: suite)
-    }
-
-    override func tearDown() {
-        defaults.removePersistentDomain(forName: suite)
+        defaults = InMemoryDefaults()
     }
 
     private func setting(applied: @escaping (NSAppearance?) -> Void) -> AppearanceSetting {
