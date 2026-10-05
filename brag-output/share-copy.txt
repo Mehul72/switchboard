@@ -1,0 +1,1 @@
+Small fixes for everyday Mac tasks. Switchboard brings app audio, clipboard history, screen text, a file shelf, window tools, and system readings to your menu bar. Watch the 30-second tour in 4K. For macOS 14.2 or later: https://github.com/Mehul72/switchboard

@@ -4,6 +4,7 @@
 
 Switchboard runs in the menu bar. Click its icon to open the panel, or press **Control-Option-Command-S**. This guide covers setup and the tools you'll find there.
 
+- [30-second tour](#30-second-tour)
 - [Installation](#installation-and-first-launch)
 - [Settings and everyday tools](#finding-and-changing-settings)
 - [Finder and Dock](#finder-and-dock-settings)
@@ -17,6 +18,24 @@ Switchboard runs in the menu bar. Click its icon to open the panel, or press **C
 - [System monitor](#system-monitor)
 - [Troubleshooting](#troubleshooting)
 - [Updates](#update-switchboard) and [uninstalling](#restore-settings-or-uninstall)
+
+## 30-second tour
+
+[![Watch the Switchboard tour: native audio, clipboard, and file shelf panels beside “Your Mac. A little easier.”](../brag-output/brag.jpg)](../brag-output/brag.mp4)
+
+[Watch in 4K](../brag-output/brag.mp4) · [View the poster](../brag-output/brag.jpg)
+
+The tour shows app audio, clipboard history, screen-text capture, the file shelf, window switching, snapping, and System readings. It includes music and uses rendered app views with sample content. You can follow all the instructions below without watching it.
+
+| In the video | Instructions |
+| --- | --- |
+| Adjust an app's volume and output | [Audio](#audio) |
+| Copy an earlier clip | [Clipboard history](#retrieve-an-earlier-copy) |
+| Capture words from an image | [Copy text from the screen](#copy-text-from-the-screen) |
+| Collect files on the shelf | [File shelf and disks](#file-shelf-and-disks) |
+| Choose an individual window | [Window switcher](#window-switcher) |
+| Snap a window into place | [Window snapping](#window-snapping) |
+| Inspect activity and show menu bar readings | [System monitor](#system-monitor) |
 
 ## Installation and first launch
 

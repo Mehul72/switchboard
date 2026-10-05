@@ -1,0 +1,75 @@
+{
+  "duration": 30,
+  "assertions": [
+    {
+      "kind": "appearsBy",
+      "selector": "#hook h1",
+      "bySec": 0.1
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#music-crop",
+      "bySec": 3.2
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#clipboard-crop",
+      "bySec": 7
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#ocr-result",
+      "bySec": 12.2
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#shelf-filled",
+      "bySec": 14.9
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#switcher-surface",
+      "bySec": 18
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#focus-window",
+      "bySec": 20.4
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#snap-quarter",
+      "bySec": 23.3
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#system-crop",
+      "bySec": 26.4
+    },
+    {
+      "kind": "appearsBy",
+      "selector": "#closing-lockup",
+      "bySec": 27.9
+    },
+    {
+      "kind": "staysInFrame",
+      "selector": "#focus-window"
+    },
+    {
+      "kind": "staysInFrame",
+      "selector": "#snap-desktop"
+    },
+    {
+      "kind": "staysInFrame",
+      "selector": "#closing-lockup"
+    },
+    {
+      "kind": "staysInFrame",
+      "selector": "#clipboard-crop"
+    },
+    {
+      "kind": "staysInFrame",
+      "selector": "#ocr-result"
+    }
+  ]
+}

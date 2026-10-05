@@ -4,9 +4,17 @@
 
 The README and user guide use native app views with sample content. Keep the images close to what someone will see in the app. Put instructions in the Markdown beside them, where they stay readable on a phone and accessible to screen readers.
 
-The README is a visual introduction, with a warm background, native panels, and eight short GIF demos. Each demo also has a silent MP4 and a still image. The user guide keeps the plain captures. Keep still-image and video links beside the GIFs, with the main instructions in the Markdown. App names, clips, files, disks, and system readings are sample data. Window previews and snapping scenes use example windows.
+The README opens with the product-tour poster and uses eight short GIF demos. Each feature demo also has a silent MP4 and a still image. The user guide includes the tour and plain captures beside the instructions. Keep still-image and video links beside the GIFs, with the main instructions in the Markdown. App names, clips, files, disks, and system readings are sample data. Window previews and snapping scenes use example windows.
 
-The videos show the same captioned sample frames as the GIFs. They are rendered demonstrations, not recordings of a desktop or live performance. Each step lasts three seconds. MP4 gives readers playback controls without an endlessly looping animation; the still image and written instructions provide a nonanimated alternative.
+The eight feature videos show the same captioned sample frames as the GIFs. They are rendered demonstrations, not recordings of a desktop or live performance. Each step lasts three seconds. MP4 gives readers playback controls without an endlessly looping animation; the still image and written instructions provide a nonanimated alternative.
+
+## Short product tour
+
+The [30-second tour](../brag-output/brag.mp4) covers per-app audio, clipboard history, screen text, the file shelf, window switching, keyboard snapping, and System readings. The 3840 × 2160 (4K), 30 fps video uses music, interaction sounds, animated native sample views, and a visible rendered-demo label. Its source views were captured at four pixels per logical point. A [poster image](../brag-output/brag.jpg) provides a still alternative.
+
+The tour was composed with Brag and Hyperframes. Its [editable source and rebuild instructions](../brag-output/README.md) are separate from the eight silent feature demos below. That file also records the bundled audio sources and their license notices.
+
+The [user guide's tour section](user-guide.md#30-second-tour) links each feature in the video to its instructions.
 
 ## Regenerate
 
@@ -20,7 +28,16 @@ build/docs/venv/bin/python scripts/docs/render.py
 
 The command builds the app without signing, compiles a separate documentation renderer, then creates the overview, GIF demos, and stills in `docs/images/`, plus MP4 demos in `docs/videos/`. The pinned Pillow and imageio-ffmpeg dependencies belong only to the documentation composer; the app has no Python dependency. imageio-ffmpeg includes FFmpeg in its macOS wheels, so a separate FFmpeg installation is not required. A failed build, render, or video encode exits with an error. Nothing is uploaded.
 
-The build log is `build/docs/build.log`. All captures, including intermediate example states, are in `build/docs/captures/`.
+The build log is `build/docs/build.log`. By default, captures and intermediate example states go to `build/docs/captures/`.
+
+For the 4K product tour, create higher-resolution native captures without replacing the guide images or feature demos:
+
+```sh
+build/docs/venv/bin/python scripts/docs/render.py \
+  --capture-scale 4 --captures-dir build/docs/captures-4k --captures-only
+```
+
+`--capture-scale` accepts 1 through 4 pixels per logical point. Omitting it keeps the screen's backing scale. A custom `--captures-dir` requires `--captures-only`, which skips publishing to `docs/`. Copy the required captures into the tour's local assets using its [rebuild instructions](../brag-output/README.md#regenerate-native-captures), then export the video separately.
 
 ## Files to edit
 
@@ -70,7 +87,7 @@ The renderer has a separate app identity, a disposable preferences suite, and a 
 
 1. Regenerate from the source you intend to release.
 2. Open each published image and inspect every GIF frame. Check for clipped text, missing icons, incorrect sample state, and readable captions. Keep the still-image and MP4 links beside the demos.
-3. Decode each MP4 and check that its dimensions, captions, step order, and duration match the GIF. Play each video in a browser or QuickTime; check seeking, the first and last steps, and that there is no audio track. Preview the README and guide at desktop and phone widths, in light and dark themes. Images should fit the page, and the instructions should make sense without them.
+3. Decode each feature-demo MP4 and check that its dimensions, captions, step order, and duration match the GIF. Play each video in a browser or QuickTime; check seeking, the first and last steps, and that there is no audio track. Check the product tour separately using its rebuild instructions, including its music and interaction sounds. Preview the README and guide at desktop and phone widths, in light and dark themes. Images should fit the page, and the instructions should make sense without them.
 4. Check local links and image alt text. Compare control names, defaults, and permissions with the app.
 5. Before a release, follow the install and clipboard instructions using the release DMG. Rendering source views doesn't verify signing, notarization, or a clean install.
 

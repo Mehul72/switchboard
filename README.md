@@ -16,11 +16,15 @@
   <a href="#install">Install</a>
   &nbsp; · &nbsp;
   <a href="docs/user-guide.md">User guide</a>
+  &nbsp; · &nbsp;
+  <a href="brag-output/brag.mp4">Watch the 4K tour</a>
 </p>
 
 <p align="center"><sub>macOS 14.2 or later · No account needed · Built with SwiftUI</sub></p>
 
-![Switchboard's Everyday and Audio panels, showing settings in light appearance and per-app volume controls in dark appearance.](docs/images/overview.png)
+[![Watch the 30-second Switchboard tour: native audio, clipboard, and file shelf panels beside “Your Mac. A little easier.”](brag-output/brag.jpg)](brag-output/brag.mp4)
+
+<p align="center"><a href="brag-output/brag.mp4"><strong>Watch the 30-second tour in 4K</strong></a> · <a href="brag-output/brag.jpg">View the poster</a><br><sub>App audio, clipboard history, screen text, files, window switching, snapping, and System readings. Includes music; all instructions are also available in the <a href="docs/user-guide.md#30-second-tour">user guide</a>.</sub></p>
 
 <p align="center"><sub>Native app views with sample content, refreshed October 2026. The demos are rendered examples, not desktop recordings. Each has a still image and a playable MP4.</sub></p>
 

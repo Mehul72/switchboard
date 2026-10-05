@@ -20,8 +20,9 @@ struct DocumentationRenderer {
 
     @MainActor
     static func render() async throws {
-        let output = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            .appendingPathComponent("build/docs/captures")
+        let capturePath = ProcessInfo.processInfo.environment["SWITCHBOARD_DOCS_CAPTURES"]
+            ?? FileManager.default.currentDirectoryPath + "/build/docs/captures"
+        let output = URL(fileURLWithPath: capturePath)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         let monitor = SystemMonitor()
         let suite = "Switchboard.Documentation.\(UUID())"
@@ -145,8 +146,27 @@ struct DocumentationRenderer {
         try await Task.sleep(for: .milliseconds(700))
         host.layoutSubtreeIfNeeded()
         host.displayIfNeeded()
-        guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else {
-            throw CocoaError(.fileWriteUnknown)
+        let bitmap: NSBitmapImageRep
+        if let rawScale = ProcessInfo.processInfo.environment["SWITCHBOARD_DOCS_CAPTURE_SCALE"] {
+            guard let scale = Int(rawScale), (1...4).contains(scale) else {
+                throw NSError(domain: "Switchboard.Documentation", code: 1,
+                              userInfo: [NSLocalizedDescriptionKey: "Capture scale must be an integer from 1 to 4"])
+            }
+            guard let scaled = NSBitmapImageRep(bitmapDataPlanes: nil,
+                                                pixelsWide: Int((host.bounds.width * CGFloat(scale)).rounded(.up)),
+                                                pixelsHigh: Int((host.bounds.height * CGFloat(scale)).rounded(.up)),
+                                                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+                                                isPlanar: false, colorSpaceName: .deviceRGB,
+                                                bytesPerRow: 0, bitsPerPixel: 0) else {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            scaled.size = host.bounds.size
+            bitmap = scaled
+        } else {
+            guard let screenBitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            bitmap = screenBitmap
         }
         host.cacheDisplay(in: host.bounds, to: bitmap)
         guard let png = bitmap.representation(using: .png, properties: [:]) else {

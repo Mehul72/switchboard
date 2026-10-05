@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Render current SwiftUI views with isolated sample state, then export documentation images."""
 from pathlib import Path
+import argparse
+import os
 import plistlib
 import shutil
 import subprocess
@@ -12,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / 'build/docs'
 
 
-def run(args, timeout=240):
-    subprocess.run([str(arg) for arg in args], cwd=ROOT, check=True, timeout=timeout)
+def run(args, timeout=240, env=None):
+    subprocess.run([str(arg) for arg in args], cwd=ROOT, check=True, timeout=timeout, env=env)
 
 
 def replace_region(text, start, end, replacement):
@@ -25,6 +27,22 @@ def replace_region(text, start, end, replacement):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--capture-scale', type=int, choices=range(1, 5),
+                        help='Native pixels per logical point; defaults to the screen backing scale.')
+    parser.add_argument('--captures-dir', type=Path, default=BUILD / 'captures',
+                        help='Native capture directory (a custom directory requires --captures-only).')
+    parser.add_argument('--captures-only', action='store_true',
+                        help='Skip publishing images, GIFs, and videos to docs/.')
+    options = parser.parse_args()
+    captures = options.captures_dir.resolve()
+    if captures != (BUILD / 'captures').resolve() and not options.captures_only:
+        parser.error('--captures-dir requires --captures-only when using a custom directory')
+    environment = os.environ.copy()
+    environment['SWITCHBOARD_DOCS_CAPTURES'] = str(captures)
+    environment.pop('SWITCHBOARD_DOCS_CAPTURE_SCALE', None)
+    if options.capture_scale is not None:
+        environment['SWITCHBOARD_DOCS_CAPTURE_SCALE'] = str(options.capture_scale)
     BUILD.mkdir(parents=True, exist_ok=True)
     with (BUILD / 'build.log').open('w') as log:
         subprocess.run(['xcodebuild', '-project', 'Switchboard.xcodeproj', '-scheme', 'Switchboard',
@@ -91,8 +109,9 @@ def main():
         run(['xcrun', 'swiftc', '-parse-as-library', '-swift-version', '5',
              '-module-cache-path', BUILD / 'module-cache', *sources, generated,
              ROOT / 'scripts/docs/Render.swift', ROOT / 'scripts/docs/Windows.swift', ROOT / 'scripts/docs/Features.swift', '-o', executable])
-        run([executable], timeout=60)
-    export_media()
+        run([executable], timeout=60, env=environment)
+    if not options.captures_only:
+        export_media()
 
 
 if __name__ == '__main__':
