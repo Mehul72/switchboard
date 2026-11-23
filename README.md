@@ -38,6 +38,7 @@ Switchboard is a little utility that lives at the top of your screen. Open it wh
   <a href="#clipboard">Clipboard</a> ·
   <a href="#screen-text">Screen text</a> ·
   <a href="#windows">Windows</a> ·
+  <a href="#display-scaling">Display scaling</a> ·
   <a href="#system">System</a>
 </p>
 
@@ -146,6 +147,18 @@ Drag a window by its title bar, then hold **Control**. Move across the grid to c
 [Drag controls](docs/user-guide.md#snap-by-dragging) · [Still image](docs/images/window-grid-demo.png) · [Download MP4](https://github.com/Mehul72/switchboard/raw/refs/heads/main/docs/videos/window-grid.mp4)
 
 </details>
+
+## Display scaling
+
+### Make text comfortable on an external monitor
+
+Open **settings gear > Display Scaling…**, choose your monitor and a text size, then click **Try Scaling**. You have 20 seconds to choose **Keep Scaling**; otherwise Switchboard returns to your previous display settings. **Restore Original** changes it back whenever you want.
+
+For a 3440 × 1440 ultrawide, start with **125% · 2752 × 1152**. HiDPI rendering can make enlarged text cleaner, but intermediate sizes can soften edges. It cannot add physical pixels to your monitor or promise lossless scaling.
+
+Scaling works on one external monitor at a time and ends when you restore it, quit Switchboard, put the displays to sleep, or disconnect the monitor. It does not resume automatically. Built-in, rotated, and already mirrored displays are not supported by this feature.
+
+[Display scaling guide](docs/user-guide.md#display-scaling) · [Dell test checklist](docs/hidpi-testing.md)
 
 ## System
 

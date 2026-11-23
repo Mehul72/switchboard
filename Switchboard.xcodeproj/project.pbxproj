@@ -149,6 +149,19 @@
 		5B0A00000000000000000016 /* FrontHandover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000015 /* FrontHandover.swift */; };
 		5B0A00000000000000000017 /* FrontHandover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000015 /* FrontHandover.swift */; };
 		5B0A00000000000000000019 /* FrontHandoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0A00000000000000000018 /* FrontHandoverTests.swift */; };
+		31C88EE02A09753F7A422AAE /* VirtualDisplayBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = D4F0A566B2DB047B7AB9DC39 /* VirtualDisplayBridge.m */; };
+		3C853D7D5E3A6D86A147C2E7 /* DisplayScalingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4DFA6136287B98A474F2DE /* DisplayScalingController.swift */; };
+		47DF440C9C3B0BD3EB69C7C8 /* DisplayScalingBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E52222BA812516BA18E972B /* DisplayScalingBackend.swift */; };
+		5127E3FDEC1DCD22EF0DD005 /* DisplayScalingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBE65469C08EC16BDDB7B8E3 /* DisplayScalingWindowController.swift */; };
+		67D368457D12F8BE78648D3E /* DisplayScalingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A86DD9025C23C91F90ACA /* DisplayScalingModels.swift */; };
+		7DF87D04C07A99BD76903D61 /* DisplayScalingBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD7FB89388D427393197C0D /* DisplayScalingBackendTests.swift */; };
+		87F4B7F740D769646AA84976 /* VirtualDisplayBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = D4F0A566B2DB047B7AB9DC39 /* VirtualDisplayBridge.m */; };
+		895B2F0F2B3B896C3ED2B099 /* DisplayScalingBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E52222BA812516BA18E972B /* DisplayScalingBackend.swift */; };
+		9BC96CD9D427CB3E02C4E9C1 /* DisplayScalingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF5F44B1421543100F618B1 /* DisplayScalingTests.swift */; };
+		9BF5C3D5D35D57CA4FEFE359 /* DisplayScalingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4DFA6136287B98A474F2DE /* DisplayScalingController.swift */; };
+		A5E75BE203E569CDCF19FC41 /* DisplayScalingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC8E875A8464B6999C82300 /* DisplayScalingView.swift */; };
+		CCAF0115EEE24F6CC6D8BF62 /* DisplayScalingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A86DD9025C23C91F90ACA /* DisplayScalingModels.swift */; };
+		E0E91895C7ED9F19C8657EC3 /* DisplayScalingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC8E875A8464B6999C82300 /* DisplayScalingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -259,6 +272,16 @@
 		5B0A00000000000000000013 /* TweakRowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakRowLayoutTests.swift; sourceTree = "<group>"; };
 		5B0A00000000000000000015 /* FrontHandover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontHandover.swift; sourceTree = "<group>"; };
 		5B0A00000000000000000018 /* FrontHandoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontHandoverTests.swift; sourceTree = "<group>"; };
+		1BC8E875A8464B6999C82300 /* DisplayScalingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingView.swift; sourceTree = "<group>"; };
+		2169E5047A289204E4F8354D /* VirtualDisplayBridge.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = VirtualDisplayBridge.h; sourceTree = "<group>"; };
+		2AD7FB89388D427393197C0D /* DisplayScalingBackendTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingBackendTests.swift; sourceTree = "<group>"; };
+		5F2A86DD9025C23C91F90ACA /* DisplayScalingModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingModels.swift; sourceTree = "<group>"; };
+		6E52222BA812516BA18E972B /* DisplayScalingBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingBackend.swift; sourceTree = "<group>"; };
+		A967D48174BCE22EAA439D7A /* Switchboard-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Switchboard-Bridging-Header.h"; sourceTree = "<group>"; };
+		CBE65469C08EC16BDDB7B8E3 /* DisplayScalingWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingWindowController.swift; sourceTree = "<group>"; };
+		D4F0A566B2DB047B7AB9DC39 /* VirtualDisplayBridge.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = VirtualDisplayBridge.m; sourceTree = "<group>"; };
+		DFF5F44B1421543100F618B1 /* DisplayScalingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingTests.swift; sourceTree = "<group>"; };
+		FB4DFA6136287B98A474F2DE /* DisplayScalingController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayScalingController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -297,6 +320,7 @@
 				7587F57B35741679DAF0A5F0 /* StatusItemController.swift */,
 				1E4A38313CAB22EE109A63C8 /* SwitchboardApp.swift */,
 				5B0A00000000000000000015 /* FrontHandover.swift */,
+				CBE65469C08EC16BDDB7B8E3 /* DisplayScalingWindowController.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -335,6 +359,8 @@
 				5B0A00000000000000000010 /* EventTapTests.swift */,
 				5B0A00000000000000000013 /* TweakRowLayoutTests.swift */,
 				5B0A00000000000000000018 /* FrontHandoverTests.swift */,
+				DFF5F44B1421543100F618B1 /* DisplayScalingTests.swift */,
+				2AD7FB89388D427393197C0D /* DisplayScalingBackendTests.swift */,
 			);
 			path = SwitchboardTests;
 			sourceTree = "<group>";
@@ -364,6 +390,7 @@
 				BF49656E31E00F535E0CB517 /* Theme.swift */,
 				456B0B01FA009470CEEE8A25 /* TweakRow.swift */,
 				F90000000000000000000003 /* WelcomeView.swift */,
+				1BC8E875A8464B6999C82300 /* DisplayScalingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -415,6 +442,9 @@
 				AC030000000000000000000001 /* MenuBarReadout.swift */,
 				AC010000000000000000000001 /* ProcessUsage.swift */,
 				5B0A0000000000000000000D /* EventTapThread.swift */,
+				5F2A86DD9025C23C91F90ACA /* DisplayScalingModels.swift */,
+				FB4DFA6136287B98A474F2DE /* DisplayScalingController.swift */,
+				6E52222BA812516BA18E972B /* DisplayScalingBackend.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -425,6 +455,9 @@
 				BA6146AA95C26666D53CD23F /* ShelfDragging.swift */,
 				8C48495F48B4742EF3E33D9D /* MenuBarIcon.swift */,
 				BEA1346564F40A58871F7F0C /* VisualEffectBackground.swift */,
+				2169E5047A289204E4F8354D /* VirtualDisplayBridge.h */,
+				D4F0A566B2DB047B7AB9DC39 /* VirtualDisplayBridge.m */,
+				A967D48174BCE22EAA439D7A /* Switchboard-Bridging-Header.h */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -598,6 +631,13 @@
 				5B0A00000000000000000014 /* TweakRowLayoutTests.swift in Sources */,
 				5B0A00000000000000000017 /* FrontHandover.swift in Sources */,
 				5B0A00000000000000000019 /* FrontHandoverTests.swift in Sources */,
+				CCAF0115EEE24F6CC6D8BF62 /* DisplayScalingModels.swift in Sources */,
+				9BF5C3D5D35D57CA4FEFE359 /* DisplayScalingController.swift in Sources */,
+				895B2F0F2B3B896C3ED2B099 /* DisplayScalingBackend.swift in Sources */,
+				31C88EE02A09753F7A422AAE /* VirtualDisplayBridge.m in Sources */,
+				E0E91895C7ED9F19C8657EC3 /* DisplayScalingView.swift in Sources */,
+				9BC96CD9D427CB3E02C4E9C1 /* DisplayScalingTests.swift in Sources */,
+				7DF87D04C07A99BD76903D61 /* DisplayScalingBackendTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -667,6 +707,12 @@
 				301506874562B39F65103426 /* VisualEffectBackground.swift in Sources */,
 				5B0A0000000000000000000E /* EventTapThread.swift in Sources */,
 				5B0A00000000000000000016 /* FrontHandover.swift in Sources */,
+				67D368457D12F8BE78648D3E /* DisplayScalingModels.swift in Sources */,
+				3C853D7D5E3A6D86A147C2E7 /* DisplayScalingController.swift in Sources */,
+				47DF440C9C3B0BD3EB69C7C8 /* DisplayScalingBackend.swift in Sources */,
+				87F4B7F740D769646AA84976 /* VirtualDisplayBridge.m in Sources */,
+				A5E75BE203E569CDCF19FC41 /* DisplayScalingView.swift in Sources */,
+				5127E3FDEC1DCD22EF0DD005 /* DisplayScalingWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -692,10 +738,11 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Switchboard/Support/Switchboard-Bridging-Header.h";
 			};
 			name = Release;
 		};
@@ -735,7 +782,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -770,6 +817,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Switchboard/Support/Switchboard-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -784,6 +832,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Switchboard/Support/Switchboard-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -799,10 +848,11 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Mehul72.switchboard;
 				PRODUCT_NAME = Switchboard;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Switchboard/Support/Switchboard-Bridging-Header.h";
 			};
 			name = Debug;
 		};
@@ -842,7 +892,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MACDPWQG37;
 				ENABLE_HARDENED_RUNTIME = NO;

@@ -12,6 +12,7 @@ struct PopoverView: View {
     var showShelf: () -> Void = {}
     @ObservedObject var appearance: AppearanceSetting
     @ObservedObject var updates: UpdateChecker
+    var showDisplayScaling: () -> Void = {}
 
     @State private var launchAtLoginState = LaunchAtLogin.state
     // Bound straight to the store, SwiftUI's text-field writeback buffer
@@ -138,6 +139,7 @@ struct PopoverView: View {
     private var settingsMenu: some View {
         Menu {
             Button("Keyboard Shortcuts…", action: showShortcuts)
+            Button("Display Scaling…", action: showDisplayScaling)
             Divider()
             Button(launchAtLoginTitle) {
                 if launchAtLoginState == .unavailable {

@@ -13,6 +13,7 @@ Switchboard runs in the menu bar. Click its icon to open the panel, or press **C
 - [File shelf and disks](#file-shelf-and-disks)
 - [Window snapping](#window-snapping)
 - [Window switcher](#window-switcher)
+- [Display scaling](#display-scaling)
 - [Shortcuts](#global-shortcuts)
 - [Permissions](#permissions)
 - [System monitor](#system-monitor)
@@ -71,7 +72,7 @@ The appearance button beside the settings gear offers **Match System**, **Light*
 
 <img src="images/everyday-dark.png" width="440" alt="The Everyday tab in dark appearance. The appearance button and settings gear are at the top right.">
 
-The images in this guide are native app views rendered with sample content. Window previews and the desktop are examples, and system readings are made up. This guide describes the repository source reviewed on 5 October 2026; an older release may differ. See [Demos and media](media.md) for animated walkthroughs.
+The images in this guide are native app views rendered with sample content. Window previews and the desktop are examples, and system readings are made up. The existing demos were refreshed in October 2026. Display Scaling is new in version 1.2.0 and is not shown in those demos. See [Demos and media](media.md) for animated walkthroughs.
 
 Use **settings gear > Restore Original Settings** to put system preferences back to their values before Switchboard changed them. Shortcut bindings are managed separately.
 
@@ -322,6 +323,24 @@ Running apps with no open windows appear under **Apps without windows**. Selecti
 
 Change any of the four bindings in **settings gear > Keyboard Shortcuts**. With a custom binding, hold its Control, Option, or Command modifiers and release any one to switch; Shift changes direction. Disabling the feature or quitting Switchboard brings back native Command-Tab.
 
+## Display scaling
+
+Use **settings gear > Display Scaling…** to make text and controls larger on an external monitor. It uses HiDPI rendering, which draws the desktop in more detail before fitting it to the screen. Intermediate sizes can look slightly softer than native resolution; this does not turn a lower-density monitor into a Retina display.
+
+1. Connect the monitor and open **Display Scaling…**. Choose **Refresh Displays** or **Refresh** if it has not appeared.
+2. Select the external monitor under **Display**. Start with **125%** for a 3440 × 1440 ultrawide; its desktop will look like **2752 × 1152**.
+3. Choose **Try Scaling**. The monitor may blink while macOS changes the display configuration.
+4. Check ordinary text and the pointer. Choose **Keep Scaling** within 20 seconds if the result is comfortable. Choose **Revert**, press **Escape**, or let the timer expire to return to the previous settings. Closing the window before confirming also reverts.
+5. After confirming, you can close the window with **Done**. To stop later, reopen it and choose **Restore Original**.
+
+The size menu offers 100%, 110%, 125%, 150%, 175%, and 200% where the display dimensions and rendering limits allow them. Higher percentages make the interface larger and leave less room for windows. **100%** still uses HiDPI rendering; use **Restore Original** to return to the original display mode.
+
+Only one external monitor can be scaled at a time. Starting a new preview restores the previous scaling session first. The feature does not support built-in displays, rotated displays, or monitors that already belong to a mirror set. For a built-in screen, use **System Settings > Displays**. To try a previously mirrored external screen, first set it to extend the desktop in macOS.
+
+Confirmed scaling lasts until you choose **Restore Original**, quit Switchboard, put the Mac or displays to sleep, or disconnect the monitor. Waking or reconnecting does not apply it again; open Display Scaling and start a new preview. This feature needs neither Screen Recording access nor an administrator password.
+
+This version supports SDR colour at a fixed refresh rate. HDR and variable refresh rate are not supported while scaling. Check refresh rate, colour, and protected video playback before settling on a size. The feature aims to retain the monitor's native output, but that needs checking on your monitor and connection. The [Dell test checklist](hidpi-testing.md) includes the signal-resolution check and recovery steps.
+
 ## Global shortcuts
 
 These work from any app while Switchboard is running. Each action runs when you release the shortcut key.
@@ -359,6 +378,7 @@ macOS asks for access when you use a feature that needs it. Grant only the permi
 | Copy text from the screen | Screen Recording |
 | Window previews, if enabled | Screen Recording |
 | Per-app audio | System Audio Recording |
+| Display scaling | No additional permission |
 
 Manage these in **System Settings > Privacy & Security**. When a feature needs Accessibility or Screen Recording, the notice in the panel has a link that opens the right pane. If a toggle stayed off while you granted access, turn it on again. Screen Recording may need a quit and relaunch.
 
@@ -428,6 +448,9 @@ An unavailable reading means macOS or your hardware didn't supply it. It doesn't
 | Launch at Login offers Move or Restart instead | Move the app to Applications or choose **Restart Switchboard from Applications…**, then enable Launch at Login. |
 | System shows unavailable readings | Wait for a new sample. GPU and battery sensors depend on the Mac; an unavailable reading is not zero. Use **Open Activity Monitor** for another view. |
 | Checking for updates fails | Check your internet connection, then try again. GitHub limits how often one network can ask, so a repeated failure can clear on its own within an hour. |
+| Display scaling shows no monitor | Connect an external display and choose **Refresh Displays**. Built-in displays use macOS's own scaling controls. |
+| A scaled picture is unreadable or blank | Do not confirm it. Let the 20-second preview expire, or use **Revert**. If it does not recover, quit Switchboard from another screen and reconnect the monitor. See the [recovery steps](hidpi-testing.md#recover-the-display). |
+| Scaling stopped after sleep or reconnecting | This is expected. Open **Display Scaling…** and choose **Try Scaling** again. |
 
 If that doesn't help, [report a bug](https://github.com/Mehul72/switchboard/issues/new?template=bug_report.yml). Include your Switchboard version, macOS version, steps to reproduce it, and the exact error if there is one.
 
@@ -453,4 +476,4 @@ Appearance, shortcut bindings, menu bar readings, the gear's optional behaviours
 4. Choose **Quit Switchboard**.
 5. Move **Applications > Switchboard** to the Trash.
 
-Quitting clears clipboard history, shelf references, and window previews. It restores native Command-Tab, but it doesn't undo persistent Finder, Dock, screenshot, or device-volume changes. Original files stay in place. Shortcut customisations are managed separately in **Keyboard Shortcuts**.
+Quitting clears clipboard history, shelf references, and window previews. It stops display scaling and restores native Command-Tab, but it doesn't undo persistent Finder, Dock, screenshot, or device-volume changes. Original files stay in place. Shortcut customisations are managed separately in **Keyboard Shortcuts**.

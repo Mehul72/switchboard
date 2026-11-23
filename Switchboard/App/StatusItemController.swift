@@ -27,6 +27,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let switcher = WindowSwitcher()
     private lazy var dragGrid = WindowDragGrid(snapper: snapper)
     private var shortcutSettings: ShortcutSettingsController?
+    private var displayScaling: DisplayScalingController?
+    private var displayScalingWindow: DisplayScalingWindowController?
     private var welcome: WelcomeWindowController?
     private var hostingController: NSHostingController<PopoverView>?
     private var restartProtection = false
@@ -116,6 +118,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     func prepareForQuit() {
+        displayScaling?.shutdown()
         store.discardSpooledScreenshots()
     }
 
@@ -195,7 +198,8 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                                   showShortcuts: { [weak self] in self?.showShortcutSettings() },
                                   height: height,
                                   showShelf: { [weak self] in self?.showFileShelf() },
-                                  appearance: appearance, updates: updates)
+                                  appearance: appearance, updates: updates,
+                                  showDisplayScaling: { [weak self] in self?.showDisplayScaling() })
         )
 
         // Dynamic SwiftUI resizing after presentation can move a status-item
@@ -244,6 +248,16 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             guard let command = action.windowCommand else { return }
             snapFocusedWindow(command)
         }
+    }
+
+    private func showDisplayScaling() {
+        popover.close()
+        if displayScaling == nil {
+            let scaling = DisplayScalingController(backend: DisplayScalingBackend())
+            displayScaling = scaling
+            displayScalingWindow = DisplayScalingWindowController(controller: scaling, appearance: appearance)
+        }
+        displayScalingWindow?.open()
     }
 
     private func showUpdateReport(_ report: UpdateChecker.Report) {
