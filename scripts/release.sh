@@ -18,10 +18,8 @@ set -euo pipefail
 
 PROJECT="Switchboard.xcodeproj"
 SCHEME="Switchboard"
-TEAM_ID="MACDPWQG37"
 KEYCHAIN_PROFILE="switchboard-notary"
-BUILD_DIR="build"
-DERIVED_DATA="$BUILD_DIR/DerivedData"
+RELEASE_ROOT="build/releases"
 APP_NAME="Switchboard"
 
 cd "$(dirname "$0")/.."
@@ -33,13 +31,15 @@ fail() { printf "\n\033[31mFAILED: %s\033[0m\n" "$1" >&2; exit 1; }
 step "Checking prerequisites"
 # Capture first: under `set -o pipefail`, `grep -q` exits on the first match and
 # the producer dies of SIGPIPE, which fails the pipeline however the match went.
-IDENTITIES=$(security find-identity -v -p codesigning 2>&1 || true)
+if ! IDENTITIES=$(security find-identity -v -p codesigning 2>&1); then
+  fail "Could not read signing identities from the Keychain."
+fi
 case "$IDENTITIES" in
   *"Developer ID Application"*) ;;
   *) fail "No Developer ID Application certificate. Create one in Xcode > Settings > Accounts." ;;
 esac
 xcrun notarytool history --keychain-profile "$KEYCHAIN_PROFILE" >/dev/null 2>&1 \
-  || fail "Notary credentials '$KEYCHAIN_PROFILE' not stored. See the header of this script."
+  || fail "Could not authenticate with notary profile '$KEYCHAIN_PROFILE'. Refresh its credentials using the secure prompt described above, then retry."
 echo "  certificate and notary credentials present"
 
 # Before the build number is bumped, so a failing suite leaves the project
@@ -50,49 +50,58 @@ if ! SWITCHBOARD_TEST_DERIVED_DATA="$TEST_DIR/DerivedData" ./scripts/test.sh > "
   grep -E "error:|Test Case .* failed" "$TEST_DIR/test.log" | tail -20 || true
   fail "Tests failed. Full log: $TEST_DIR/test.log"
 fi
-grep -E "Executed [0-9]+ tests" "$TEST_DIR/test.log" | tail -1
-rm -rf "$TEST_DIR"
+grep -E "Executed [0-9]+ tests" "$TEST_DIR/test.log" | tail -1 \
+  || fail "The test run returned no test summary. Full log: $TEST_DIR/test.log"
 
 # Apple rejects a build number it has already seen, so bump it every run.
-CURRENT_BUILD=$(xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
-  -showBuildSettings 2>/dev/null | awk '/CURRENT_PROJECT_VERSION/{print $3; exit}')
-NEXT_BUILD=$((CURRENT_BUILD + 1))
-MARKETING=$(xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
-  -showBuildSettings 2>/dev/null | awk '/MARKETING_VERSION/{print $3; exit}')
+if ! BUILD_SETTINGS=$(xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+  -showBuildSettings 2> "$TEST_DIR/build-settings.log"); then
+  fail "Could not read release build settings. Full log: $TEST_DIR/build-settings.log"
+fi
+CURRENT_BUILD=$(printf '%s\n' "$BUILD_SETTINGS" | awk '/CURRENT_PROJECT_VERSION =/ && !found { value=$3; found=1 } END { print value }')
+MARKETING=$(printf '%s\n' "$BUILD_SETTINGS" | awk '/MARKETING_VERSION =/ && !found { value=$3; found=1 } END { print value }')
+[[ "$CURRENT_BUILD" =~ ^[0-9]{1,9}$ ]] || fail "Invalid build number: $CURRENT_BUILD"
+[[ "$MARKETING" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "Invalid release version: $MARKETING"
+NEXT_BUILD=$((10#$CURRENT_BUILD + 1))
+BUILD_DIR="$RELEASE_ROOT/$MARKETING-build-$NEXT_BUILD"
+DERIVED_DATA="$BUILD_DIR/DerivedData"
+mkdir -p "$RELEASE_ROOT"
+# Reserving a new directory prevents an old archive from satisfying a failed build.
+mkdir "$BUILD_DIR" || fail "Release output already exists or cannot be created: $BUILD_DIR"
+cp "$TEST_DIR/test.log" "$TEST_DIR/build-settings.log" "$BUILD_DIR/"
+rm -rf "$TEST_DIR"
 echo "  version $MARKETING, build $CURRENT_BUILD -> $NEXT_BUILD"
 sed -i '' "s/CURRENT_PROJECT_VERSION = $CURRENT_BUILD;/CURRENT_PROJECT_VERSION = $NEXT_BUILD;/g" \
   "$PROJECT/project.pbxproj"
 
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
-
 # --- archive and export ----------------------------------------------------
-# Keep release products away from Xcode's shared Derived Data. Cleaning the
-# shared target can delete a running Debug app's bundle and leave its process
-# unable to register itself as a login item.
-step "Cleaning previous Release products"
-xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
-  -derivedDataPath "$DERIVED_DATA" clean >/dev/null 2>&1 || true
-
+# A fresh, isolated Derived Data directory preserves running apps and older builds.
 step "Archiving"
-xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+if ! xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
   -derivedDataPath "$DERIVED_DATA" -archivePath "$BUILD_DIR/$APP_NAME.xcarchive" archive \
-  | grep -E "error:|warning: .*\.swift|BUILD" || true
+  > "$BUILD_DIR/archive.log" 2>&1; then
+  tail -40 "$BUILD_DIR/archive.log"
+  fail "Archive failed. Full log: $BUILD_DIR/archive.log"
+fi
 [ -d "$BUILD_DIR/$APP_NAME.xcarchive" ] || fail "Archive not produced."
 
 step "Exporting with Developer ID"
-xcodebuild -exportArchive \
+if ! xcodebuild -exportArchive \
   -archivePath "$BUILD_DIR/$APP_NAME.xcarchive" \
   -exportPath "$BUILD_DIR/export" \
   -exportOptionsPlist ExportOptions.plist \
-  | grep -E "error:|EXPORT" || true
+  > "$BUILD_DIR/export.log" 2>&1; then
+  tail -40 "$BUILD_DIR/export.log"
+  fail "Developer ID export failed. Full log: $BUILD_DIR/export.log"
+fi
 APP="$BUILD_DIR/export/$APP_NAME.app"
 [ -d "$APP" ] || fail "Export not produced."
 
 step "Verifying the signature before submitting"
 codesign --verify --deep --strict --verbose=2 "$APP" 2>&1 | tail -2
-SIGN_INFO=$(codesign -dvvv "$APP" 2>&1 || true)
-printf '%s\n' "$SIGN_INFO" | grep -E "Authority=Developer ID|flags=" | head -2
+SIGN_INFO=$(codesign -dvvv "$APP" 2>&1) || fail "Could not inspect the exported app's signature."
+printf '%s\n' "$SIGN_INFO" > "$BUILD_DIR/signature.log"
+printf '%s\n' "$SIGN_INFO" | awk '/Authority=Developer ID|flags=/ { if (++count <= 2) print }'
 case "$SIGN_INFO" in
   *"(runtime)"*) ;;
   *) fail "Hardened Runtime is off. Notarisation will be rejected." ;;
@@ -140,11 +149,17 @@ grep -q "status: Accepted" "$BUILD_DIR/notary-dmg.log" || {
 xcrun stapler staple "$DMG"
 xcrun stapler validate "$DMG"
 
+step "Checking Gatekeeper"
+if ! spctl -a -vvv -t open --context context:primary-signature "$DMG" \
+  > "$BUILD_DIR/gatekeeper.log" 2>&1; then
+  cat "$BUILD_DIR/gatekeeper.log"
+  fail "Gatekeeper rejected the disk image. Full log: $BUILD_DIR/gatekeeper.log"
+fi
+cat "$BUILD_DIR/gatekeeper.log"
+
 step "Done"
 echo "  $DMG"
 echo "  version $MARKETING (build $NEXT_BUILD)"
 echo
-echo "  Gatekeeper check on this machine:"
-spctl -a -vvv -t open --context context:primary-signature "$DMG" 2>&1 | sed 's/^/    /' || true
-echo
+echo "  Full release logs: $BUILD_DIR"
 echo "  Upload the .dmg to a GitHub release."
